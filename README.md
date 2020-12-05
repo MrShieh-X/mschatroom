@@ -71,4 +71,4 @@ Bntoylort@outlook.com<br/>
 - QQ:<br/>
 3553413882 (Remember to tell me why you want to add me)<br/>
 
-## Since there is only one author who developed this mod, there may be many bugs. If you find any bugs in this mod or have new ideas, please send an email or add my QQ.
+## Since there is only one author who developed this application, there may be many bugs. If you find any bugs in this application or have new ideas, please send an email or add my QQ.
