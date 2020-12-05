@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mscrUserInformatons>
+    <name content="${ACCOUNT_NAME}"/>
+    <gender content="${ACCOUNT_GENDER}"/>
+    <what_s_up content="${ACCOUNT_WHATSUP}"/>
+</mscrUserInformatons>

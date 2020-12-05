@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="preference_settings_interface_themes">
+        <item>亮主题</item>
+        <item>暗主题</item>
+    </string-array>
+</resources>

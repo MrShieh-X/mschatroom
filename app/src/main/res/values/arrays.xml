@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="preference_settings_interface_themes">
+        <item>Light Theme</item>
+        <item>Dark Theme</item>
+    </string-array>
+    <string-array name="preference_settings_interface_themes_values">
+        <item>light</item>
+        <item>dark</item>
+    </string-array>
+    <string-array name="preference_settings_interface_languages">
+        <item>English (US)</item>
+        <item>简体中文（中国）</item>
+    </string-array>
+    <string-array name="preference_settings_interface_languages_values">
+        <item>en_US</item>
+        <item>zh_CN</item>
+    </string-array>
+</resources>
