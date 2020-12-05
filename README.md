@@ -29,9 +29,9 @@ Then we enter the database.
 ```mysql
 use mscr;
 ```
-After entering, create a new table in the following format
-![Table description](https://gitee.com/MrShiehX/Repository/raw/master/31.png "Table description")
-You can enter the following command to create a new table, where "users" is the name of the table.
+After entering, create a new table in the following format</br>
+![Table description](https://gitee.com/MrShiehX/Repository/raw/master/31.png "Table description")</br>
+You can enter the following command to create a new table, where "users" is the name of the table.</br>
 ```mysql
 create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not null,`password` varchar(1000) not null,`information` mediumblob not null,`avatar` mediumblob);
 ```
@@ -59,7 +59,8 @@ If you want to use another email address to send the CAPTCHA, you must first ena
 |53|setContent|CAPTCHA email content|
 |61|username|The part in front of the email address symbol @ for sending the CAPTCHA email|
 |64|password|The authorization code of the email address that sent the CAPTCHA email|
-After all these tasks are completed, you can compile the application and run it.
+
+#### After all these tasks are completed, you can compile the application and run it.
 
 ## About Author
 MrShiehX<br/>

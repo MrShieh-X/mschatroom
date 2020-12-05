@@ -29,9 +29,9 @@ create database mscr;
 ```mysql
 use mscr;
 ```
-进入后，新建一个格式如下图的表格
-![表格描述](https://gitee.com/MrShiehX/Repository/raw/master/31.png "表格描述")
-您可以输入以下命令来新建表格，其中“users”是表格名。
+进入后，新建一个格式如下图的表格</br>
+![表格描述](https://gitee.com/MrShiehX/Repository/raw/master/31.png "表格描述")</br>
+您可以输入以下命令来新建表格，其中“users”是表格名。</br>
 ```mysql
 create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not null,`password` varchar(1000) not null,`information` mediumblob not null,`avatar` mediumblob);
 ```
@@ -59,7 +59,8 @@ create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not
 |53|setContent|验证码邮件内容|
 |61|username|发送验证码邮件的邮箱地址符号@前面的部分|
 |64|password|发送验证码邮件的邮箱的授权码|
-这些工作都做完后，您就可以编译该应用程序并运行了。
+
+#### 这些工作都做完后，您就可以编译该应用程序并运行了。
 
 ## 关于作者
 MrShiehX<br/>
