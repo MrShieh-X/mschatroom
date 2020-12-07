@@ -133,4 +133,7 @@
     <string name="dialog_deleting_message">删除账户中...（如果删除时间过长，可能是网络问题、服务器问题或应用程序问题，您可以尝试重新启动该应用程序。）</string>
     <string name="toast_successfully_deleted_account">删除账户成功</string>
     <string name="toast_failed_to_delete_account">删除账户失败</string>
+    <string name="activity_login_by_ec_screen_name">使用邮箱和验证码登录</string>
+    <string name="edittexthint_lbec_input_email">电子邮箱</string>
+    <string name="button_login_by_emailandcaptcha">使用邮箱和验证码登录</string>
 </resources>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_lbec_input_email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100px"
+        android:layout_marginStart="50px"
+        android:layout_marginLeft="50px"
+        android:layout_marginEnd="50px"
+        android:layout_marginRight="50px">
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/lbec_input_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/edittexthint_lbec_input_email"
+            android:singleLine="true"
+            android:digits="qwertyuiopasdfghjklzxcvbnm1234567890_QWERTYUIOPASDFGHJKLZXCVBNM@."
+            />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="50px"
+        android:layout_marginStart="50px"
+        android:layout_marginLeft="50px"
+        android:layout_marginEnd="50px"
+        android:layout_marginRight="50px">
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_lbec_input_captcha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2" >
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/lbec_input_captcha"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:digits="1234567890"
+                android:singleLine="true"
+                android:hint="@string/edittexthint_input_captcha"
+                />
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <Button
+            android:id="@+id/lbec_get_captcha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_get_captcha"
+            android:layout_weight="2"  />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/lbec_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/button_login"
+        android:layout_marginTop="50px"
+        android:layout_marginStart="50px"
+        android:layout_marginLeft="50px"
+        android:layout_marginEnd="50px"
+        android:layout_marginRight="50px"/>
+</LinearLayout>

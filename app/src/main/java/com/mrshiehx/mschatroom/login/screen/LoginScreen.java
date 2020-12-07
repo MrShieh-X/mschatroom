@@ -26,6 +26,7 @@ import androidx.appcompat.widget.AppCompatEditText;
 import com.mrshiehx.mschatroom.MainActivity;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.login_by_ec.screen.LoginByEmailAndCAPTCHA;
 import com.mrshiehx.mschatroom.reset_password.screen.ResetPasswordScreen1;
 import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
@@ -45,7 +46,7 @@ public class LoginScreen extends AppCompatActivity {
     //public TextInputLayout til_input_account,til_input_password;
     public AppCompatEditText input_account_or_email, input_password;
     public CheckBox remember_account_and_password, show_password;
-    public Button go_to_register, reset_password, login/*switch_login_mode*/;
+    public Button go_to_register, reset_password, login/*switch_login_mode*/,login_by_ec;
     public static boolean can_i_back;
     public TextView input_content_empty;
     int loginMode;//0 is account, 1 is email
@@ -240,10 +241,12 @@ public class LoginScreen extends AppCompatActivity {
         reset_password = findViewById(R.id.go_to_reset_password);
         login = findViewById(R.id.login);
         input_content_empty = findViewById(R.id.input_content_empty);
+        login_by_ec=findViewById(R.id.login_by_emailandcaptcha);
         //switch_login_mode=findViewById(R.id.switch_login_mode);
         //loginMode=0;
         if (!Utils.networkAvailableDialog(context)) {
             login.setEnabled(false);
+            login_by_ec.setEnabled(false);
         }
 
 
@@ -318,6 +321,13 @@ public class LoginScreen extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        login_by_ec.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LoginByEmailAndCAPTCHA.can_i_back=true;
+                Utils.startActivity(context, LoginByEmailAndCAPTCHA.class);
+            }
+        });
     }
 
     void afterLogin() {

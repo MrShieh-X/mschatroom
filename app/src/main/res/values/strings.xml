@@ -7,15 +7,17 @@
     <string name="activity_reset_password_name">Reset Password</string>
     <string name="activity_chat_screen_name">Chat</string>
     <string name="activity_modify_user_information_screen_name">Modify User Information</string>
+    <string name="activity_login_by_ec_screen_name">Login By Email CAPTCHA</string>
 
-    <string name="edittexthint_input_account_or_email">Account or Email</string>
+    <string name="edittexthint_input_account_or_email">Account or Email Address</string>
     <string name="edittexthint_input_password">Password</string>
     <string name="edittexthint_input_account">Account</string>
-    <string name="edittexthint_rp_input_email">Email of Account Forgotten Password</string>
+    <string name="edittexthint_rp_input_email">Email Address of Account Forgotten Password</string>
     <string name="edittexthint_reg_confirm_password">Confirm Password</string>
-    <string name="edittexthint_reg_input_email">Email</string>
-    <string name="edittexthint_input_captcha">Captcha</string>
+    <string name="edittexthint_reg_input_email">Email Address</string>
+    <string name="edittexthint_input_captcha">CAPTCHA</string>
     <string name="edittexthint_input_new_password">Input New Password</string>
+    <string name="edittexthint_lbec_input_email">Email Address</string>
 
     <string name="button_register">Register</string>
     <string name="button_reinput_email">Re input email</string>
@@ -24,6 +26,7 @@
     <string name="button_next">Next</string>
     <string name="button_send">Send</string>
     <string name="button_get_captcha">Get CAPTCHA</string>
+    <string name="button_login_by_emailandcaptcha">Login by email and CAPTCHA</string>
 
     <string name="textview_tip_reset_password">Forget Password?</string>
     <string name="textview_tip_login">Have an account?</string>
@@ -35,7 +38,7 @@
     <string name="checkbox_remember_account_or_email_and_password">Remember the account or email and password</string>
 
     <string name="aceterror_password_insufficient_length_or_too_long">Please enter an 8-16 digit password</string>
-    <string name="aceterror_invalid_email">Invalid Email</string>
+    <string name="aceterror_invalid_email">Invalid Email Address</string>
     <string name="aceterror_password_different">The two passwords entered are different.</string>
 
     <string name="preference_settings_category_display_interface_title">Display Interface</string>

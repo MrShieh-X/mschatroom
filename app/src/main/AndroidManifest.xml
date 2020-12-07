@@ -92,6 +92,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter-->
         </activity>
+        <activity
+            android:name=".login_by_ec.screen.LoginByEmailAndCAPTCHA"
+            android:label="@string/activity_login_by_ec_screen_name"></activity>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.mrshiehx.pickphoto.fileprovider"
