@@ -8,8 +8,9 @@ MrShiehX own this application's copyright.<br/>
 Anyone can take advices of this application to us.
 ## Version
 The latest version: <br/>
-<b>alpha-1 (Dec. 5, 2020)</b><br/>
+<b>alpha-2 (Dec. 7, 2020)</b><br/>
 Historical version: <br/>
+<b>alpha-2 (Dec. 7, 2020)</b><br/>
 <b>alpha-1 (Dec. 5, 2020) (First version)</b><br/>
 
 ## The software configuration required for this application is:
@@ -19,6 +20,9 @@ Historical version: <br/>
 You can set the language in the settings.
 - English (United States)
 - Simplified Chinese (China)
+
+## Found BUGs
+- After you login, open the settings, the user information (avatar, name and what's up) may not be displayed. This problem will be fixed in the future.
 
 ## How to use
 First, you need to have a server (if you don’t have one, you can use your local computer), and the MySQL database needs to be installed on this server. After you are ready, you need to create a new database in MySQL. "mscr" is the database name. You can change it.
