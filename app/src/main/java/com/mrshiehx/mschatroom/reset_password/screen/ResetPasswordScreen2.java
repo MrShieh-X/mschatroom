@@ -21,7 +21,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
+import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
@@ -49,6 +51,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Utils.initialization(this, R.string.activity_reset_password_name);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setContentView(R.layout.activity_reset_password_2);
@@ -84,7 +87,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
             public void onClick(View v) {
                 if (Utils.isNetworkConnected(context)) {
                     if (TextUtils.isEmpty(input_new_password.getText().toString()) || TextUtils.isEmpty(input_confirm_password.getText().toString())) {
-                        Toast.makeText(context, getResources().getString(R.string.toast_input_content_empty), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(reset_password, getResources().getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
                     } else {
                         if (input_new_password.getText().toString().equals(input_confirm_password.getText().toString()) == false) {
                             input_confirm_password.setError(getResources().getString(R.string.aceterror_password_different));
@@ -120,12 +123,12 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                                             if (result == 0) {
                                                 resetting.dismiss();
                                                 Looper.prepare();
-                                                Toast.makeText(context, getResources().getString(R.string.toast_failed_reset_password), Toast.LENGTH_SHORT).show();
+                                                Snackbar.make(reset_password, getResources().getString(R.string.toast_failed_reset_password), Snackbar.LENGTH_SHORT).show();
                                                 Looper.loop();
                                             } else {
                                                 resetting.dismiss();
                                                 Looper.prepare();
-                                                Toast.makeText(context, getResources().getString(R.string.toast_successfully_reset_password), Toast.LENGTH_SHORT).show();
+                                                Snackbar.make(reset_password, getResources().getString(R.string.toast_successfully_reset_password), Snackbar.LENGTH_SHORT).show();
                                                 LoginScreen.can_i_back = false;
                                                 Utils.startActivity(context, LoginScreen.class);
                                                 Looper.loop();
@@ -135,7 +138,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                                 } catch (Exception e) {
                                     resetting.dismiss();
                                     e.printStackTrace();
-                                    Toast.makeText(context, getResources().getString(R.string.toast_failed_reset_password), Toast.LENGTH_SHORT).show();
+                                    Snackbar.make(reset_password, getResources().getString(R.string.toast_failed_reset_password), Snackbar.LENGTH_SHORT).show();
                                     Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_reset_password));
                                 }
                             }
@@ -144,7 +147,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                         }
                     }
                 } else {
-                    Toast.makeText(context, getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+                    Snackbar.make(reset_password, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
@@ -156,7 +159,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             if (input_new_password.getText().toString().equals(input_confirm_password.getText().toString()) == false) {
-                //Toast.makeText(context, getResources().getString(R.string.toast_password_different), Toast.LENGTH_SHORT).show();
+                //Snackbar.make(context, getResources().getString(R.string.toast_password_different), Snackbar.LENGTH_SHORT).show();
                 input_confirm_password.setError(getResources().getString(R.string.aceterror_password_different));
             }
         }

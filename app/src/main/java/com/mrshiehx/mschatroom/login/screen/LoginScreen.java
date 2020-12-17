@@ -23,12 +23,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
-import com.mrshiehx.mschatroom.MainActivity;
+import com.google.android.material.snackbar.Snackbar;
+import com.mrshiehx.mschatroom.MyApplication;
+import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.login_by_ec.screen.LoginByEmailAndCAPTCHA;
 import com.mrshiehx.mschatroom.reset_password.screen.ResetPasswordScreen1;
-import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
@@ -88,7 +89,7 @@ public class LoginScreen extends AppCompatActivity {
 
 
                     } else {
-                        Toast.makeText(context, getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(login, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
                     }
                 } else {
                     if (Utils.isNetworkConnected(context)) {
@@ -113,7 +114,7 @@ public class LoginScreen extends AppCompatActivity {
                         }
 
                     } else {
-                        Toast.makeText(context, getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(login, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -152,12 +153,12 @@ public class LoginScreen extends AppCompatActivity {
                     if (!result) {
                         loggingIn.dismiss();
                         Looper.prepare();
-                        Toast.makeText(context, getResources().getString(R.string.toast_email_or_password_incorrect), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(login, getResources().getString(R.string.toast_email_or_password_incorrect), Snackbar.LENGTH_SHORT).show();
                         Looper.loop();
                     } else {
                         loggingIn.dismiss();
                         Looper.prepare();
-                        Toast.makeText(context, getResources().getString(R.string.toast_successfully_login), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(login, getResources().getString(R.string.toast_successfully_login), Snackbar.LENGTH_SHORT).show();
                         afterLogin();
                         Looper.loop();
                     }
@@ -166,7 +167,7 @@ public class LoginScreen extends AppCompatActivity {
         } catch (Exception e) {
             loggingIn.dismiss();
             e.printStackTrace();
-            Toast.makeText(context, getResources().getString(R.string.toast_failed_login), Toast.LENGTH_SHORT).show();
+            Snackbar.make(login, getResources().getString(R.string.toast_failed_login), Snackbar.LENGTH_SHORT).show();
             Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_login));
         }
 
@@ -204,12 +205,12 @@ public class LoginScreen extends AppCompatActivity {
                     if (!result) {
                         loggingIn.dismiss();
                         Looper.prepare();
-                        Toast.makeText(context, getResources().getString(R.string.toast_account_or_password_incorrect), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(login, getResources().getString(R.string.toast_account_or_password_incorrect), Snackbar.LENGTH_SHORT).show();
                         Looper.loop();
                     } else {
                         loggingIn.dismiss();
                         Looper.prepare();
-                        Toast.makeText(context, getResources().getString(R.string.toast_successfully_login), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(login, getResources().getString(R.string.toast_successfully_login), Snackbar.LENGTH_SHORT).show();
                         afterLogin();
                         Looper.loop();
                     }
@@ -218,7 +219,7 @@ public class LoginScreen extends AppCompatActivity {
         } catch (Exception e) {
             loggingIn.dismiss();
             e.printStackTrace();
-            Toast.makeText(context, getResources().getString(R.string.toast_failed_login), Toast.LENGTH_SHORT).show();
+            Snackbar.make(login, getResources().getString(R.string.toast_failed_login), Snackbar.LENGTH_SHORT).show();
             Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_login));
         }
     }
@@ -226,6 +227,7 @@ public class LoginScreen extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Utils.initialization(this, R.string.activity_login_screen_name);
         setContentView(R.layout.activity_login);
         if (can_i_back == true) {
@@ -361,7 +363,7 @@ public class LoginScreen extends AppCompatActivity {
             Looper.loop();
         }
         finish();
-        Utils.startActivity(context, MainActivity.class);
+        Utils.startActivity(context, StartScreen.class);
     }
 
 
@@ -389,7 +391,7 @@ public class LoginScreen extends AppCompatActivity {
                         firstTime = secondTime;
                         return true;
                     } else {
-                        System.exit(0);
+                        MyApplication.getInstance().exit();
                     }
                 } else {
                     finish();

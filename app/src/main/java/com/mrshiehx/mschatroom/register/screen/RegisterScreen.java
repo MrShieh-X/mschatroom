@@ -22,6 +22,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
+import com.google.android.material.snackbar.Snackbar;
+import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 import com.mrshiehx.mschatroom.R;
@@ -78,14 +80,14 @@ public class RegisterScreen extends AppCompatActivity {
                     } else {
                         if (reg_input_captcha.getText().toString().equals(captcha) == true) {
                             if (reg_input_account.getText().length() < 4 || reg_input_account.getText().length() > 20) {
-                                Toast.makeText(context, getResources().getString(R.string.toast_account_insufficient_length_or_too_long), Toast.LENGTH_SHORT).show();
+                                Snackbar.make(register, getResources().getString(R.string.toast_account_insufficient_length_or_too_long), Snackbar.LENGTH_SHORT).show();
                             } else {
                                 if (Utils.isNetworkConnected(context)) {
                                     registering = new ProgressDialog(context);
                                     try {
                                         //Register
                                         //String insertSql = "insert into userInfo (email,account,password) values ('" + email + "','" + reg_input_account.getText().toString() + "','" + reg_input_password.getText().toString() + "');";
-                                        //Toast.makeText(context, "captcha right", Toast.LENGTH_SHORT).show();
+                                        //Snackbar.make(context, "captcha right", Snackbar.LENGTH_SHORT).show();
                                         //sQLiteOpenHelper = new CRSQLiteOpenHelper(context, "mydb.db", null, 1);
                                         // database = sQLiteOpenHelper.getWritableDatabase();
                                         //database.execSQL(createTableSql);
@@ -108,14 +110,14 @@ public class RegisterScreen extends AppCompatActivity {
                                                         //邮箱已存在
                                                         registering.dismiss();
                                                         Looper.prepare();
-                                                        Toast.makeText(context, getResources().getString(R.string.toast_registered_email), Toast.LENGTH_SHORT).show();
+                                                        Snackbar.make(register, getResources().getString(R.string.toast_registered_email), Snackbar.LENGTH_LONG).show();
                                                         Looper.loop();
                                                     } else if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)) == false) {
                                                         if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == true) {
                                                             //账号已存在
                                                             registering.dismiss();
                                                             Looper.prepare();
-                                                            Toast.makeText(context, getResources().getString(R.string.toast_registered_account), Toast.LENGTH_SHORT).show();
+                                                            Snackbar.make(register, getResources().getString(R.string.toast_registered_account), Snackbar.LENGTH_SHORT).show();
                                                             Looper.loop();
                                                         } else if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == false) {
                                                             //Real register
@@ -137,24 +139,24 @@ public class RegisterScreen extends AppCompatActivity {
                                                                 e.printStackTrace();
                                                             } catch (IOException e) {
                                                                 e.printStackTrace();
-                                                                Toast.makeText(context, getResources().getString(R.string.toast_failed_register), Toast.LENGTH_SHORT).show();
+                                                                Snackbar.make(register, getResources().getString(R.string.toast_failed_register), Snackbar.LENGTH_SHORT).show();
                                                                 Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_register));
                                                             }
                                                             if (result == 0) {
                                                                 Looper.prepare();
                                                                 registering.dismiss();
-                                                                Toast.makeText(context, getResources().getString(R.string.toast_failed_register), Toast.LENGTH_SHORT).show();
+                                                                Snackbar.make(register, getResources().getString(R.string.toast_failed_register), Snackbar.LENGTH_SHORT).show();
                                                                 Looper.loop();
                                                             } else {
                                                                 Looper.prepare();
                                                                 registering.dismiss();
-                                                                Toast.makeText(context, getResources().getString(R.string.toast_successfully_registered), Toast.LENGTH_SHORT).show();
+                                                                Snackbar.make(register, getResources().getString(R.string.toast_successfully_registered), Snackbar.LENGTH_SHORT).show();
                                                                 Utils.startActivity(context, LoginScreen.class);
                                                                 LoginScreen.can_i_back = true;
                                                                 Looper.loop();
                                                             }
                                                         /*Looper.prepare();
-                                                        Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
+                                                        Snackbar.make(context, String.valueOf(result), Snackbar.LENGTH_SHORT).show();
                                                         Looper.loop();*/
                                                         }
                                                     }
@@ -174,16 +176,16 @@ public class RegisterScreen extends AppCompatActivity {
                                     } catch (Exception e) {
                                         registering.dismiss();
                                         e.printStackTrace();
-                                        Toast.makeText(context, getResources().getString(R.string.toast_failed_register), Toast.LENGTH_SHORT).show();
+                                        Snackbar.make(register, getResources().getString(R.string.toast_failed_register), Snackbar.LENGTH_SHORT).show();
                                         Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_register));
                                     }
                                 } else {
-                                    Toast.makeText(context, getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+                                    Snackbar.make(register, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
                                 }
                             }
                         } else {
-                            Toast.makeText(context, getResources().getString(R.string.toast_captcha_incorrect), Toast.LENGTH_SHORT).show();
-                            //Toast.makeText(context, "captcha notright", Toast.LENGTH_SHORT).show();
+                            Snackbar.make(register, getResources().getString(R.string.toast_captcha_incorrect), Snackbar.LENGTH_SHORT).show();
+                            //Snackbar.make(context, "captcha notright", Snackbar.LENGTH_SHORT).show();
                         }
                     }
 
@@ -196,6 +198,7 @@ public class RegisterScreen extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Utils.initialization(this, R.string.activity_register_screen_name);
         if (can_i_back == true) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -250,7 +253,7 @@ public class RegisterScreen extends AppCompatActivity {
                         button_get_captcha.setEnabled(false);
                         SendEmailUtils sendEmail = new SendEmailUtils(reg_input_email.getText().toString());
                         sendEmail.sendCaptcha(captcha);
-                        Toast.makeText(context, getResources().getString(R.string.toast_successfully_got_captcha), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(register, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show();
                         email = reg_input_email.getText().toString();
                         reg_input_email.setEnabled(false);
                         reinput_email.setEnabled(true);
@@ -262,12 +265,12 @@ public class RegisterScreen extends AppCompatActivity {
                     } catch (Exception e) {
                         Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_get_captcha));
                         e.printStackTrace();
-                        Toast.makeText(context, getResources().getString(R.string.toast_failed_get_captcha), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(register, getResources().getString(R.string.toast_failed_get_captcha), Snackbar.LENGTH_SHORT).show();
                         button_get_captcha.setEnabled(true);
                     }
 
                 } else {
-                    Toast.makeText(context, getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+                    Snackbar.make(register, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
@@ -481,7 +484,7 @@ public class RegisterScreen extends AppCompatActivity {
                         firstTime = secondTime;
                         return true;
                     } else {
-                        System.exit(0);
+                        MyApplication.getInstance().exit();
                     }
                 } else {
                     finish();

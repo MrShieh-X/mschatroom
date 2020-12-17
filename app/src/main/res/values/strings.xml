@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">MSChatRoom</string>
-    <string name="activity_main_name">MSCR</string>
+    <string name="app_name_short">MSCR</string>
+    <string name="activity_main_screen_no_network_name">MSChatRoom (No network)</string>
     <string name="activity_login_screen_name">Login</string>
     <string name="activity_register_screen_name">Register</string>
     <string name="activity_settings_screen_name">Settings</string>
@@ -8,6 +9,7 @@
     <string name="activity_chat_screen_name">Chat</string>
     <string name="activity_modify_user_information_screen_name">Modify User Information</string>
     <string name="activity_login_by_ec_screen_name">Login By Email CAPTCHA</string>
+    <string name="activity_about_screen_name">About</string>
 
     <string name="edittexthint_input_account_or_email">Account or Email Address</string>
     <string name="edittexthint_input_password">Password</string>
@@ -33,6 +35,11 @@
     <string name="textview_password_different">The two passwords entered are different.</string>
     <string name="textview_tip_register">No account?</string>
     <string name="textview_input_content_empty">The input content cannot be empty</string>
+    <string name="textview_about_what_is_this">An open source chat application</string>
+    <string name="textview_about_version_partical">Version</string>
+    <string name="textview_about_copyrightForChinese" translatable="false">MrShiehX 版权所有</string>
+    <string name="textview_about_copyright" translatable="false">Copyright © 2020 MrShiehX</string>
+    <string name="textview_about_author">MrShiehX is the author of this application.</string>
 
     <string name="checkbox_show_password">Show password</string>
     <string name="checkbox_remember_account_or_email_and_password">Remember the account or email and password</string>
@@ -65,8 +72,11 @@
     <string name="preference_delete_account_title">Delect Account</string>
     <string name="preference_delete_account_summary">Delete all data of account</string>
     <string name="preference_delete_account_input_email">Please input password</string>
+    <string name="preference_account_title">Account</string>
+    <string name="preference_account_email_title">Email Address</string>
 
-    <string name="dialog_exception_getjsonfailed">JSON file parsing failed</string>
+    <string name="dialog_exception_parsing_json_failed">JSON file parsing failed</string>
+    <string name="dialog_exception_parsing_xml_failed">XML file parsing failed</string>
     <string name="dialog_title_wait">Wait</string>
     <string name="dialog_wait_download_message">Initializing... (if the loading time is too long, there may be network problems or application problems, you can restart the application)</string>
     <string name="dialog_exception_title">An error occurred</string>
@@ -106,6 +116,16 @@
     <string name="dialog_exception_failed_to_downloadavatar">Failed to download avatar</string>
     <string name="dialog_delete_account_message">Are you sure you want to delete your account? This operation cannot be recalled!</string>
     <string name="dialog_deleting_message">Deleting Account... (If it takes too long to delete, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_exception_file_not_found">File not found</string>
+    <string name="dialog_dialog_add_chat_edittext_hint">Input a account or email address</string>
+    <string name="dialog_add_chat_title">Add a chat</string>
+    <string name="dialog_add_chat_button_text">Add</string>
+    <string name="dialog_finding_message">Finding Account... (If it takes too long to find, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_adding_chat">Adding Chat... (If it takes too long to add, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_initializing_chat">Initializing Chat... (If it takes too long to initialize, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_exception_failed_to_read_file">Failed to read file</string>
+    <string name="dialog_exception_failed_to_en_or_de_text">Text encryption or decryption failed</string>
+    <string name="dialog_exception_failed_to_initialize">Failed to initialize</string>
 
     <string name="toast_captcha_incorrect">The CAPTCHA is incorrect</string>
     <string name="toast_registered_email">The email has been used, please change, after the change you must get CAPTCHA again</string>
@@ -136,6 +156,13 @@
     <string name="toast_failed_to_modify_information">Failed to modify information</string>
     <string name="toast_successfully_deleted_account">Account deleted successfully</string>
     <string name="toast_failed_to_delete_account">Failed to delete account</string>
+    <string name="toast_failed_to_save_avatar">Failed to save avatar</string>
+    <string name="toast_failed_to_add_chat">Failed to add chat</string>
+    <string name="toast_add_chat_exists">The chat already exists, no need to add again</string>
+    <string name="toast_failed_to_get_photo_from_album">Failed to get photo from album</string>
+    <string name="toast_no_mail_app">No mail application installed</string>
+    <string name="toast_account_copied">Account has been copied</string>
+    <string name="toast_email_copied">Email address has been copied</string>
 
     <string name="toast_tip_set_name">Please set account name</string>
     <string name="toast_tip_set_avatar">Please set account avatar</string>
@@ -144,5 +171,15 @@
 
     <string name="input_information_tip">Please input server address, MySQL database name, user, password and table name(separate with &amp;)</string>
     <string name="input_information_login">Login</string>
-    <string name="input_information_settings">Settings</string>
+    <string name="input_information_settings">Main Screen</string>
+
+    <string name="menu_main_settings">Settings</string>
+    <string name="menu_main_exit">Exit</string>
+    <string name="menu_about_exit">About</string>
+
+    <string name="listviewtext_about_users_can_do_item_contact">Contact MrShiehX</string>
+    <string name="listviewtext_about_users_can_do_item_visit_github">Visit the GitHub repository of this application</string>
+    <string name="listviewtext_about_users_can_do_item_visit_msxw">Visit MSXW (MrShiehX\'s website)</string>
+    <string name="listviewtext_about_users_can_do_item_visit_author_github">Visit MrShiehX\'s GitHub repository</string>
+
 </resources>

@@ -17,7 +17,10 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.snackbar.Snackbar;
+import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.R;
+import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
 import com.mrshiehx.mschatroom.utils.Utils;
 
 import java.io.IOException;
@@ -39,10 +42,17 @@ public class ChatScreen extends AppCompatActivity {
     public ScrollView scroll_view;
     boolean can_send;
     Context context = ChatScreen.this;
-
+    Context oContext;
+    /*public ChatScreen(Context context){
+        oContext=context;
+    }
+    public void startActivity(){
+        Utils.startActivity(oContext, ChatScreen.class);
+    }*/
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Utils.initialization(ChatScreen.this, R.string.activity_chat_screen_name);
         setContentView(R.layout.activity_chat_screen);
         if (!Utils.networkAvailableDialog(context)) {
@@ -126,7 +136,7 @@ public class ChatScreen extends AppCompatActivity {
                     input_chat_content.setText(null);
                     scroll_view.scrollTo(0, chat_content.getBottom());
                 } else {
-                    Toast.makeText(context, getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+                    //Snackbar.make(context, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
@@ -144,12 +154,12 @@ public class ChatScreen extends AppCompatActivity {
     OutputStream outputStream;//创建输出数据流
     /*@Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState);MyApplication.getInstance().addActivity(this);
         setContentView(R.layout.activity_main);
         /**
          * 读一下手机wifi状态下的ip地址，只有知道它的ip才能连接它嘛
          *
-        Toast.makeText(MainActivity.this, getLocalIpAddress(), Toast.LENGTH_SHORT).show();
+        Snackbar.make(MainActivity.this, getLocalIpAddress(), Snackbar.LENGTH_SHORT).show();
 
         startButton = (Button) findViewById(R.id.start_button);
         portEditText = (EditText) findViewById(R.id.port_EditText);

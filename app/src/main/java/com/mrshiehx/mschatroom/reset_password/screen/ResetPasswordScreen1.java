@@ -15,7 +15,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
+import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.utils.CountDownTimerUtils;
@@ -44,6 +46,7 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         THIS = this;
         Utils.initialization(this, R.string.activity_reset_password_name);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -77,19 +80,19 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
                         get_captcha.setEnabled(false);
                         SendEmailUtils sendEmail = new SendEmailUtils(input_email.getText().toString());
                         sendEmail.sendCaptcha(captcha);
-                        Toast.makeText(context, getResources().getString(R.string.toast_successfully_got_captcha), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(get_captcha, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show();
                         email = input_email.getText().toString();
                         input_email.setEnabled(false);
                         mCountDownTimerUtils.start();
                     } catch (Exception e) {
-                        Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_get_captcha));
                         e.printStackTrace();
-                        Toast.makeText(context, getResources().getString(R.string.toast_failed_get_captcha), Toast.LENGTH_SHORT).show();
+                        Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_get_captcha));
+                        Snackbar.make(get_captcha, getResources().getString(R.string.toast_failed_get_captcha), Snackbar.LENGTH_SHORT).show();
                         get_captcha.setEnabled(true);
                     }
 
                 } else {
-                    Toast.makeText(context, getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+                    Snackbar.make(get_captcha, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
@@ -152,7 +155,7 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
             public void onClick(View v) {
                 if (Utils.isNetworkConnected(context)) {
                     if (TextUtils.isEmpty(input_email.getText().toString()) || TextUtils.isEmpty(input_captcha.getText().toString())) {
-                        Toast.makeText(context, getResources().getString(R.string.toast_input_content_empty), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(get_captcha, getResources().getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
                     } else {
                         if (input_captcha.getText().toString().equals(captcha)) {
                             AccountUtils mysqlUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
@@ -162,7 +165,7 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
                                     ResetPasswordScreen2.email = email;
                                     Utils.startActivity(context, ResetPasswordScreen2.class);
                                 } else {
-                                    Toast.makeText(context, getResources().getString(R.string.toast_account_not_exist), Toast.LENGTH_SHORT).show();
+                                    Snackbar.make(get_captcha, getResources().getString(R.string.toast_account_not_exist), Snackbar.LENGTH_SHORT).show();
                                 }
                             } catch (InvalidKeySpecException e) {
                                 e.printStackTrace();
@@ -176,11 +179,11 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
                                 e.printStackTrace();
                             }
                         } else {
-                            Toast.makeText(context, getResources().getString(R.string.toast_captcha_incorrect), Toast.LENGTH_SHORT).show();
+                            Snackbar.make(get_captcha, getResources().getString(R.string.toast_captcha_incorrect), Snackbar.LENGTH_SHORT).show();
                         }
                     }
                 } else {
-                    Toast.makeText(context, getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+                    Snackbar.make(get_captcha, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
                 }
             }
         });

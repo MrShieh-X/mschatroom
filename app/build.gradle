@@ -8,8 +8,8 @@ android {
         applicationId "com.mrshiehx.mschatroom"
         minSdkVersion 14
         targetSdkVersion 30
-        versionCode 2
-        versionName "alpha-2"
+        versionCode 3
+        versionName "alpha-3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,4 +29,5 @@ dependencies {
     implementation files('libs/additionnal.jar')
     implementation files('libs/mail.jar')
     implementation files('libs/mysql-connector-java.jar')
+    implementation 'com.google.code.gson:gson:2.8.6'
 }

@@ -14,8 +14,12 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.app.AlertDialog;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.FormatTools;
 import com.mrshiehx.mschatroom.xml.user_information.User;
@@ -32,7 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 //没用的，用来做测试的
-public class PETest extends Activity {
+public class PETest extends AppCompatActivity {
     EditText num, pas;
     Button sav, rea, thi;
     ImageView ima;
@@ -41,7 +45,7 @@ public class PETest extends Activity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState);MyApplication.getInstance().addActivity(this);
         setContentView(R.layout.petest);
         initData();
         CreateXML();
@@ -100,7 +104,7 @@ public class PETest extends Activity {
 
                             }catch (IOException e){
                                 Looper.prepare();
-                                Toast.makeText(PETest.this, ""+e, Toast.LENGTH_SHORT).show();
+                                Snackbar.make(PETest.this, ""+e, Snackbar.LENGTH_SHORT).show();
                                 Looper.loop();
 
                                 e.printStackTrace();
@@ -126,7 +130,7 @@ public class PETest extends Activity {
                         }
                         AccountUtils accountUtils=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);;
                         Looper.prepare();
-                        Toast.makeText(PETest.this, accountUtils.getAccountByEmail(PETest.this,"573E2C51779ECD7B6C9873B0F78C7CC4CCC91AAD0294B87A"), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(PETest.this, accountUtils.getAccountByEmail(PETest.this,"573E2C51779ECD7B6C9873B0F78C7CC4CCC91AAD0294B87A"), Snackbar.LENGTH_SHORT).show();
                         Looper.loop();
                     }
                 }).start();
@@ -210,7 +214,7 @@ public class PETest extends Activity {
                 public void run() {
                     AccountUtils accountUtils=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);;
                     Looper.prepare();
-                    Toast.makeText(PETest.this, accountUtils.getEmailByAccount(PETest.this,"F864B3BA990F36A2"), Toast.LENGTH_SHORT).show();
+                    Snackbar.make(PETest.this, accountUtils.getEmailByAccount(PETest.this,"F864B3BA990F36A2"), Snackbar.LENGTH_SHORT).show();
                     Looper.loop();
                 }
             }).start();*/
@@ -290,11 +294,19 @@ public class PETest extends Activity {
                             });
                         } else {
                             Looper.prepare();
-                            Toast.makeText(PETest.this, "fuckingempty", Toast.LENGTH_SHORT).show();
+                            Snackbar.make(ima, "fuckingempty", Snackbar.LENGTH_SHORT).show();
                             Looper.loop();
                         }
                     }
                 }).start();
+            }
+        });
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_SHORT)
+                        .setAction("Action", null).show();
             }
         });
     }
@@ -315,9 +327,9 @@ public class PETest extends Activity {
                         nowGender = which
                         ;
                         dialog.dismiss();
-                        Toast.makeText(PETest.this,
+                        Snackbar.make(ima,
                                 "你选择了" + String.valueOf(nowGender),
-                                Toast.LENGTH_SHORT).show();
+                                Snackbar.LENGTH_SHORT).show();
                     }
                 });
         singleChoiceDialog.setPositiveButton(getResources().getString(android.R.string.cancel), null);
@@ -371,12 +383,12 @@ public class PETest extends Activity {
             xmlSerializer.endTag(null, "newss");
             xmlSerializer.endDocument();
             fos.close();
-            Toast.makeText(this, "SUCCESS", Toast.LENGTH_SHORT).show();
+            Snackbar.make(ima, "SUCCESS", Snackbar.LENGTH_SHORT).show();
             return;        /*方法结束标志*/
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Toast.makeText(this, "FALLED", Toast.LENGTH_SHORT).show();
+        Snackbar.make(ima, "FALLED", Snackbar.LENGTH_SHORT).show();
     }
 }
 

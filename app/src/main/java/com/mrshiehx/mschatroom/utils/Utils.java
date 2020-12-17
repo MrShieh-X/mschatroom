@@ -3,6 +3,7 @@ package com.mrshiehx.mschatroom.utils;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,10 +25,13 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.View;
 import android.webkit.URLUtil;
 import android.widget.Toast;
 
 
+import com.google.android.material.snackbar.Snackbar;
+import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
@@ -114,14 +118,14 @@ public class Utils {
                 Log.e("MSCR.Utils.deleteFile", "Delete file (" + filePathAndName + ") is not exists!");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             Looper.prepare();
+            e.printStackTrace();
             Utils.exceptionDialog(context, e);
             Looper.loop();
         }
     }
 
-    public static void downloadFile(final Context context, final String downloadFileUrl, final String afterDownloadFileName, final String downloadToPath) {
+    public static void downloadFile(final Context context, View forsb, final String downloadFileUrl, final String afterDownloadFileName, final String downloadToPath) {
         if (isNetworkConnected(context) == true) {
             File file = new File(getDataFilesPath(context));
             if (!file.exists()) {
@@ -182,7 +186,7 @@ public class Utils {
                 }
             }).start();
         } else {
-            Toast.makeText(context, context.getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+            Snackbar.make(forsb, context.getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
         }
     }
 
@@ -190,13 +194,18 @@ public class Utils {
         StringBuilder stringBuilder = new StringBuilder();
         try {
             //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(assetManager.open(fileName), "utf-8"));
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(filePathAndName));
+            BufferedReader bufferedReader=null;
+            try {
+                bufferedReader= new BufferedReader(new FileReader(filePathAndName));
+            }catch (Exception e){
+                exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_file_not_found));
+            }
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line.trim());
             }
         } catch (IOException e) {
-            exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_getjsonfailed));
+            exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_parsing_json_failed));
         }
         return stringBuilder.toString();
     }
@@ -205,13 +214,18 @@ public class Utils {
         StringBuilder stringBuilder = new StringBuilder();
         AssetManager assetManager = context.getAssets();
         try {
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(assetManager.open(fileName), "utf-8"));
+            BufferedReader bufferedReader=null;
+            try {
+                bufferedReader = new BufferedReader(new InputStreamReader(assetManager.open(fileName), "utf-8"));
+            }catch (Exception e){
+                exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_file_not_found));
+            }
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line.trim());
             }
         } catch (IOException e) {
-            exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_getjsonfailed));
+            exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_parsing_json_failed));
         }
         return stringBuilder.toString();
     }
@@ -295,7 +309,12 @@ public class Utils {
         data.setData(Uri.parse("mailto:" + reciver));
         data.putExtra(Intent.EXTRA_SUBJECT, subject);
         data.putExtra(Intent.EXTRA_TEXT, text);
-        context.startActivity(data);
+        try {
+            context.startActivity(data);
+        }catch (Exception e){
+            e.printStackTrace();
+            Toast.makeText(context, context.getString(R.string.toast_no_mail_app), Toast.LENGTH_SHORT).show();
+        }
     }
 
     public static void goToWebsite(Context context, String url) {
@@ -377,6 +396,7 @@ public class Utils {
         String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, "en_US").split("_");
         context.setTitle(getStringByLocale(context, titleId, languageAndCountry[0], languageAndCountry[1]));
         initializationTheme(context);
+        MyApplication.getInstance().addActivity(context);
     }
 
     public static boolean networkAvailableDialog(Context context) {
@@ -394,7 +414,7 @@ public class Utils {
             noNetworkDialog.setPositiveButton(context.getResources().getString(R.string.dialog_no_network_button_exit), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    System.exit(0);
+                    MyApplication.getInstance().exit();
                 }
             });
             noNetworkDialog.show();
@@ -514,26 +534,15 @@ public class Utils {
     }
 
 
-    static boolean RETURN;
     static String password;
 
-    public static boolean checkLoginInformationAndNetwork(final Context context, boolean isThread) {
+    public static boolean checkLoginInformationAndNetwork(final Context context) {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         if (!Utils.isNetworkConnected(context)) {
-            RETURN = false;
-            if (isThread) {
-                Looper.prepare();
-            }
             Toast.makeText(context, context.getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
-            if (isThread) {
-                Looper.loop();
-            }
+            return false;
         } else {
             if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false) == false) {
-                RETURN = false;
-                if (isThread) {
-                    Looper.prepare();
-                }
                 Utils.showDialog(context,
                         context.getResources().getString(R.string.dialog_title_notice),
                         context.getResources().getString(R.string.dialog_no_login_message),
@@ -545,9 +554,140 @@ public class Utils {
                                 Utils.startActivity(context, LoginScreen.class);
                             }
                         });
-                if (isThread) {
-                    Looper.loop();
+                return false;
+            } else {
+                final ProgressDialog loggingIn = new ProgressDialog(context);
+                int loginMethod = sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0);
+                if (loginMethod == 0) {
+                    String account = "";
+                    try {
+                        account = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                        password = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1];
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeySpecException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
+                    AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                    String accountE = null;
+                    String passwordE = null;
+                    try {
+                        accountE = EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY);
+                        passwordE = EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY);
+                    } catch (InvalidKeySpecException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
+                    Boolean result = ud.login(context, loggingIn, AccountUtils.BY_ACCOUNT, accountE, passwordE);
+                    if (!result) {
+                        Utils.showDialog(context,
+                                context.getResources().getString(R.string.dialog_title_notice),
+                                context.getResources().getString(R.string.dialog_failed_login_insettings_message),
+                                context.getResources().getString(R.string.dialog_failed_login_insettings_button_gotologin_text),
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        LoginScreen.can_i_back = true;
+                                        Utils.startActivity(context, LoginScreen.class);
+                                    }
+                                });
+                        return false;
+                    } else {
+                        return true;
+                    }
+                } else {
+                    String email = "";
+                    try {
+                        email = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                        password = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1];
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeySpecException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
+                    AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                    String emailE = null;
+                    String passwordE = null;
+                    try {
+                        emailE = EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY);
+                        passwordE = EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY);
+                    } catch (InvalidKeySpecException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
+                    Boolean result = ud.login(context, loggingIn, AccountUtils.BY_EMAIL, emailE, passwordE);
+                    if (!result) {
+                        Utils.showDialog(context,
+                                context.getResources().getString(R.string.dialog_title_notice),
+                                context.getResources().getString(R.string.dialog_failed_login_insettings_message),
+                                context.getResources().getString(R.string.dialog_failed_login_insettings_button_gotologin_text),
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        LoginScreen.can_i_back = true;
+                                        Utils.startActivity(context, LoginScreen.class);
+                                    }
+                                });
+                        return false;
+                    } else {
+                        return true;
+                    }
                 }
+            }
+        }
+    }
+
+    /**
+     * 0失败
+     * 1成功
+     * 2登录失败
+     *
+    static int RETURN_INT=-1;
+    public static int checkLoginInformationAndNetworkForSettings(final Context context) {
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        if (!Utils.isNetworkConnected(context)) {
+            RETURN_INT = 0;
+            Toast.makeText(context, context.getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+        } else {
+            if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false) == false) {
+                RETURN_INT = 0;
+                Utils.showDialog(context,
+                        context.getResources().getString(R.string.dialog_title_notice),
+                        context.getResources().getString(R.string.dialog_no_login_message),
+                        context.getResources().getString(R.string.dialog_no_login_button_gotologin_text),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                LoginScreen.can_i_back = true;
+                                Utils.startActivity(context, LoginScreen.class);
+                            }
+                        });
             } else {
                 final ProgressDialog loggingIn = new ProgressDialog(context);
                 int loginMethod = sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0);
@@ -589,21 +729,10 @@ public class Utils {
                             }
                             Boolean result = ud.login(context, loggingIn, AccountUtils.BY_ACCOUNT, accountE, passwordE);
                             if (!result) {
-                                Looper.prepare();
-                                Utils.showDialog(context,
-                                        context.getResources().getString(R.string.dialog_title_notice),
-                                        context.getResources().getString(R.string.dialog_failed_login_insettings_message),
-                                        context.getResources().getString(R.string.dialog_failed_login_insettings_button_gotologin_text),
-                                        new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                LoginScreen.can_i_back = true;
-                                                Utils.startActivity(context, LoginScreen.class);
-                                            }
-                                        });
-                                Looper.loop();
+                                RETURN_INT=2;
+                            } else {
+                                RETURN_INT = 1;
                             }
-                            RETURN = result;
                         }
                     }).start();
                 } else {
@@ -644,29 +773,19 @@ public class Utils {
                             }
                             Boolean result = ud.login(context, loggingIn, AccountUtils.BY_EMAIL, emailE, passwordE);
                             if (!result) {
-                                Looper.prepare();
-                                Utils.showDialog(context,
-                                        context.getResources().getString(R.string.dialog_title_notice),
-                                        context.getResources().getString(R.string.dialog_failed_login_insettings_message),
-                                        context.getResources().getString(R.string.dialog_failed_login_insettings_button_gotologin_text),
-                                        new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                LoginScreen.can_i_back = true;
-                                                Utils.startActivity(context, LoginScreen.class);
-                                            }
-                                        });
-                                Looper.loop();
+                                RETURN_INT=2;
+                            } else {
+                                RETURN_INT = 1;
                             }
-                            RETURN = result;
+                            return;
                         }
                     }).start();
                 }
             }
         }
-        return RETURN;
+        return RETURN_INT;
     }
-
+     */
 
     public static void dynamicModifyETSummary(EditTextPreference editTextPreference, String whenEmptySummary) {
         if (!TextUtils.isEmpty(editTextPreference.getText())) {
@@ -728,5 +847,10 @@ public class Utils {
         }
         m.appendTail(sr);
         return sr.toString();
+    }
+
+    public static void copy(Context context,String content){
+        ClipboardManager copy = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        copy.setText(content);
     }
 }
