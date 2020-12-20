@@ -853,4 +853,16 @@ public class Utils {
         ClipboardManager copy = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         copy.setText(content);
     }
+
+    public static void showLongSnackbar(View v,String s){
+        Snackbar.make(v,s,Snackbar.LENGTH_LONG).show();
+    }
+
+    public static void showShortSnackbar(View v,String s){
+        Snackbar.make(v,s,Snackbar.LENGTH_SHORT).show();
+    }
+
+    public static void showIndefiniteSnackbar(View v,String s){
+        Snackbar.make(v,s,Snackbar.LENGTH_INDEFINITE).show();
+    }
 }

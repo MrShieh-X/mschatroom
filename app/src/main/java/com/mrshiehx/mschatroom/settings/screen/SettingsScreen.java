@@ -153,12 +153,16 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                 if (Utils.checkLoginInformationAndNetwork(context)) {
                     //if(Utils.networkAvailableDialog(context)) {
                     int loginMethod = sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0);
+                    //loggingIn=ProgressDialog.show(context,getResources().getString(R.string.dialog_title_wait),getResources().getString(R.string.dialog_loggingIn_message),false,false);
+                    //loggingIn.show();
+                    //loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
+                    //loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
+                    //loggingIn.setCancelable(false);
+                    //loggingIn.show();
+                    //loggingIn.cancel();
+                    //loggingIn.dismiss();
                     if (loginMethod == 0) {
                         //account
-                        loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
-                        loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
-                        loggingIn.setCancelable(false);
-                        loggingIn.show();
                         String account = "";
                         try {
                             account = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
@@ -193,7 +197,6 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                         }
                         Boolean result = ud.login(context, loggingIn, AccountUtils.BY_ACCOUNT, accountE, passwordE);
                         if (!result) {
-                            loggingIn.dismiss();
                             //canLogin = false;
                             Utils.showDialog(context,
                                     getResources().getString(R.string.dialog_title_notice),
@@ -209,13 +212,8 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                         } else {
                             //canLogin = true;
                             initUserInformationFile();
-                            loggingIn.dismiss();
                         }
                     } else {
-                        loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
-                        loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
-                        loggingIn.setCancelable(false);
-                        loggingIn.show();
                         String email = "";
                         try {
                             email = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
@@ -250,7 +248,6 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                         }
                         Boolean result = ud.login(context, loggingIn, AccountUtils.BY_EMAIL, emailE, passwordE);
                         if (!result) {
-                            loggingIn.dismiss();
                             Utils.showDialog(context,
                                     getResources().getString(R.string.dialog_title_notice),
                                     getResources().getString(R.string.dialog_failed_login_insettings_message),
@@ -266,12 +263,11 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                         } else {
                             //canLogin = true;
                             initUserInformationFile();
-                            loggingIn.dismiss();
                         }
                     }
 
-
                 }
+                //loggingIn.dismiss();
                 Looper.loop();
 
 
@@ -459,113 +455,112 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
     public void initUserInformationFile() {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         int loginMethod = sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0);
-        if (sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0) == 0) {
-                    String accountClean = "";
-                    try {
-                        accountClean = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
-                    final String finalAccountClean = accountClean;
-                    accountString = finalAccountClean;
-                    AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                    String emailClean = "";
-                    try {
-                        emailClean = EnDeCryptTextUtils.decrypt(accountUtils.getString(context, "email", AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(accountClean, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
-                    final String finalEmailClean = emailClean;
-                    emailString = finalEmailClean;
-                    try {
-                        //AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+        if (loginMethod == 0) {
+            String accountClean = "";
+            try {
+                accountClean = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+            final String finalAccountClean = accountClean;
+            accountString = finalAccountClean;
+            AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+            String emailClean = "";
+            try {
+                emailClean = EnDeCryptTextUtils.decrypt(accountUtils.getString(context, "email", AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(accountClean, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+            final String finalEmailClean = emailClean;
+            emailString = finalEmailClean;
+            try {
+                //AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
 
+                inputStream = accountUtils.getUserInformation(context, EnDeCryptTextUtils.encrypt(emailString, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(accountString, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1], Variables.TEXT_ENCRYPTION_KEY));
 
-                        inputStream = accountUtils.getUserInformation(context, EnDeCryptTextUtils.encrypt(emailString, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(accountString, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1], Variables.TEXT_ENCRYPTION_KEY));
-                        //ModifyUserInformationScreen.emailAndAccount=EnDeCryptTextUtils.encrypt(email + Variables.SPLIT_SYMBOL + account, Variables.TEXT_ENCRYPTION_KEY);
-                    } catch (InvalidKeySpecException e) {
-                        //System.out.printf("errorInvalidKeySpecException"+e);
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        //System.out.printf("errorInvalidKeyException"+e);
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        //System.out.printf("errorNoSuchPaddingException"+e);
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        //System.out.printf("errorIllegalBlockSizeException"+e);
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        Looper.prepare();
-                        e.printStackTrace();
-                        Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_get_user_information));
-                        Looper.loop();
-                    }
+            } catch (InvalidKeySpecException e) {
+                //System.out.printf("errorInvalidKeySpecException"+e);
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                //System.out.printf("errorInvalidKeyException"+e);
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                //System.out.printf("errorNoSuchPaddingException"+e);
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                //System.out.printf("errorIllegalBlockSizeException"+e);
+                e.printStackTrace();
+            } catch (Exception e) {
+                Looper.prepare();
+                e.printStackTrace();
+                Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_get_user_information));
+                Looper.loop();
+            }
         } else {
-                    String emailClean = "";
-                    try {
-                        emailClean = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
-                    final String finalEmailClean = emailClean;
-                    emailString = finalEmailClean;
-                    AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                    String accountClean = "";
-                    try {
-                        accountClean = EnDeCryptTextUtils.decrypt(accountUtils.getString(context, "account", AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(emailClean, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
-                    final String finalAccountClean = accountClean;
-                    accountString = finalAccountClean;
-                    //AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                    try {
-                        inputStream = accountUtils.getUserInformation(context, EnDeCryptTextUtils.encrypt(emailString, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(accountString, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1], Variables.TEXT_ENCRYPTION_KEY));
-                        //ModifyUserInformationScreen.emailAndAccount=EnDeCryptTextUtils.encrypt(email + Variables.SPLIT_SYMBOL + account, Variables.TEXT_ENCRYPTION_KEY);
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
+            String emailClean = "";
+            try {
+                emailClean = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+            final String finalEmailClean = emailClean;
+            emailString = finalEmailClean;
+            AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+            String accountClean = "";
+            try {
+                accountClean = EnDeCryptTextUtils.decrypt(accountUtils.getString(context, "account", AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(emailClean, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+            final String finalAccountClean = accountClean;
+            accountString = finalAccountClean;
+            //AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+            try {
+                inputStream = accountUtils.getUserInformation(context, EnDeCryptTextUtils.encrypt(emailString, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(accountString, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1], Variables.TEXT_ENCRYPTION_KEY));
+                //ModifyUserInformationScreen.emailAndAccount=EnDeCryptTextUtils.encrypt(email + Variables.SPLIT_SYMBOL + account, Variables.TEXT_ENCRYPTION_KEY);
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
 
 
         }

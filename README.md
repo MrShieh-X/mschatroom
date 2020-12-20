@@ -9,8 +9,9 @@ Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>alpha-3 (Dec. 17, 2020)</b><br/>
+<b>alpha-4 (Dec. 20, 2020)</b><br/>
 Historical version: <br/>
+<b>alpha-4 (Dec. 20, 2020)</b><br/>
 <b>alpha-3 (Dec. 17, 2020)</b><br/>
 <b>alpha-2 (Dec. 7, 2020)</b><br/>
 <b>alpha-1 (Dec. 5, 2020) (First version)</b><br/>
@@ -24,6 +25,7 @@ You can set the language in the settings.
 - Simplified Chinese (China)
 
 ## Found BUGs
+- When adding a chat, if the current number of chats >= 2, it will replace the last one, but it has been added successfully. Restart the application to see the newly added chat.
 - The application may crash after modifying the user information for unknown reasons.
 - (Fixed in alpha-3) After you login, open the settings, the user information (avatar, name and what's up) may not be displayed. This problem will be fixed in the future.
 

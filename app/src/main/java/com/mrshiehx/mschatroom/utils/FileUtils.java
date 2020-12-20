@@ -83,9 +83,8 @@ public class FileUtils {
      */
     public static void writeToFile(String strcontent, String filePath, String fileName) {
         //生成文件夹之后，再生成文件，不然会出错
-        String strFilePath = filePath + fileName;
         // 每次写入时，都换行写
-        File subfile = new File(strFilePath);
+        File subfile = new File(filePath,fileName);
         RandomAccessFile raf = null;
         try {
             /**   构造函数 第二个是读写方式    */

@@ -1,5 +1,10 @@
 # Update Logs
-Currently, the latest version is alpha-3, which was updated on December 17, 2020.
+Currently, the latest version is alpha-4, which was updated on December 20, 2020.
+
+## alpha-4 (Dec. 20, 2020)
+- Change "Forget Password?" in English (US) to "Forgot Password?".
+- Improved the main interface, you can add the chat, and every time you start you will get the name and avatar of each account.
+- Deleted the intent-filter that can be launched directly on the desktop to modify the user information interface.
 
 ## alpha-3 (Dec. 17, 2020)
 - Renamed the class "MainActivity" to "StartScreen".

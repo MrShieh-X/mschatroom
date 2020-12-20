@@ -168,4 +168,7 @@
     <string name="toast_add_chat_exists">聊天已经添加，不用再次添加</string>
     <string name="toast_failed_to_add_chat">添加聊天失败</string>
     <string name="toast_failed_to_save_avatar">保存头像失败</string>
+    <string name="toast_failed_to_get_information">获得用户信息失败</string>
+    <string name="toast_add_chat_by_email_but_already_add_with_account">“%1$s” 此聊天已使用账号添加，它的账号是 “%2$s”</string>
+    <string name="toast_add_chat_by_account_but_already_add_with_email">“%1$s” 此聊天已使用邮箱地址添加，它的邮箱地址是 “%2$s”</string>
 </resources>

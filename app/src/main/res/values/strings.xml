@@ -30,7 +30,7 @@
     <string name="button_get_captcha">Get CAPTCHA</string>
     <string name="button_login_by_emailandcaptcha">Login by email and CAPTCHA</string>
 
-    <string name="textview_tip_reset_password">Forget Password?</string>
+    <string name="textview_tip_reset_password">Forgot Password?</string>
     <string name="textview_tip_login">Have an account?</string>
     <string name="textview_password_different">The two passwords entered are different.</string>
     <string name="textview_tip_register">No account?</string>
@@ -163,6 +163,9 @@
     <string name="toast_no_mail_app">No mail application installed</string>
     <string name="toast_account_copied">Account has been copied</string>
     <string name="toast_email_copied">Email address has been copied</string>
+    <string name="toast_failed_to_get_information">Failed to get user information</string>
+    <string name="toast_add_chat_by_email_but_already_add_with_account">%1$s This chat has been added with account, and its account is %2$s</string>
+    <string name="toast_add_chat_by_account_but_already_add_with_email">%1$s This chat has been added with email address, and its email address is %2$s</string>
 
     <string name="toast_tip_set_name">Please set account name</string>
     <string name="toast_tip_set_avatar">Please set account avatar</string>

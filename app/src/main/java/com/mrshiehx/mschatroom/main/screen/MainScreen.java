@@ -1,11 +1,9 @@
 package com.mrshiehx.mschatroom.main.screen;
 
-import android.accounts.Account;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Looper;
 import android.preference.PreferenceManager;
@@ -20,15 +18,12 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
 import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.R;
@@ -49,11 +44,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -68,7 +60,6 @@ import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -86,7 +77,7 @@ public class MainScreen extends AppCompatActivity {
     FloatingActionButton fab;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Utils.initialization(MainScreen.this, R.string.app_name);
@@ -153,15 +144,17 @@ public class MainScreen extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             final String etT = et.getText().toString();
-                            if (!TextUtils.isEmpty(etT)) {
-                                if (Utils.isEmail(etT)) {
-                                    //email
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            String encrypted = "";
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    AccountUtils accountUtils=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);
+                                    //AccountUtils au;
+                                    if (!TextUtils.isEmpty(etT)) {
+                                        if (Utils.isEmail(etT)) {
+                                            //email
+                                            String account="";//DIRTY
                                             try {
-                                                encrypted = EnDeCryptTextUtils.encrypt(etT, Variables.TEXT_ENCRYPTION_KEY);
+                                                account=accountUtils.getString(context,"account",AccountUtils.BY_EMAIL,EnDeCryptTextUtils.encrypt(etT,Variables.TEXT_ENCRYPTION_KEY));
                                             } catch (InvalidKeySpecException e) {
                                                 e.printStackTrace();
                                             } catch (InvalidKeyException e) {
@@ -173,34 +166,20 @@ public class MainScreen extends AppCompatActivity {
                                             } catch (BadPaddingException e) {
                                                 e.printStackTrace();
                                             }
-                                            Looper.prepare();
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    finding.show();
-                                                }
-                                            });
-                                            AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                                            boolean ok = accountUtils.find(context, finding, AccountUtils.BY_EMAIL, encrypted);
-                                            if (ok) {
-                                                finding.dismiss();
-                                                runOnUiThread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        adding.show();
-                                                    }
-                                                });
-                                                InputStream avatar = accountUtils.getInputStream(context, "avatar", AccountUtils.BY_EMAIL, encrypted);
-                                                String accountOrName = "";
-                                                ChatItem item = null;
-                                                if (TextUtils.isEmpty(XMLUtils.readXmlBySAX(accountUtils.getInputStream(context, "information", accountUtils.BY_EMAIL, encrypted)).get(accountNameIndex).getNameContent())) {
-                                                    accountOrName = accountUtils.getString(context, "account", accountUtils.BY_EMAIL, encrypted);
-                                                } else {
+                                            File chatsFile=new File(Utils.getDataFilesPath(context),"chats.json");
+
+                                            if(chatsFile.exists()){
+                                                String chatsFileContent=FileUtils.getString(chatsFile);
+
+                                                if(!chatsFileContent.contains("\"emailOrAccount\":\"" + account + "\"")){
+                                                    add(etT, AccountUtils.BY_EMAIL);
+                                                }else{
+                                                    String jiamiaccount = null;
                                                     try {
-                                                        accountOrName = EnDeCryptTextUtils.encrypt(XMLUtils.readXmlBySAX(accountUtils.getInputStream(context, "information", accountUtils.BY_EMAIL, encrypted)).get(accountNameIndex).getNameContent(), Variables.TEXT_ENCRYPTION_KEY);
-                                                    } catch (InvalidKeySpecException e) {
-                                                        e.printStackTrace();
+                                                        jiamiaccount=EnDeCryptTextUtils.decrypt(account,Variables.TEXT_ENCRYPTION_KEY);
                                                     } catch (InvalidKeyException e) {
+                                                        e.printStackTrace();
+                                                    } catch (InvalidKeySpecException e) {
                                                         e.printStackTrace();
                                                     } catch (NoSuchPaddingException e) {
                                                         e.printStackTrace();
@@ -209,201 +188,67 @@ public class MainScreen extends AppCompatActivity {
                                                     } catch (BadPaddingException e) {
                                                         e.printStackTrace();
                                                     }
+                                                    Snackbar.make(lv,String.format(getString(R.string.toast_add_chat_by_email_but_already_add_with_account),etT,jiamiaccount),Snackbar.LENGTH_LONG).show();
+
                                                 }
-                                                if (avatar != null) {
-                                                    File file = new File(Utils.getDataFilesPath(context), encrypted);
-                                                    if (file.exists()) {
-                                                        file.delete();
-                                                    }
-                                                    try {
-                                                        file.createNewFile();
-                                                    } catch (IOException e) {
-                                                        e.printStackTrace();
-                                                        Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_save_avatar));
-                                                        Snackbar.make(lv, getString(R.string.toast_failed_to_save_avatar), Snackbar.LENGTH_SHORT).show();
-                                                    }
-
-                                                    if (file.exists()) {
-                                                        OutputStream os = null;
-                                                        try {
-                                                            os = new FileOutputStream(file);
-                                                            int ch = 0;
-                                                            while ((ch = avatar.read()) != -1) {
-                                                                os.write(ch);
-                                                            }
-                                                            os.flush();
-                                                        } catch (Exception e) {
-                                                            e.printStackTrace();
-                                                            Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_save_avatar));
-                                                            Snackbar.make(lv, getString(R.string.toast_failed_to_save_avatar), Snackbar.LENGTH_SHORT).show();
-                                                        } finally {
-                                                            try {
-                                                                os.close();
-                                                            } catch (Exception e) {
-                                                                e.printStackTrace();
-                                                            }
-                                                        }
-                                                        item = new ChatItem(encrypted, Utils.getDataFilesPath(context) + "/" + encrypted, accountOrName, "", "");
-                                                    }
-                                                } else {
-                                                    avatar = FormatTools.getInstance().Drawable2InputStream(getResources().getDrawable(R.drawable.account));
-                                                    item = new ChatItem(encrypted, "", accountOrName, "", "");
-                                                }
-
-                                                File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
-                                                if (chatsFile.exists()) {
-                                                    String chatsFileContent = FileUtils.getString(chatsFile);
-                                                    /**
-                                                     * 查找准备添加的聊天是否存在
-                                                     */
-                                                    if (!chatsFileContent.contains("\"emailOrAccount\":\"" + encrypted + "\"")) {
-                                                        //不存在，正常执行
-                                                        /**
-                                                         * 插入JSON项
-                                                         */
-                                                        //content.add(item);
-                                                        final List<ChatItem> chatItems = new ArrayList<ChatItem>();
-                                                        //新建json
-                                                        //Log.e("fuck",String.valueOf(content));
-                                                        //chatItems.addAll(content);
-                                                        chatItems.addAll(content);
-                                                        chatItems.add(item);
-                                                        //og.e("fuck2",String.valueOf(content));
-                                                        Gson gson = new Gson();
-                                                        JSONArray chatArray = new JSONArray();
-                                                        for (int i = 0; i < chatItems.size(); i++) {
-
-                                                            String chatStr = gson.toJson(chatItems.get(i));
-
-                                                            JSONObject chatObject;
-                                                            try {
-                                                                chatObject = new JSONObject(chatStr);
-                                                                chatArray.put(i, chatObject);
-                                                            } catch (JSONException e) {
-                                                                e.printStackTrace();
-                                                            }
-                                                        }
-                                                        //写入json
-                                                        //String jsonString = gson.toJson(item);
-                                                        try {
-                                                            FileWriter fileWriter = new FileWriter(chatsFile, false);
-                                                            BufferedWriter writer = new BufferedWriter(fileWriter);
-                                                            writer.append(chatArray.toString());
-                                                            writer.flush();
-                                                            writer.close();
-                                                        } catch (IOException e) {
-                                                            e.printStackTrace();
-                                                            Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
-                                                            Snackbar.make(lv, getString(R.string.toast_failed_to_add_chat), Snackbar.LENGTH_SHORT).show();
-                                                        }
-
-                                                        runOnUiThread(new Runnable() {
-                                                            @Override
-                                                            public void run() {
-                                                                //contentAdapter=null;
-                                                                try {
-                                                                    contentAdapter.clear();
-                                                                    contentAdapter.notifyDataSetChanged();
-                                                                } catch (Exception e) {
-                                                                    e.printStackTrace();
-                                                                }
-                                                                lv.setAdapter(null);
-                                                                initForAdd(lv, chatItems);
-                                                            }
-                                                        });
-                                                        adding.dismiss();
-                                                    } else {
-                                                        //存在，提示
-                                                        //Snackbar.make(context, getString(R.string.toast_add_chat_exists), Snackbar.LENGTH_SHORT).show();
-                                                        Snackbar.make(lv, getString(R.string.toast_add_chat_exists), Snackbar.LENGTH_SHORT).show();
-                                                        adding.dismiss();
-                                                    }
-                                                } else {
-                                                    /**
-                                                     * 新建JSON
-                                                     */
-                                                    List<ChatItem> chatItems = new ArrayList<ChatItem>();
-                                                    //新建json
-                                                    chatItems.add(item);
-                                                    Gson gson = new Gson();
-                                                    JSONArray chatArray = new JSONArray();
-                                                    for (int i = 0; i < chatItems.size(); i++) {
-
-                                                        String chatStr = gson.toJson(chatItems.get(i));
-
-                                                        JSONObject chatObject;
-                                                        try {
-                                                            chatObject = new JSONObject(chatStr);
-                                                            chatArray.put(i, chatObject);
-                                                        } catch (JSONException e) {
-                                                            e.printStackTrace();
-                                                        }
-                                                    }
-                                                    //写入json
-                                                    //String jsonString = gson.toJson(item);
-                                                    try {
-                                                        FileWriter fileWriter = new FileWriter(chatsFile, false);
-                                                        BufferedWriter writer = new BufferedWriter(fileWriter);
-                                                        writer.append(chatArray.toString());
-                                                        writer.flush();
-                                                        writer.close();
-                                                    } catch (IOException e) {
-                                                        e.printStackTrace();
-                                                        Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
-                                                        Snackbar.make(lv, getString(R.string.toast_failed_to_add_chat), Snackbar.LENGTH_SHORT).show();
-                                                        runOnUiThread(new Runnable() {
-                                                            @Override
-                                                            public void run() {
-                                                                adding.dismiss();
-                                                            }
-                                                        });
-                                                    }
-                                                    runOnUiThread(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            lv.setAdapter(null);
-                                                            new Thread(new Runnable() {
-                                                                @Override
-                                                                public void run() {
-                                                                    initForStart(lv, content);
-                                                                }
-                                                            }).start();
-                                                            adding.dismiss();
-                                                        }
-                                                    });
-                                                }
-                                            } else {
-                                                finding.dismiss();
-                                                Snackbar.make(lv, getString(R.string.toast_account_not_exist), Snackbar.LENGTH_SHORT).show();
+                                            }else{
+                                                add(etT, AccountUtils.BY_EMAIL);
                                             }
-                                            Looper.loop();
+
+
+                                        } else {
+                                            //account
+                                            String email="";//DIRTY
+                                            try {
+                                                email=accountUtils.getString(context,"email",AccountUtils.BY_ACCOUNT,EnDeCryptTextUtils.encrypt(etT,Variables.TEXT_ENCRYPTION_KEY));
+                                            } catch (InvalidKeySpecException e) {
+                                                e.printStackTrace();
+                                            } catch (InvalidKeyException e) {
+                                                e.printStackTrace();
+                                            } catch (NoSuchPaddingException e) {
+                                                e.printStackTrace();
+                                            } catch (IllegalBlockSizeException e) {
+                                                e.printStackTrace();
+                                            } catch (BadPaddingException e) {
+                                                e.printStackTrace();
+                                            }
+                                            File chatsFile=new File(Utils.getDataFilesPath(context),"chats.json");
+                                            if(chatsFile.exists()){
+
+                                                String chatsFileContent=FileUtils.getString(chatsFile);
+
+                                                if(!chatsFileContent.contains("\"emailOrAccount\":\"" + email + "\"")){
+                                                    add(etT, AccountUtils.BY_ACCOUNT);
+                                                }else{
+                                                    String jiamiemail="";
+                                                    try {
+
+                                                        jiamiemail=EnDeCryptTextUtils.decrypt(email,Variables.TEXT_ENCRYPTION_KEY);
+                                                    } catch (InvalidKeyException e) {
+                                                        e.printStackTrace();
+                                                    } catch (InvalidKeySpecException e) {
+                                                        e.printStackTrace();
+                                                    } catch (NoSuchPaddingException e) {
+                                                        e.printStackTrace();
+                                                    } catch (IllegalBlockSizeException e) {
+                                                        e.printStackTrace();
+                                                    } catch (BadPaddingException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                    Snackbar.make(lv,String.format(getString(R.string.toast_add_chat_by_account_but_already_add_with_email),etT,jiamiemail),Snackbar.LENGTH_LONG).show();
+                                                }
+                                            }else{
+                                                add(etT, AccountUtils.BY_ACCOUNT);
+                                            }
                                         }
-                                    }).start();
-                                } else {
-                                    /**原来的代码
-                                     *
-                                     * String encrypted = "";
-                                     *try {
-                                     *                                         encrypted = EnDeCryptTextUtils.encrypt(etT, Variables.TEXT_ENCRYPTION_KEY);
-                                     *                                     } catch (InvalidKeySpecException e) {
-                                     *                                         e.printStackTrace();
-                                     *                                     } catch (InvalidKeyException e) {
-                                     *                                         e.printStackTrace();
-                                     *                                     } catch (NoSuchPaddingException e) {
-                                     *                                         e.printStackTrace();
-                                     *                                     } catch (IllegalBlockSizeException e) {
-                                     *                                         e.printStackTrace();
-                                     *                                     } catch (BadPaddingException e) {
-                                     *                                         e.printStackTrace();
-                                     *                                     }
-                                     */
-                                    //account
 
-
+                                    } else {
+                                        Snackbar.make(lv, getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
+                                    }
                                 }
-                            } else {
-                                Snackbar.make(lv, getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
-                            }
+                            }).start();
+
+
                         }
                     });
                     dialog.show();
@@ -444,11 +289,261 @@ public class MainScreen extends AppCompatActivity {
         setContentView(cl);
     }
 
+    void add(final String 懂的都懂, final String by) {
+        String encrypted = "";
+        try {
+            encrypted = EnDeCryptTextUtils.encrypt(懂的都懂, Variables.TEXT_ENCRYPTION_KEY);
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        }
+        Looper.prepare();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                finding.show();
+            }
+        });
+        AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+        boolean ok = accountUtils.find(context, finding, by, encrypted);
+        if (ok) {
+            finding.dismiss();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adding.show();
+                }
+            });
+            InputStream avatar = accountUtils.getInputStream(context, "avatar", by, encrypted);
+            String accountOrName = "";
+            ChatItem item = null;
+            if (TextUtils.isEmpty(XMLUtils.readXmlBySAX(accountUtils.getInputStream(context, "information", by, encrypted)).get(accountNameIndex).getNameContent())) {
+                try {
+                    accountOrName = EnDeCryptTextUtils.decrypt(accountUtils.getString(context, "account", by, encrypted), Variables.TEXT_ENCRYPTION_KEY);
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeySpecException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                } catch (BadPaddingException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                accountOrName = XMLUtils.readXmlBySAX(accountUtils.getInputStream(context, "information", by, encrypted)).get(accountNameIndex).getNameContent();
+            }
+            if (avatar != null) {
+                File file = new File(Utils.getDataFilesPath(context), encrypted);
+                if (file.exists()) {
+                    file.delete();
+                }
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_save_avatar));
+                    Snackbar.make(lv, getString(R.string.toast_failed_to_save_avatar), Snackbar.LENGTH_SHORT).show();
+                }
+
+                if (file.exists()) {
+                    OutputStream os = null;
+                    try {
+                        os = new FileOutputStream(file);
+                        int ch = 0;
+                        while ((ch = avatar.read()) != -1) {
+                            os.write(ch);
+                        }
+                        os.flush();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_save_avatar));
+                        Snackbar.make(lv, getString(R.string.toast_failed_to_save_avatar), Snackbar.LENGTH_SHORT).show();
+                    } finally {
+                        try {
+                            os.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    try {
+                        item = new ChatItem(encrypted, Utils.getDataFilesPath(context) + "/" + encrypted, EnDeCryptTextUtils.encrypt(accountOrName, Variables.TEXT_ENCRYPTION_KEY), "", "");
+                    } catch (InvalidKeySpecException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                avatar = FormatTools.getInstance().Drawable2InputStream(getResources().getDrawable(R.drawable.account));
+                try {
+                    item = new ChatItem(encrypted, "", EnDeCryptTextUtils.encrypt(accountOrName, Variables.TEXT_ENCRYPTION_KEY), "", "");
+                } catch (InvalidKeySpecException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                } catch (BadPaddingException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            /**
+             * 添加聊天到JSON
+             */
+            File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+            if (chatsFile.exists()) {
+                String chatsFileContent = FileUtils.getString(chatsFile);
+                /**
+                 * 查找准备添加的聊天是否存在
+                 */
+                if (!chatsFileContent.contains("\"emailOrAccount\":\"" + encrypted + "\"")) {
+                    //不存在，正常执行
+                    /**
+                     * 插入JSON项
+                     */
+                    //content.add(item);
+                    //final List<ChatItem> chatItems = new ArrayList<ChatItem>();
+                    //新建json
+                    //Log.e("fuck",String.valueOf(content));
+                    //chatItems.addAll(content);
+                    //chatItems.addAll(content);
+                    content.add(item);
+                    //og.e("fuck2",String.valueOf(content));
+                    Gson gson = new Gson();
+                    JSONArray chatArray = new JSONArray();
+                    for (int i = 0; i < content.size(); i++) {
+
+                        String chatStr = gson.toJson(content.get(i));
+
+                        JSONObject chatObject;
+                        try {
+                            chatObject = new JSONObject(chatStr);
+                            chatArray.put(i, chatObject);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    //写入json
+                    //String jsonString = gson.toJson(item);
+                    try {
+                        FileWriter fileWriter = new FileWriter(chatsFile, false);
+                        BufferedWriter writer = new BufferedWriter(fileWriter);
+                        writer.append(chatArray.toString());
+                        writer.flush();
+                        writer.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
+                        Snackbar.make(lv, getString(R.string.toast_failed_to_add_chat), Snackbar.LENGTH_SHORT).show();
+                    }
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //contentAdapter=null;
+                            try {
+                                contentAdapter.clear();
+                                contentAdapter.notifyDataSetChanged();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            lv.setAdapter(null);
+                                    initForAdd(lv, content);
+                        }
+                    });
+                    adding.dismiss();
+                } else {
+                    //存在，提示
+                    //Snackbar.make(context, getString(R.string.toast_add_chat_exists), Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(lv, getString(R.string.toast_add_chat_exists), Snackbar.LENGTH_SHORT).show();
+                    adding.dismiss();
+                }
+            } else {
+                /**
+                 * 新建JSON
+                 */
+                List<ChatItem> chatItems = new ArrayList<ChatItem>();
+                //新建json
+                chatItems.add(item);
+                content.clear();
+                content.add(item);
+                Gson gson = new Gson();
+                JSONArray chatArray = new JSONArray();
+                for (int i = 0; i < chatItems.size(); i++) {
+
+                    String chatStr = gson.toJson(chatItems.get(i));
+
+                    JSONObject chatObject;
+                    try {
+                        chatObject = new JSONObject(chatStr);
+                        chatArray.put(i, chatObject);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                //写入json
+                //String jsonString = gson.toJson(item);
+                try {
+                    FileWriter fileWriter = new FileWriter(chatsFile, false);
+                    BufferedWriter writer = new BufferedWriter(fileWriter);
+                    writer.append(chatArray.toString());
+                    writer.flush();
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
+                    Snackbar.make(lv, getString(R.string.toast_failed_to_add_chat), Snackbar.LENGTH_SHORT).show();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adding.dismiss();
+                        }
+                    });
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        lv.setAdapter(null);
+                                initForAdd(lv, content);
+                        adding.dismiss();
+                    }
+                });
+            }
+        } else {
+            finding.dismiss();
+            Snackbar.make(lv, getString(R.string.toast_account_not_exist), Snackbar.LENGTH_SHORT).show();
+        }
+        Looper.loop();
+
+    }
+
+
+    /**
+     * 真的给开始用，不能给添加后用
+     */
     void initForStart(final ListView lv, final List<ChatItem> content) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
                 initializing.show();
             }
         });
@@ -458,148 +553,198 @@ public class MainScreen extends AppCompatActivity {
             try {
                 List<ChatItem> list = gson.fromJson(FileUtils.getString(chatsFile), new TypeToken<List<ChatItem>>() {
                 }.getType());
-                List<String> eoas = new ArrayList<String>();//email or account s
+                List<String> eoas = new ArrayList<String>();//email or account s,DECRYPTED
                 for (ChatItem item : list) {
-                    eoas.add(item.getEmailOrAccount());
+                    eoas.add(EnDeCryptTextUtils.decrypt(item.getEmailOrAccount(), Variables.TEXT_ENCRYPTION_KEY));
                 }
                 //Toast.makeText(context, String.valueOf(eoas), Toast.LENGTH_LONG).show();
                 List<ChatItem> items = new ArrayList<>();
                 for (int a = 0; a < eoas.size(); a++) {
-                    final String[] eoa = {EnDeCryptTextUtils.decrypt(eoas.get(a), Variables.TEXT_ENCRYPTION_KEY)};
+                    final String[] eoa = {eoas.get(a)};
                     if (Utils.isEmail(eoa[0])) {
-                        AccountUtils au = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                        boolean status = false;
-                        try {
-                            status = au.tryLoginWithoutPassword(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
-                        } catch (InvalidKeySpecException e) {
-                            e.printStackTrace();
-                        } catch (InvalidKeyException e) {
-                            e.printStackTrace();
-                        } catch (NoSuchPaddingException e) {
-                            e.printStackTrace();
-                        } catch (IllegalBlockSizeException e) {
-                            e.printStackTrace();
-                        } catch (BadPaddingException e) {
-                            e.printStackTrace();
-                        }
-                        if (status) {
-                            /**
-                             * 如果账号存在
-                             */
-                            InputStream avatar = null;
-                            InputStream info = null;
-                            try {
-                                avatar = au.getInputStream(context, "avatar", au.BY_EMAIL, EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
-                                info = au.getUserInformationWithoutPassword(context, au.BY_EMAIL, EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
-                            } catch (InvalidKeySpecException e) {
-                                e.printStackTrace();
-                            } catch (InvalidKeyException e) {
-                                e.printStackTrace();
-                            } catch (NoSuchPaddingException e) {
-                                e.printStackTrace();
-                            } catch (IllegalBlockSizeException e) {
-                                e.printStackTrace();
-                            } catch (BadPaddingException e) {
-                                e.printStackTrace();
-                            }
-                            if (avatar != null) {
-                                /**
-                                 * 保存头像
-                                 */
-                                File avatarFile = new File(Utils.getDataFilesPath(context), EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
-                                if (avatarFile.exists()) {
-                                    avatarFile.delete();
-                                }
-                                try {
-                                    avatarFile.createNewFile();
-                                    int index;
-                                    byte[] bytes = new byte[1024];
-                                    FileOutputStream downloadFile = new FileOutputStream(Utils.getDataFilesPath(context) + "/" + EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
-                                    while ((index = avatar.read(bytes)) != -1) {
-                                        downloadFile.write(bytes, 0, index);
-                                        downloadFile.flush();
-                                    }
-                                    downloadFile.close();
-                                    avatar.close();
-
-                                    JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
-                                    jsonObject.put("avatarFilePAN", Utils.getDataFilesPath(context) + "/" + EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    Looper.prepare();
-                                    Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_save_avatar));
-                                    Looper.loop();
-                                }
-                            }
-                            String accountName = XMLUtils.readXmlBySAX(info).get(0).getNameContent();
-                            ChatItem item;
-                            if (TextUtils.isEmpty(accountName)) {
-                                /**
-                                 * 昵称空，获得账号
-                                 * */
-                                String account = "";
-                                try {
-                                    account = au.getAccountByEmail(context, EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
-                                } catch (InvalidKeySpecException e) {
-                                    e.printStackTrace();
-                                } catch (InvalidKeyException e) {
-                                    e.printStackTrace();
-                                } catch (NoSuchPaddingException e) {
-                                    e.printStackTrace();
-                                } catch (IllegalBlockSizeException e) {
-                                    e.printStackTrace();
-                                } catch (BadPaddingException e) {
-                                    e.printStackTrace();
-                                }
-                                /**
-                                 * 写入
-                                 */
-                                JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
-                                jsonObject.put("name", account);
-                                String emailOrAccountS = jsonObject.getString("emailOrAccount");
-                                String avatarS = jsonObject.getString("avatarFilePAN");
-                                String latestMsgS = jsonObject.getString("latestMsg");
-                                String latestMsgDateS = jsonObject.getString("latestMsgDate");
-                                item = new ChatItem(emailOrAccountS, avatarS, account, latestMsgS, latestMsgDateS);
-                            } else {
-                                //昵称不空，set it！
-                                JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
-                                jsonObject.put("name", accountName);
-                                String emailOrAccountS = jsonObject.getString("emailOrAccount");
-                                String avatarS = jsonObject.getString("avatarFilePAN");
-                                String latestMsgS = jsonObject.getString("latestMsg");
-                                String latestMsgDateS = jsonObject.getString("latestMsgDate");
-                                item = new ChatItem(emailOrAccountS, avatarS, accountName, latestMsgS, latestMsgDateS);
-                            }
-                            items.add(item);
-                            content.clear();
-                            content.add(item);
-                        }
-                        contentAdapter = new ChatsAdapter(this, R.layout.item_main_screen_chat, items);
-
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                lv.setAdapter(contentAdapter);
-                                initializing.dismiss();
-                            }
-                        });
-                    }
-                    else {
-
+                        addForStart(eoa, chatsFile, a, items, AccountUtils.BY_EMAIL);
+                    } else {
+                        /**
+                         * Init by account for startActivity
+                         */
+                        addForStart(eoa, chatsFile, a, items, AccountUtils.BY_ACCOUNT);
                     }
                 }
 
+                contentAdapter = new ChatsAdapter(this, R.layout.item_main_screen_chat, items);
 
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        lv.setAdapter(contentAdapter);
+                        initializing.dismiss();
+                    }
+                });
+                Gson gson1 = new Gson();
+                JSONArray chatArray = new JSONArray();
+                for (int i = 0; i < items.size(); i++) {
+
+                    String chatStr = gson1.toJson(items.get(i));
+
+                    JSONObject chatObject;
+                    try {
+                        chatObject = new JSONObject(chatStr);
+                        chatArray.put(i, chatObject);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                //File chatsFile1=new File(Utils.getDataFilesPath(context),"chats.json");
+                //chatsFile1.delete();
+                //chatsFile1.createNewFile();
+                //FileUtils.writeToFile(chatArray.toString(),Utils.getDataFilesPath(context),"chats.json");
+                FileUtils.modifyFile(Utils.getDataFilesPath(context) + "/" + "chats.json", chatArray.toString(), false);
             } catch (Exception e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_initialize));
-                initializing.dismiss();
             }
-        } else {
-            /**don't init*/
-            initializing.dismiss();
         }
+        initializing.dismiss();
+    }
+
+    void addForStart(final String[] eoa, final File chatsFile, final int a, final List<ChatItem> items, final String by) throws JSONException {
+        ChatItem item = null;
+        try {
+            AccountUtils au = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+            boolean status = false;
+            try {
+                status = au.tryLoginWithoutPassword(context, by, EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+            if (status) {
+                /**
+                 * 如果账号存在
+                 */
+                InputStream avatar = null;
+                InputStream info = null;
+                try {
+                    avatar = au.getInputStream(context, "avatar", by, EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+                    info = au.getUserInformationWithoutPassword(context, by, EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+                } catch (InvalidKeySpecException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                } catch (BadPaddingException e) {
+                    e.printStackTrace();
+                }
+                if (avatar != null) {
+                    /**
+                     * 保存头像
+                     */
+                    File avatarFile = new File(Utils.getDataFilesPath(context), EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+                    if (avatarFile.exists()) {
+                        avatarFile.delete();
+                    }
+                    try {
+                        avatarFile.createNewFile();
+                        int index;
+                        byte[] bytes = new byte[1024];
+                        FileOutputStream downloadFile = new FileOutputStream(Utils.getDataFilesPath(context) + "/" + EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+                        while ((index = avatar.read(bytes)) != -1) {
+                            downloadFile.write(bytes, 0, index);
+                            downloadFile.flush();
+                        }
+                        downloadFile.close();
+                        avatar.close();
+
+                        //JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
+                        //jsonObject.put("avatarFilePAN", Utils.getDataFilesPath(context) + "/" + EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_save_avatar));
+                    }
+                } else {
+                    File avatarFile = new File(Utils.getDataFilesPath(context), EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+                    if (avatarFile.exists()) {
+                        avatarFile.delete();
+                    }
+                }
+                String accountName = "";
+                try {
+                    accountName = XMLUtils.readXmlBySAX(info).get(0).getNameContent();//干净的
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_get_information));
+                }
+                if (TextUtils.isEmpty(accountName)) {
+                    /**
+                     * 昵称空，获得账号
+                     * */
+                    String account = "";
+                    try {
+                        //account = au.getAccountByEmail(context, EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+                        account = au.getString(context,"account",by,EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+                    } catch (InvalidKeySpecException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
+                    /**
+                     * 写入
+                     */
+                    JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
+                    jsonObject.put("name", account);
+                    String emailOrAccountS = jsonObject.getString("emailOrAccount");
+
+                    jsonObject.put("avatarFilePAN", Utils.getDataFilesPath(context) + "/" + EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
+                    String avatarS = "";
+                    if (new File(Utils.getDataFilesPath(context), EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY)).exists()) {
+                        avatarS = jsonObject.getString("avatarFilePAN");
+                    }
+
+                    String latestMsgS = jsonObject.getString("latestMsg");
+                    String latestMsgDateS = jsonObject.getString("latestMsgDate");
+                    item = new ChatItem(emailOrAccountS, avatarS, account, latestMsgS, latestMsgDateS);
+                } else {
+                    //昵称不空，set it！
+                    JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
+                    jsonObject.put("name", EnDeCryptTextUtils.encrypt(accountName, Variables.TEXT_ENCRYPTION_KEY));
+                    String emailOrAccountS = jsonObject.getString("emailOrAccount");
+                    String avatarS = "";
+                    if (new File(Utils.getDataFilesPath(context), EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY)).exists()) {
+                        avatarS = jsonObject.getString("avatarFilePAN");
+                    }
+                    String latestMsgS = jsonObject.getString("latestMsg");
+                    String latestMsgDateS = jsonObject.getString("latestMsgDate");
+                    item = new ChatItem(emailOrAccountS, avatarS, EnDeCryptTextUtils.encrypt(accountName, Variables.TEXT_ENCRYPTION_KEY), latestMsgS, latestMsgDateS);
+                }
+            }
+        } catch (Exception e) {
+            JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
+            String name = jsonObject.getString("name");
+            String emailOrAccountS = jsonObject.getString("emailOrAccount");
+            String avatarS = jsonObject.getString("avatarFilePAN");
+            String latestMsgS = jsonObject.getString("latestMsg");
+            String latestMsgDateS = jsonObject.getString("latestMsgDate");
+            item = new ChatItem(emailOrAccountS, avatarS, name, latestMsgS, latestMsgDateS);
+        }
+        items.add(item);
+        content.clear();
+        content.add(item);
     }
 
 
@@ -670,11 +815,16 @@ public class MainScreen extends AppCompatActivity {
         }
     }
 
-    void initForAdd(ListView lv, List<ChatItem> content) {
+    void initForAdd(final ListView lv, List<ChatItem> content) {
         File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
         if (chatsFile.exists()) {
             contentAdapter = new ChatsAdapter(this, R.layout.item_main_screen_chat, content);
-            lv.setAdapter(contentAdapter);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    lv.setAdapter(contentAdapter);
+                }
+            });
         }
     }
 
