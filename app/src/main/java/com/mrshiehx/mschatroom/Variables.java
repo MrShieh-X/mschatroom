@@ -49,5 +49,3 @@ public class Variables {
     public static final String SHARED_PREFERENCE_IS_REMEMBER_EOA_AND_PASSWORD = "isRememberEOAAndPassword";
     public static final String SHARED_PREFERENCE_LOGIN_METHOD = "loginMethod";
 }
-
-
