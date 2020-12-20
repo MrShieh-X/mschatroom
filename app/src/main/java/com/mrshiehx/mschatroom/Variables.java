@@ -50,3 +50,4 @@ public class Variables {
     public static final String SHARED_PREFERENCE_LOGIN_METHOD = "loginMethod";
 }
 
+
