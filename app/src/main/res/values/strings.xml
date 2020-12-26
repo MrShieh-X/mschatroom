@@ -10,6 +10,7 @@
     <string name="activity_modify_user_information_screen_name">Modify User Information</string>
     <string name="activity_login_by_ec_screen_name">Login By Email CAPTCHA</string>
     <string name="activity_about_screen_name">About</string>
+    <string name="activity_picture_viewer_name">Picture Viewer</string>
 
     <string name="edittexthint_input_account_or_email">Account or Email Address</string>
     <string name="edittexthint_input_password">Password</string>
@@ -60,8 +61,8 @@
     <string name="preference_account_summary_tip_set_whatsup">Please set what\'s up</string>
     <string name="preference_account_avatar_title">Avatar</string>
     <string name="preference_account_avatar_summary">Click to change the avatar</string>
-    <string name="preference_account_name_title">Name</string>
-    <string name="preference_account_name_summary">Name not set</string>
+    <string name="preference_account_name_title">Nickname</string>
+    <string name="preference_account_name_summary">Nickname not set</string>
     <string name="preference_account_gender_title">Gender</string>
     <string name="preference_account_gender_summary">Gender not set</string>
     <string name="preference_account_gender_dialogtitle">Select a gender</string>
@@ -78,7 +79,7 @@
     <string name="dialog_exception_parsing_json_failed">JSON file parsing failed</string>
     <string name="dialog_exception_parsing_xml_failed">XML file parsing failed</string>
     <string name="dialog_title_wait">Wait</string>
-    <string name="dialog_wait_download_message">Initializing... (if the loading time is too long, there may be network problems or application problems, you can restart the application)</string>
+    <string name="dialog_downloading_message">Downloading File... (if the download time is too long, there may be network problems or application problems, you can restart the application)</string>
     <string name="dialog_exception_title">An error occurred</string>
     <string name="dialog_exception_message">Sorry, an error occurred in the program. We recommend that you report this problem to the author. The class file is: %1$s; the error is: %2$s</string>
     <string name="dialog_no_network_title">No Network</string>
@@ -89,7 +90,7 @@
     <string name="dialog_exit_button_exit">Exit</string>
     <string name="dialog_exception_detail_title">An error occurred</string>
     <string name="dialog_exception_detail_message">Sorry, an error occurred in the program. We recommend that you report this problem to the author. The class file is: %1$s; the error is: %2$s (%3$s)</string>
-    <string name="dialog_exception_downloadfailed">File download failed</string>
+    <string name="dialog_exception_downloadfailed">Failed to download file</string>
     <string name="dialog_exception_button_feedback">Feedback To The Author</string>
     <string name="dialog_exception_failed_get_captcha">Failed to get CAPTCHA</string>
     <string name="dialog_registering_message">Registering... (If the registration takes too long, there may be network problems, server problems or application problems, you can try to restart the application.)</string>
@@ -126,6 +127,13 @@
     <string name="dialog_exception_failed_to_read_file">Failed to read file</string>
     <string name="dialog_exception_failed_to_en_or_de_text">Text encryption or decryption failed</string>
     <string name="dialog_exception_failed_to_initialize">Failed to initialize</string>
+    <string name="dialog_view_or_modify_avatar_title">Please choose an operation</string>
+    <string name="dialog_view_or_modify_avatar_operation_view">View Avatar</string>
+    <string name="dialog_view_or_modify_avatar_operation_modify">Modify Avatar</string>
+    <string name="dialog_exception_failed_to_load_image">Failed to load image</string>
+    <string name="dialog_no_permissions_title">Application permissions are not available</string>
+    <string name="dialog_no_permissions_message">Please in the application settings - permissions, allow the application to use the device permissions to use the application.</string>
+    <string name="dialog_no_permissions_button_gotosettings">Go to settings</string>
 
     <string name="toast_captcha_incorrect">The CAPTCHA is incorrect</string>
     <string name="toast_registered_email">The email has been used, please change, after the change you must get CAPTCHA again</string>
@@ -164,10 +172,12 @@
     <string name="toast_account_copied">Account has been copied</string>
     <string name="toast_email_copied">Email address has been copied</string>
     <string name="toast_failed_to_get_information">Failed to get user information</string>
-    <string name="toast_add_chat_by_email_but_already_add_with_account">%1$s This chat has been added with account, and its account is %2$s</string>
-    <string name="toast_add_chat_by_account_but_already_add_with_email">%1$s This chat has been added with email address, and its email address is %2$s</string>
+    <string name="toast_add_chat_by_email_but_already_add_with_account">"%1$s" This chat has been added with account, and its account is "%2$s"</string>
+    <string name="toast_add_chat_by_account_but_already_add_with_email">"%1$s" This chat has been added with email address, and its email address is "%2$s"</string>
+    <string name="toast_is_not_a_vaild_url">The content entered is not a valid URL</string>
+    <string name="toast_picture_viewer_nothing">Nothing to view</string>
 
-    <string name="toast_tip_set_name">Please set account name</string>
+    <string name="toast_tip_set_name">Please set account nickname</string>
     <string name="toast_tip_set_avatar">Please set account avatar</string>
     <string name="toast_tip_set_gender">Please set gender</string>
     <string name="toast_tip_set_whatsup">Please set what\'s up</string>

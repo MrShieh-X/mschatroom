@@ -28,7 +28,7 @@
     <string name="preference_settings_list_modify_theme_dialogtitle">选择一个主题</string>
     <string name="preference_settings_list_modify_language_title">语言</string>
     <string name="preference_settings_list_modify_language_dialogtitle">选择一个语言</string>
-    <string name="dialog_wait_download_message">初始化中...（如果加载时间过长，可能是网络问题或者应用程序问题，您可以重启该应用程序。）</string>
+    <string name="dialog_downloading_message">下载文件中...（如果下载时间过长，可能是网络问题或者应用程序问题，您可以重启该应用程序。）</string>
     <string name="dialog_exception_title">出现了一个错误</string>
     <string name="dialog_exception_message">抱歉，程序出现了一个错误。我们建议您把这问题反馈给作者。类文件是：%1$s；错误是：%2$s</string>
     <string name="dialog_no_network_title">没有网络</string>
@@ -171,4 +171,14 @@
     <string name="toast_failed_to_get_information">获得用户信息失败</string>
     <string name="toast_add_chat_by_email_but_already_add_with_account">“%1$s” 此聊天已使用账号添加，它的账号是 “%2$s”</string>
     <string name="toast_add_chat_by_account_but_already_add_with_email">“%1$s” 此聊天已使用邮箱地址添加，它的邮箱地址是 “%2$s”</string>
+    <string name="dialog_no_permissions_title">应用权限不可用</string>
+    <string name="dialog_no_permissions_message">请在 应用设置-权限 中，允许应用使用设备的权限以使用该应用</string>
+    <string name="dialog_no_permissions_button_gotosettings">前往设置</string>
+    <string name="activity_picture_viewer_name">图片查看器</string>
+    <string name="dialog_view_or_modify_avatar_title">请选择一个操作</string>
+    <string name="dialog_view_or_modify_avatar_operation_view">查看头像</string>
+    <string name="dialog_view_or_modify_avatar_operation_modify">修改头像</string>
+    <string name="dialog_exception_failed_to_load_image">加载图像失败</string>
+    <string name="toast_is_not_a_vaild_url">输入的内容并不是一个有效的URL</string>
+    <string name="toast_picture_viewer_nothing">无显示内容</string>
 </resources>

@@ -1,5 +1,11 @@
 # Update Logs
-Currently, the latest version is alpha-4, which was updated on December 20, 2020.
+Currently, the latest version is alpha-5, which was updated on December 26, 2020.
+
+## alpha-5 (Dec. 26, 2020)
+- Change the "name" of the account in English (US) to "nickname".
+- Click the avatar item on the modify user information page, you can choose to view the avatar or modify the avatar (not complete).
+- Added a picture viewer, which can be used to view pictures. Use URLScheme to start the interface. Its URLScheme is mscr://picture_viewer/view?localPath= (local picture file path) or mscr://picture_viewer/view?url= (picture network address), where mscr can be changed to mschatroom, picture_viewer can be changed to pv.
+- Fix the problem that Android 6.0 and above may not be able to obtain permissions.
 
 ## alpha-4 (Dec. 20, 2020)
 - Change "Forget Password?" in English (US) to "Forgot Password?".

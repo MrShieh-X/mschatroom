@@ -1,5 +1,11 @@
 # 更新日志
-目前的最新版本为alpha-4，发布日期是2020年12月20日。
+目前的最新版本为alpha-5，发布日期是2020年12月26日。
+
+## alpha-5（2020年12月26日）
+- 将英语（美国）里的账户的“name”（名称）改成了“nickname”（昵称）。
+- 在修改用户信息页面点击头像项，可以选择查看头像或修改头像（未完善）。
+- 添加了图片查看器，可以用来查看图片，使用 URLScheme 启动该界面。它的 URLScheme 是 mscr://picture_viewer/view?localPath=（本地图片文件路径）或者 mscr://picture_viewer/view?url=（图片的网络地址），其中 mscr 可以改成 mschatroom，picture_viewer 可以改成 pv。
+- 修复了 Android 6.0 及以上版本可能获取不了权限的问题。
 
 ## alpha-4（2020年12月20日）
 - 将英语（美国）里的“Forget Password?”改成了“Forgot Password?”。

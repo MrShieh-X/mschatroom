@@ -9,8 +9,9 @@ Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>alpha-4 (Dec. 20, 2020)</b><br/>
+<b>alpha-5 (Dec. 26, 2020)</b><br/>
 Historical version: <br/>
+<b>alpha-5 (Dec. 26, 2020)</b><br/>
 <b>alpha-4 (Dec. 20, 2020)</b><br/>
 <b>alpha-3 (Dec. 17, 2020)</b><br/>
 <b>alpha-2 (Dec. 7, 2020)</b><br/>

@@ -33,7 +33,9 @@ import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.items.InputStreamItem;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
+import com.mrshiehx.mschatroom.picture_viewer.screen.PictureViewerScreen;
 import com.mrshiehx.mschatroom.preference.AppCompatPreferenceActivity;
 import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
@@ -225,71 +227,109 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
         avatarP.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                AlertDialog.Builder dialog = new AlertDialog.Builder(context).setTitle(getResources().getString(R.string.dialog_choose_photo_title)).setMessage(getResources().getString(R.string.dialog_choose_photo_message)).setPositiveButton(getResources().getString(android.R.string.cancel), null).setNegativeButton(getResources().getString(R.string.dialog_choose_photo_button_select), new DialogInterface.OnClickListener() {
+                AlertDialog.Builder view_or_modify=new AlertDialog.Builder(context);
+                view_or_modify.setTitle(getString(R.string.dialog_view_or_modify_avatar_title));
+                final String[] items = {
+                        getString(R.string.dialog_view_or_modify_avatar_operation_view),
+                        getString(R.string.dialog_view_or_modify_avatar_operation_modify)};
+                view_or_modify.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        try {
-                            if (initPassword()) {
-                                Intent intentToPickPic = new Intent(Intent.ACTION_GET_CONTENT, null);
-                                intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
-                                startActivityForResult(intentToPickPic, RC_CHOOSE_PHOTO);
-                                uploading.show();
-                                gettingAvatar.show();
-                            }
-                        } catch (IllegalBlockSizeException e) {
-                            e.printStackTrace();
-                        } catch (NoSuchPaddingException e) {
-                            e.printStackTrace();
-                        } catch (BadPaddingException e) {
-                            e.printStackTrace();
-                        } catch (InvalidKeySpecException e) {
-                            e.printStackTrace();
-                        } catch (InvalidKeyException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                }).setNeutralButton(getResources().getString(R.string.dialog_choose_photo_button_take), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        try {
-                            if (initPassword()) {
-                                File outputImage = new File(getExternalCacheDir(), tempAvatarName);
+                    public void onClick(DialogInterface dialogInterface, int which) {
+                        switch (which) {
+                            case 0:
                                 try {
-                                    if (outputImage.exists()) {
-                                        outputImage.delete();
+                                    if(initPassword()) {
+                                        if (avatarInputStream != null) {
+                                            InputStreamItem inputStreamItem = new InputStreamItem(avatarInputStream);
+                                            Intent intent = new Intent(context, PictureViewerScreen.class);
+                                            intent.putExtra("image", inputStreamItem);
+                                            startActivity(intent);
+                                        }
                                     }
-                                } catch (Exception e) {
+                                } catch (IllegalBlockSizeException e) {
+                                    e.printStackTrace();
+                                } catch (NoSuchPaddingException e) {
+                                    e.printStackTrace();
+                                } catch (BadPaddingException e) {
+                                    e.printStackTrace();
+                                } catch (InvalidKeySpecException e) {
+                                    e.printStackTrace();
+                                } catch (InvalidKeyException e) {
                                     e.printStackTrace();
                                 }
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    imageUri = FileProvider.getUriForFile(context, "com.mrshiehx.pickphoto.fileprovider", outputImage);
-                                } else {
-                                    imageUri = Uri.fromFile(outputImage);
-                                }
+                                break;
+                            case 1:
+                                AlertDialog.Builder dialog = new AlertDialog.Builder(context).setTitle(getResources().getString(R.string.dialog_choose_photo_title)).setMessage(getResources().getString(R.string.dialog_choose_photo_message)).setPositiveButton(getResources().getString(android.R.string.cancel), null).setNegativeButton(getResources().getString(R.string.dialog_choose_photo_button_select), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        try {
+                                            if (initPassword()) {
+                                                Intent intentToPickPic = new Intent(Intent.ACTION_GET_CONTENT, null);
+                                                intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+                                                startActivityForResult(intentToPickPic, RC_CHOOSE_PHOTO);
+                                                uploading.show();
+                                                gettingAvatar.show();
+                                            }
+                                        } catch (IllegalBlockSizeException e) {
+                                            e.printStackTrace();
+                                        } catch (NoSuchPaddingException e) {
+                                            e.printStackTrace();
+                                        } catch (BadPaddingException e) {
+                                            e.printStackTrace();
+                                        } catch (InvalidKeySpecException e) {
+                                            e.printStackTrace();
+                                        } catch (InvalidKeyException e) {
+                                            e.printStackTrace();
+                                        }
 
-                                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                //MediaStore.ACTION_IMAGE_CAPTURE = android.media.action.IMAGE_CAPTURE
-                                intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                                startActivityForResult(intent, TAKE_CAMERA);
+                                    }
+                                }).setNeutralButton(getResources().getString(R.string.dialog_choose_photo_button_take), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        try {
+                                            if (initPassword()) {
+                                                File outputImage = new File(getExternalCacheDir(), tempAvatarName);
+                                                try {
+                                                    if (outputImage.exists()) {
+                                                        outputImage.delete();
+                                                    }
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                                    imageUri = FileProvider.getUriForFile(context, "com.mrshiehx.pickphoto.fileprovider", outputImage);
+                                                } else {
+                                                    imageUri = Uri.fromFile(outputImage);
+                                                }
 
-                                uploading.show();
-                                gettingAvatar.show();
-                            }
-                        } catch (IllegalBlockSizeException e) {
-                            e.printStackTrace();
-                        } catch (NoSuchPaddingException e) {
-                            e.printStackTrace();
-                        } catch (BadPaddingException e) {
-                            e.printStackTrace();
-                        } catch (InvalidKeySpecException e) {
-                            e.printStackTrace();
-                        } catch (InvalidKeyException e) {
-                            e.printStackTrace();
+                                                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                                //MediaStore.ACTION_IMAGE_CAPTURE = android.media.action.IMAGE_CAPTURE
+                                                intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                                                startActivityForResult(intent, TAKE_CAMERA);
+
+                                                uploading.show();
+                                                gettingAvatar.show();
+                                            }
+                                        } catch (IllegalBlockSizeException e) {
+                                            e.printStackTrace();
+                                        } catch (NoSuchPaddingException e) {
+                                            e.printStackTrace();
+                                        } catch (BadPaddingException e) {
+                                            e.printStackTrace();
+                                        } catch (InvalidKeySpecException e) {
+                                            e.printStackTrace();
+                                        } catch (InvalidKeyException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                                dialog.show();/*}*/
+                                break;
+                            default:
                         }
                     }
                 });
-                dialog.show();/*}*/
+                view_or_modify.show();
                 return true;
             }
         });
@@ -1191,12 +1231,14 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                             Toast.makeText(context, getResources().getString(R.string.toast_failed_to_downloadavatar), Toast.LENGTH_SHORT).show();
                             Looper.loop();
                         }
-                        if (avatarInputStream != null) runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                avatarP.setIcon(FormatTools.getInstance().InputStream2Drawable(avatarInputStream));
-                            }
-                        });
+                        if (avatarInputStream != null) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    avatarP.setIcon(FormatTools.getInstance().InputStream2Drawable(avatarInputStream));
+                                }
+                            });
+                        }
                         else {
                             Looper.prepare();
                             Toast.makeText(context, getResources().getString(R.string.toast_tip_set_avatar), Toast.LENGTH_SHORT).show();

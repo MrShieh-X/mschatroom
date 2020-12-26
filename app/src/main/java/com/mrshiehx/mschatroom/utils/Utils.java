@@ -30,6 +30,8 @@ import android.webkit.URLUtil;
 import android.widget.Toast;
 
 
+import androidx.annotation.StringRes;
+
 import com.google.android.material.snackbar.Snackbar;
 import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.R;
@@ -131,11 +133,11 @@ public class Utils {
             if (!file.exists()) {
                 file.mkdirs();
             }
-            final ProgressDialog waitDownload = new ProgressDialog(context);
-            waitDownload.setTitle(context.getResources().getString(R.string.dialog_title_wait));
-            waitDownload.setMessage(context.getResources().getString(R.string.dialog_wait_download_message));
-            waitDownload.setCancelable(false);
-            waitDownload.show();
+            final ProgressDialog downloading = new ProgressDialog(context);
+            downloading.setTitle(context.getResources().getString(R.string.dialog_title_wait));
+            downloading.setMessage(context.getResources().getString(R.string.dialog_downloading_message));
+            downloading.setCancelable(false);
+            downloading.show();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -168,7 +170,7 @@ public class Utils {
                             @Override
                             public void run() {
                                 if (Utils.fileIsExists(context, downloadToPath + "/" + afterDownloadFileName) == true) {
-                                    waitDownload.dismiss();
+                                    downloading.dismiss();
                                     timer.cancel();
                                 } else {
 
@@ -380,7 +382,7 @@ public class Utils {
     }
 
 
-    public static void initialization(Activity context, int titleId) {
+    public static void initialization(Activity context, @StringRes int titleId) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
@@ -396,6 +398,26 @@ public class Utils {
         String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, "en_US").split("_");
         context.setTitle(getStringByLocale(context, titleId, languageAndCountry[0], languageAndCountry[1]));
         initializationTheme(context);
+        MyApplication.getInstance().addActivity(context);
+    }
+
+
+    public static void initializationForPictureViewer(Activity context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
+        //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN,true);
+        if (isFirstRun == false) {
+            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, "en_US"));
+        } else {
+            //Get default language, and set it
+            editor.putString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
+            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
+        }
+        makeIsFirstRunFalse(context);
+        //String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, "en_US").split("_");
+        //context.setTitle(getStringByLocale(context, titleId, languageAndCountry[0], languageAndCountry[1]));
+        //initializationTheme(context);
         MyApplication.getInstance().addActivity(context);
     }
 
@@ -491,7 +513,7 @@ public class Utils {
         resource.updateConfiguration(config, null);
     }
 
-    public static boolean isUrlAUrl(String urlString) {
+    public static boolean isUrl(String urlString) {
         try {
             URL url = new URL(urlString);
             return URLUtil.isValidUrl(urlString) && Patterns.WEB_URL.matcher(urlString).matches();
