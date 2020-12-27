@@ -1,5 +1,11 @@
 # Update Logs
-Currently, the latest version is alpha-5, which was updated on December 26, 2020.
+Currently, the latest version is alpha-6, which was updated on December 27, 2020.
+
+## alpha-6 (Dec. 27, 2020)
+- Fixed an issue where users can add chat without login.
+- Fixed the problem that there was no response when pressing the back button in the upper left corner of the picture viewer interface.
+- Fixed the problem of incomplete display of the list in the about interface.
+- You can choose to view the avatar by clicking on the avatar in the modify user information page.
 
 ## alpha-5 (Dec. 26, 2020)
 - Change the "name" of the account in English (US) to "nickname".

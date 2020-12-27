@@ -147,104 +147,108 @@ public class MainScreen extends AppCompatActivity {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    AccountUtils accountUtils=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);
-                                    //AccountUtils au;
-                                    if (!TextUtils.isEmpty(etT)) {
-                                        if (Utils.isEmail(etT)) {
-                                            //email
-                                            String account="";//DIRTY
-                                            try {
-                                                account=accountUtils.getString(context,"account",AccountUtils.BY_EMAIL,EnDeCryptTextUtils.encrypt(etT,Variables.TEXT_ENCRYPTION_KEY));
-                                            } catch (InvalidKeySpecException e) {
-                                                e.printStackTrace();
-                                            } catch (InvalidKeyException e) {
-                                                e.printStackTrace();
-                                            } catch (NoSuchPaddingException e) {
-                                                e.printStackTrace();
-                                            } catch (IllegalBlockSizeException e) {
-                                                e.printStackTrace();
-                                            } catch (BadPaddingException e) {
-                                                e.printStackTrace();
-                                            }
-                                            File chatsFile=new File(Utils.getDataFilesPath(context),"chats.json");
-
-                                            if(chatsFile.exists()){
-                                                String chatsFileContent=FileUtils.getString(chatsFile);
-
-                                                if(!chatsFileContent.contains("\"emailOrAccount\":\"" + account + "\"")){
-                                                    add(etT, AccountUtils.BY_EMAIL);
-                                                }else{
-                                                    String jiamiaccount = null;
-                                                    try {
-                                                        jiamiaccount=EnDeCryptTextUtils.decrypt(account,Variables.TEXT_ENCRYPTION_KEY);
-                                                    } catch (InvalidKeyException e) {
-                                                        e.printStackTrace();
-                                                    } catch (InvalidKeySpecException e) {
-                                                        e.printStackTrace();
-                                                    } catch (NoSuchPaddingException e) {
-                                                        e.printStackTrace();
-                                                    } catch (IllegalBlockSizeException e) {
-                                                        e.printStackTrace();
-                                                    } catch (BadPaddingException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                    Snackbar.make(lv,String.format(getString(R.string.toast_add_chat_by_email_but_already_add_with_account),etT,jiamiaccount),Snackbar.LENGTH_LONG).show();
-
+                                    Looper.prepare();
+                                    if(Utils.checkLoginInformationAndNetwork(context)) {
+                                        AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                                        //AccountUtils au;
+                                        if (!TextUtils.isEmpty(etT)) {
+                                            if (Utils.isEmail(etT)) {
+                                                //email
+                                                String account = "";//DIRTY
+                                                try {
+                                                    account = accountUtils.getString(context, "account", AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(etT, Variables.TEXT_ENCRYPTION_KEY));
+                                                } catch (InvalidKeySpecException e) {
+                                                    e.printStackTrace();
+                                                } catch (InvalidKeyException e) {
+                                                    e.printStackTrace();
+                                                } catch (NoSuchPaddingException e) {
+                                                    e.printStackTrace();
+                                                } catch (IllegalBlockSizeException e) {
+                                                    e.printStackTrace();
+                                                } catch (BadPaddingException e) {
+                                                    e.printStackTrace();
                                                 }
-                                            }else{
-                                                add(etT, AccountUtils.BY_EMAIL);
-                                            }
+                                                File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
 
+                                                if (chatsFile.exists()) {
+                                                    String chatsFileContent = FileUtils.getString(chatsFile);
+
+                                                    if (!chatsFileContent.contains("\"emailOrAccount\":\"" + account + "\"")) {
+                                                        add(etT, AccountUtils.BY_EMAIL);
+                                                    } else {
+                                                        String jiamiaccount = null;
+                                                        try {
+                                                            jiamiaccount = EnDeCryptTextUtils.decrypt(account, Variables.TEXT_ENCRYPTION_KEY);
+                                                        } catch (InvalidKeyException e) {
+                                                            e.printStackTrace();
+                                                        } catch (InvalidKeySpecException e) {
+                                                            e.printStackTrace();
+                                                        } catch (NoSuchPaddingException e) {
+                                                            e.printStackTrace();
+                                                        } catch (IllegalBlockSizeException e) {
+                                                            e.printStackTrace();
+                                                        } catch (BadPaddingException e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                        Snackbar.make(lv, String.format(getString(R.string.toast_add_chat_by_email_but_already_add_with_account), etT, jiamiaccount), Snackbar.LENGTH_LONG).show();
+
+                                                    }
+                                                } else {
+                                                    add(etT, AccountUtils.BY_EMAIL);
+                                                }
+
+
+                                            } else {
+                                                //account
+                                                String email = "";//DIRTY
+                                                try {
+                                                    email = accountUtils.getString(context, "email", AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(etT, Variables.TEXT_ENCRYPTION_KEY));
+                                                } catch (InvalidKeySpecException e) {
+                                                    e.printStackTrace();
+                                                } catch (InvalidKeyException e) {
+                                                    e.printStackTrace();
+                                                } catch (NoSuchPaddingException e) {
+                                                    e.printStackTrace();
+                                                } catch (IllegalBlockSizeException e) {
+                                                    e.printStackTrace();
+                                                } catch (BadPaddingException e) {
+                                                    e.printStackTrace();
+                                                }
+                                                File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+                                                if (chatsFile.exists()) {
+
+                                                    String chatsFileContent = FileUtils.getString(chatsFile);
+
+                                                    if (!chatsFileContent.contains("\"emailOrAccount\":\"" + email + "\"")) {
+                                                        add(etT, AccountUtils.BY_ACCOUNT);
+                                                    } else {
+                                                        String jiamiemail = "";
+                                                        try {
+
+                                                            jiamiemail = EnDeCryptTextUtils.decrypt(email, Variables.TEXT_ENCRYPTION_KEY);
+                                                        } catch (InvalidKeyException e) {
+                                                            e.printStackTrace();
+                                                        } catch (InvalidKeySpecException e) {
+                                                            e.printStackTrace();
+                                                        } catch (NoSuchPaddingException e) {
+                                                            e.printStackTrace();
+                                                        } catch (IllegalBlockSizeException e) {
+                                                            e.printStackTrace();
+                                                        } catch (BadPaddingException e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                        Snackbar.make(lv, String.format(getString(R.string.toast_add_chat_by_account_but_already_add_with_email), etT, jiamiemail), Snackbar.LENGTH_LONG).show();
+                                                    }
+                                                } else {
+                                                    add(etT, AccountUtils.BY_ACCOUNT);
+                                                }
+                                            }
 
                                         } else {
-                                            //account
-                                            String email="";//DIRTY
-                                            try {
-                                                email=accountUtils.getString(context,"email",AccountUtils.BY_ACCOUNT,EnDeCryptTextUtils.encrypt(etT,Variables.TEXT_ENCRYPTION_KEY));
-                                            } catch (InvalidKeySpecException e) {
-                                                e.printStackTrace();
-                                            } catch (InvalidKeyException e) {
-                                                e.printStackTrace();
-                                            } catch (NoSuchPaddingException e) {
-                                                e.printStackTrace();
-                                            } catch (IllegalBlockSizeException e) {
-                                                e.printStackTrace();
-                                            } catch (BadPaddingException e) {
-                                                e.printStackTrace();
-                                            }
-                                            File chatsFile=new File(Utils.getDataFilesPath(context),"chats.json");
-                                            if(chatsFile.exists()){
-
-                                                String chatsFileContent=FileUtils.getString(chatsFile);
-
-                                                if(!chatsFileContent.contains("\"emailOrAccount\":\"" + email + "\"")){
-                                                    add(etT, AccountUtils.BY_ACCOUNT);
-                                                }else{
-                                                    String jiamiemail="";
-                                                    try {
-
-                                                        jiamiemail=EnDeCryptTextUtils.decrypt(email,Variables.TEXT_ENCRYPTION_KEY);
-                                                    } catch (InvalidKeyException e) {
-                                                        e.printStackTrace();
-                                                    } catch (InvalidKeySpecException e) {
-                                                        e.printStackTrace();
-                                                    } catch (NoSuchPaddingException e) {
-                                                        e.printStackTrace();
-                                                    } catch (IllegalBlockSizeException e) {
-                                                        e.printStackTrace();
-                                                    } catch (BadPaddingException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                    Snackbar.make(lv,String.format(getString(R.string.toast_add_chat_by_account_but_already_add_with_email),etT,jiamiemail),Snackbar.LENGTH_LONG).show();
-                                                }
-                                            }else{
-                                                add(etT, AccountUtils.BY_ACCOUNT);
-                                            }
+                                            Snackbar.make(lv, getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
                                         }
-
-                                    } else {
-                                        Snackbar.make(lv, getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
                                     }
+                                    Looper.loop();
                                 }
                             }).start();
 
@@ -304,7 +308,6 @@ public class MainScreen extends AppCompatActivity {
         } catch (BadPaddingException e) {
             e.printStackTrace();
         }
-        Looper.prepare();
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -532,7 +535,6 @@ public class MainScreen extends AppCompatActivity {
             finding.dismiss();
             Snackbar.make(lv, getString(R.string.toast_account_not_exist), Snackbar.LENGTH_SHORT).show();
         }
-        Looper.loop();
 
     }
 

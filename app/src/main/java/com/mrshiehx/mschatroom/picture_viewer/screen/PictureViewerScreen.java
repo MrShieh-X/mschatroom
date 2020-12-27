@@ -7,46 +7,34 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
 import android.view.KeyEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.ImageButton;
+import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.StartScreen;
-import com.mrshiehx.mschatroom.items.InputStreamItem;
-import com.mrshiehx.mschatroom.utils.FileUtils;
 import com.mrshiehx.mschatroom.utils.FormatTools;
 import com.mrshiehx.mschatroom.utils.Utils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class PictureViewerScreen extends Activity {
     Context context=PictureViewerScreen.this;
@@ -59,14 +47,23 @@ public class PictureViewerScreen extends Activity {
     AlertDialog dialog2;
     String contentType;
     String content;
+    public static InputStream imageInputStream;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Utils.initializationForPictureViewer(PictureViewerScreen.this);
         getActionBar().setDisplayHomeAsUpEnabled(true);
-        setContentView(R.layout.activity_picture_viewer);
+        LinearLayout mainLayout = new LinearLayout(this);
+        //Button b=new Button(this);
+        image = new ImageView(context);
+        LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        image.setLayoutParams(llp);
+        mainLayout.setLayoutParams(llp);
+        mainLayout.addView(image);
+        setContentView(mainLayout);
+        //setContentView(R.layout.activity_picture_viewer);
         //back=findViewById(R.id.back);
-        image=findViewById(R.id.main_image);
+        //image=findViewById(R.id.main_image);
         //setStatusBarFullTransparent();
         //setFitSystemWindow(false);
         //setFitSystemWindow(true);
@@ -77,47 +74,58 @@ public class PictureViewerScreen extends Activity {
             }
         });*/
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (shouldShowRequestPermissionRationale(StartScreen.permissions[0])) {
-                ps = false;
-            } else {
-                ps = true;
-            }
+            ps = shouldShowRequestPermissionRationale(StartScreen.permissions[0]);
         }
-        InputStreamItem inputStreamItem=(InputStreamItem)getIntent().getSerializableExtra("image");
+        //InputStreamItem inputStream = (InputStreamItem) getIntent().getSerializableExtra("image");
         /**
          *  优先加载Intent的，Intent没有就加载Scheme的
          */
-        if(inputStreamItem==null){
-
+        if (imageInputStream == null) {
             Intent intent = getIntent();
             Uri uri = intent.getData();
             if (uri != null) {
                 //query部分
                 String[] queryString = uri.getQuery().split("=");
-                contentType=queryString[0];
-                content=queryString[1];
+                contentType = queryString[0];
+                content = queryString[1];
 
-                int WRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(getApplicationContext(), StartScreen.permissions[0]);
-                int INTERNET = ContextCompat.checkSelfPermission(getApplicationContext(), StartScreen.permissions[1]);
-                int ACCESS_NETWORK_STATE = ContextCompat.checkSelfPermission(getApplicationContext(), StartScreen.permissions[2]);
-                // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
-                if (WRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED || INTERNET != PackageManager.PERMISSION_GRANTED || ACCESS_NETWORK_STATE != PackageManager.PERMISSION_GRANTED) {
-                    // 如果没有授予该权限，就去提示用户请求
-                    startRequestPermission();
+
+                if (contentType.equals("localPath")) {
+                    int WRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(getApplicationContext(), StartScreen.permissions[0]);
+                    int INTERNET = ContextCompat.checkSelfPermission(getApplicationContext(), StartScreen.permissions[1]);
+                    int ACCESS_NETWORK_STATE = ContextCompat.checkSelfPermission(getApplicationContext(), StartScreen.permissions[2]);
+                    // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
+                    if (WRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED || INTERNET != PackageManager.PERMISSION_GRANTED || ACCESS_NETWORK_STATE != PackageManager.PERMISSION_GRANTED) {
+                        // 如果没有授予该权限，就去提示用户请求
+                        startRequestPermission();
+                    } else {
+                        method01(content);
+                    }
+                } else if (contentType.equals("url")) {
+                    method02(content);
                 } else {
-                    method01(contentType,content);
+                    Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
+                    //Utils.showLongSnackbar(image,getString(R.string.toast_picture_viewer_nothing));
                 }
-            }else{
+
+
+            } else {
                 Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
                 //Utils.showLongSnackbar(image,getString(R.string.toast_picture_viewer_nothing));
             }
-        }else{
-            try{
-                image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(inputStreamItem.getInputStream()));
-            }catch (Exception e){
+        } else {
+            try {
+                //Toast.makeText(context, "117", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, imageInputStream.toString(), Toast.LENGTH_SHORT).show();
+                image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(imageInputStream));
+
+                //Toast.makeText(context, "120", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context,e,getString(R.string.dialog_exception_failed_to_load_image));
+                Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_load_image));
+                //Toast.makeText(context, "124", Toast.LENGTH_SHORT).show();
             }
+            //Toast.makeText(context, "126", Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -151,7 +159,13 @@ public class PictureViewerScreen extends Activity {
                         showDialogTipUserGoToAppSettting();
                     }
                 } else {
-                    method01(contentType,content);
+
+                    if(contentType.equals("localPath")){
+                        method01(content);
+                    } else{
+                        Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
+                        //Utils.showLongSnackbar(image,getString(R.string.toast_picture_viewer_nothing));
+                    }
                 }
             }
         }
@@ -188,7 +202,13 @@ public class PictureViewerScreen extends Activity {
                     if (dialog2 != null&&dialog2.isShowing()) {
                         dialog2.dismiss();
                     }
-                    method01(contentType,content);
+
+                    if(contentType.equals("localPath")){
+                        method01(content);
+                    } else{
+                        Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
+                        //Utils.showLongSnackbar(image,getString(R.string.toast_picture_viewer_nothing));
+                    }
                 }
             }
         }
@@ -200,80 +220,76 @@ public class PictureViewerScreen extends Activity {
         intent.setData(uri);
         startActivityForResult(intent, 123);
     }
-    void method01(String contentType, final String content) {
-        if(contentType.equals("localPath")){
-            File file=new File(content);
-            if(file.exists()){
-                try {
-                    InputStream is = new FileInputStream(file);
-                    image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(is));
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                    Utils.exceptionDialog(context,e,getString(R.string.dialog_exception_failed_to_read_file));
-                    Toast.makeText(context, getString(R.string.dialog_exception_failed_to_read_file), Toast.LENGTH_SHORT).show();
-                    //Utils.showLongSnackbar(image,getString(R.string.dialog_exception_failed_to_read_file));
-                }
-
-            }else{
-                Toast.makeText(context, getString(R.string.dialog_exception_file_not_found), Toast.LENGTH_SHORT).show();
-                //Utils.showLongSnackbar(image,getString(R.string.dialog_exception_file_not_found));
+    void method01(final String content) {
+        File file=new File(content);
+        if(file.exists()){
+            try {
+                InputStream is = new FileInputStream(file);
+                image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(is));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Utils.exceptionDialog(context,e,getString(R.string.dialog_exception_failed_to_read_file));
+                Toast.makeText(context, getString(R.string.dialog_exception_failed_to_read_file), Toast.LENGTH_SHORT).show();
+                //Utils.showLongSnackbar(image,getString(R.string.dialog_exception_failed_to_read_file));
             }
-        } else if(contentType.equals("url")) {
-            if(Utils.networkAvailableDialog(context)){
-                final ProgressDialog downloading = new ProgressDialog(context);
-                downloading.setTitle(context.getResources().getString(R.string.dialog_title_wait));
-                downloading.setMessage(context.getResources().getString(R.string.dialog_downloading_message));
-                downloading.setCancelable(false);
-                downloading.show();
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            URL url = new URL(content);
-                            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                            con.setReadTimeout(120000);
-                            con.setConnectTimeout(50000);
-                            con.setRequestProperty("Charset", "UTF-8");
-                            con.setRequestMethod("GET");
-                            if (con.getResponseCode() == 200) {
-                                final InputStream is = con.getInputStream();
-                                if (is != null) {
-                                    try {
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(is));
-                                            }
-                                        });
-                                    }catch (Exception e){
-                                        Looper.prepare();
-                                        downloading.dismiss();
-                                        Utils.exceptionDialog(context,e,getString(R.string.dialog_exception_failed_to_load_image));
-                                        Looper.loop();
-                                    }
-                                }else{
+
+        }else{
+            Toast.makeText(context, getString(R.string.dialog_exception_file_not_found), Toast.LENGTH_SHORT).show();
+            //Utils.showLongSnackbar(image,getString(R.string.dialog_exception_file_not_found));
+        }
+    }
+    void method02(final String content){
+        if(Utils.networkAvailableDialog(context)){
+            final ProgressDialog downloading = new ProgressDialog(context);
+            downloading.setTitle(context.getResources().getString(R.string.dialog_title_wait));
+            downloading.setMessage(context.getResources().getString(R.string.dialog_downloading_message));
+            downloading.setCancelable(false);
+            downloading.show();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        URL url = new URL(content);
+                        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                        con.setReadTimeout(120000);
+                        con.setConnectTimeout(50000);
+                        con.setRequestProperty("Charset", "UTF-8");
+                        con.setRequestMethod("GET");
+                        if (con.getResponseCode() == 200) {
+                            final InputStream is = con.getInputStream();
+                            if (is != null) {
+                                try {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(is));
+                                        }
+                                    });
+                                }catch (Exception e){
                                     Looper.prepare();
                                     downloading.dismiss();
-                                    Toast.makeText(context, getString(R.string.dialog_exception_downloadfailed), Toast.LENGTH_SHORT).show();
+                                    Utils.exceptionDialog(context,e,getString(R.string.dialog_exception_failed_to_load_image));
                                     Looper.loop();
-                                    //Utils.showLongSnackbar(image,getString(R.string.dialog_exception_downloadfailed));
                                 }
+                            }else{
+                                Looper.prepare();
+                                downloading.dismiss();
+                                Toast.makeText(context, getString(R.string.dialog_exception_downloadfailed), Toast.LENGTH_SHORT).show();
+                                Looper.loop();
+                                //Utils.showLongSnackbar(image,getString(R.string.dialog_exception_downloadfailed));
                             }
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Looper.prepare();
-                            downloading.dismiss();
-                            Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_downloadfailed));
-                            Looper.loop();
                         }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Looper.prepare();
                         downloading.dismiss();
+                        Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_downloadfailed));
+                        Looper.loop();
                     }
-                }).start();
-            }
-        }else{
-            Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
-            //Utils.showLongSnackbar(image,getString(R.string.toast_picture_viewer_nothing));
+                    downloading.dismiss();
+                }
+            }).start();
         }
     }
 
@@ -283,10 +299,20 @@ public class PictureViewerScreen extends Activity {
             case KeyEvent.KEYCODE_BACK:
                 finish();
                 break;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
                 break;
+
+            default:
+                break;
         }
-        return super.onKeyUp(keyCode, event);
+        return super.onOptionsItemSelected(item);
     }
 }

@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.Parcelable;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
@@ -26,18 +27,13 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 
-import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
-import com.mrshiehx.mschatroom.items.InputStreamItem;
-import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 import com.mrshiehx.mschatroom.picture_viewer.screen.PictureViewerScreen;
 import com.mrshiehx.mschatroom.preference.AppCompatPreferenceActivity;
-import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.FormatTools;
@@ -240,10 +236,41 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                 try {
                                     if(initPassword()) {
                                         if (avatarInputStream != null) {
-                                            InputStreamItem inputStreamItem = new InputStreamItem(avatarInputStream);
+                                            PictureViewerScreen.imageInputStream=FormatTools.getInstance().Drawable2InputStream(avatarP.getIcon());
+                                            Utils.inputStream2File(FormatTools.getInstance().Drawable2InputStream(avatarP.getIcon()),new File(Utils.getDataCachePath(context),"fuck"));
+                                            startActivity(new Intent(context,PictureViewerScreen.class));
+
+                                            /*byte[] buffer = new byte[avatarInputStream.available()];
+                                            avatarInputStream.read(buffer);
+
+                                            File targetFile = new File(Utils.getDataCachePath(context),"avatar");
+                                            Utils.inputStream2File(avatarInputStream,targetFile);
+                                            Intent action = new Intent(Intent.ACTION_VIEW);
+                                            StringBuilder builder = new StringBuilder();
+                                            //Toast.makeText(context, targetFile.getPath(), Toast.LENGTH_SHORT).show();
+                                            builder.append("mscr://pv/view?localPath="+targetFile.getPath());
+                                            action.setData(Uri.parse(builder.toString()));
+                                            startActivity(action);*/
+
+
+                                            /*Intent intent = new Intent(context, PictureViewerScreen.class);
+
+                                            BytesItem bytesItem = new BytesItem();
+                                            bytesItem.setBytes(Utils.inputStream2ByteArray(avatarInputStream));
+                                            //inputStreamItem.setString("fuckfuckfuckfickficvkgucj");
+                                            Bundle mBundle = new Bundle();
+                                            mBundle.putSerializable("image", bytesItem);
+                                            intent.putExtras(mBundle);
+                                            startActivity(intent);
+*/
+                                            /*InputStreamItem inputStreamItem = new InputStreamItem();
+                                            inputStreamItem.setInputStream(avatarInputStream);
                                             Intent intent = new Intent(context, PictureViewerScreen.class);
                                             intent.putExtra("image", inputStreamItem);
                                             startActivity(intent);
+                                            */
+                                        }else{
+                                            Toast.makeText(context, getString(R.string.toast_tip_set_avatar), Toast.LENGTH_SHORT).show();
                                         }
                                     }
                                 } catch (IllegalBlockSizeException e) {
@@ -255,6 +282,8 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                 } catch (InvalidKeySpecException e) {
                                     e.printStackTrace();
                                 } catch (InvalidKeyException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                                 break;

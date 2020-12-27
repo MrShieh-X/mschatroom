@@ -22,10 +22,18 @@ public class AboutListView extends ListView {
     }
 
     //解决listview高度问题；
-    @Override
+    /*@Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         // TODO Auto-generated method stub
         int me = MeasureSpec.makeMeasureSpec(600, MeasureSpec.AT_MOST);
         super.onMeasure(widthMeasureSpec, me);
+    }*/
+
+    @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int expandSpec = MeasureSpec.makeMeasureSpec(Integer.MAX_VALUE >> 2,
+                MeasureSpec.AT_MOST);
+        super.onMeasure(widthMeasureSpec, expandSpec);
+
     }
 }

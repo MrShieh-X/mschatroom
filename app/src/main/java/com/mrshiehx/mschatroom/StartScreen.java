@@ -40,11 +40,7 @@ public class StartScreen extends Activity {
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         // 检查该权限是否已经获取
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (shouldShowRequestPermissionRationale(permissions[0])) {
-                ps = false;
-            } else {
-                ps = true;
-            }
+            ps = shouldShowRequestPermissionRationale(permissions[0]);
         }
         int WRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(getApplicationContext(), permissions[0]);
         int INTERNET = ContextCompat.checkSelfPermission(getApplicationContext(), permissions[1]);

@@ -40,12 +40,14 @@ import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -886,5 +888,33 @@ public class Utils {
 
     public static void showIndefiniteSnackbar(View v,String s){
         Snackbar.make(v,s,Snackbar.LENGTH_INDEFINITE).show();
+    }
+    public static byte[] inputStream2ByteArray(InputStream input) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int n = 0;
+        while (-1 != (n = input.read(buffer))) {
+            output.write(buffer, 0, n);
+        }
+        return output.toByteArray();
+    }
+
+    public static InputStream bytes2InputStream(byte[] bytes) {
+        return new ByteArrayInputStream(bytes);
+    }
+    public static void inputStream2File(InputStream is, File file) throws IOException {
+        OutputStream os = null;
+        try {
+            os = new FileOutputStream(file);
+            int len = 0;
+            byte[] buffer = new byte[8192];
+
+            while ((len = is.read(buffer)) != -1) {
+                os.write(buffer, 0, len);
+            }
+        } finally {
+            os.close();
+            is.close();
+        }
     }
 }
