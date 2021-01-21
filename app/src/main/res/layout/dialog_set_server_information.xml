@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginEnd="25dp"
+        android:id="@+id/dialog_set_server_information_tip"
+        style="?android:attr/textAppearanceMedium"
+        android:layout_marginLeft="25dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="25dp"
+            android:text="@string/textview_dialog_set_server_information_server_address_tip"
+            style="?android:attr/textAppearanceMedium"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        style="?android:attr/textAppearanceMedium"
+        android:singleLine="true"
+        android:id="@+id/dialog_set_server_information_server_address"
+        android:hint="@string/edittexthint_dialog_set_server_information_server_address" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="25dp"
+        android:text="@string/textview_dialog_set_server_information_database_name_tip"
+        style="?android:attr/textAppearanceMedium"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        style="?android:attr/textAppearanceMedium"
+        android:singleLine="true"
+        android:id="@+id/dialog_set_server_information_database_name"
+        android:hint="@string/edittexthint_dialog_set_server_information_database_name"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="25dp"
+        android:text="@string/textview_dialog_set_server_information_database_user_name_tip"
+        style="?android:attr/textAppearanceMedium"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        style="?android:attr/textAppearanceMedium"
+        android:singleLine="true"
+        android:id="@+id/dialog_set_server_information_database_user_name"
+        android:hint="@string/edittexthint_dialog_set_server_information_database_user_name"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="25dp"
+        android:text="@string/textview_dialog_set_server_information_database_user_password_tip"
+        style="?android:attr/textAppearanceMedium"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        style="?android:attr/textAppearanceMedium"
+        android:singleLine="true"
+        android:id="@+id/dialog_set_server_information_database_user_password"
+        android:hint="@string/edittexthint_dialog_set_server_information_database_user_password"/>
+
+    <CheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?android:attr/textAppearanceMedium"
+        android:text="@string/checkbox_show_password"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        android:id="@+id/dialog_set_server_information_show_password"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="25dp"
+        android:text="@string/textview_dialog_set_server_information_database_table_name_tip"
+        style="?android:attr/textAppearanceMedium"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        style="?android:attr/textAppearanceMedium"
+        android:singleLine="true"
+        android:id="@+id/dialog_set_server_information_database_table_name"
+        android:hint="@string/edittexthint_dialog_set_server_information_database_table_name"/>
+
+</LinearLayout>

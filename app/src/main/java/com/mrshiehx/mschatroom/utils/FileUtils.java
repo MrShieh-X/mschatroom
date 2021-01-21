@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,11 +60,11 @@ public class FileUtils {
     }
     /**
      * 删除文件
-     * @param filePath 文件地址
+     * @param target 目标文件
      * @return
      */
-    public static boolean deleteFiles(String filePath) {
-        List<File> files = getFile(new File(filePath));
+    public static boolean deleteFiles(File target) {
+        List<File> files = getFile(target);
         if (files.size() != 0) {
             for (int i = 0; i < files.size(); i++) {
                 File file = files.get(i);
@@ -78,13 +79,11 @@ public class FileUtils {
     /**
      * 向文件中添加内容
      * @param strcontent 内容
-     * @param filePath   地址
-     * @param fileName   文件名
+     * @param subfile   目标文件
      */
-    public static void writeToFile(String strcontent, String filePath, String fileName) {
+    public static void writeToFile(String strcontent, File subfile) {
         //生成文件夹之后，再生成文件，不然会出错
         // 每次写入时，都换行写
-        File subfile = new File(filePath,fileName);
         RandomAccessFile raf = null;
         try {
             /**   构造函数 第二个是读写方式    */
@@ -100,20 +99,16 @@ public class FileUtils {
     }
     /**
      * 修改文件内容（覆盖或者添加）
-     * @param path    文件地址
+     * @param file    目标文件
      * @param content 覆盖内容
      * @param append  指定了写入的方式，是覆盖写还是追加写(true=追加)(false=覆盖)
      */
-    public static void modifyFile(String path, String content, boolean append) {
-        try {
-            FileWriter fileWriter = new FileWriter(path, append);
-            BufferedWriter writer = new BufferedWriter(fileWriter);
-            writer.append(content);
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static void modifyFile(File file, String content, boolean append) throws IOException {
+        FileWriter fileWriter = new FileWriter(file, append);
+        BufferedWriter writer = new BufferedWriter(fileWriter);
+        writer.append(content);
+        writer.flush();
+        writer.close();
     }
     /**
      * 读取文件内容
@@ -209,5 +204,66 @@ public class FileUtils {
             return false;
         }
     }
+
+
+
+    public static long getFolderSize(File file) throws Exception {
+        long size = 0;
+        try {
+            File[] fileList = file.listFiles();
+            for (int i = 0; i < fileList.length; i++) {
+                // 如果下面还有文件
+                if (fileList[i].isDirectory()) {
+                    size = size + getFolderSize(fileList[i]);
+                } else {
+                    size = size + fileList[i].length();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return size;
+    }
+
+
+    /**
+     * 格式化单位
+     *
+     * @param size
+     * @return
+     */
+    public static String getFormatSize(double size) {
+        double kiloByte = size / 1024;
+        if (kiloByte < 1) {
+//            return size + "Byte";
+            return "0.00MB";
+        }
+
+        double megaByte = kiloByte / 1024;
+        if (megaByte < 1) {
+            BigDecimal result1 = new BigDecimal(Double.toString(kiloByte));
+            return result1.setScale(2, BigDecimal.ROUND_HALF_UP)
+                    .toPlainString() + "KB";
+        }
+
+        double gigaByte = megaByte / 1024;
+        if (gigaByte < 1) {
+            BigDecimal result2 = new BigDecimal(Double.toString(megaByte));
+            return result2.setScale(2, BigDecimal.ROUND_HALF_UP)
+                    .toPlainString() + "MB";
+        }
+
+        double teraBytes = gigaByte / 1024;
+        if (teraBytes < 1) {
+            BigDecimal result3 = new BigDecimal(Double.toString(gigaByte));
+            return result3.setScale(2, BigDecimal.ROUND_HALF_UP)
+                    .toPlainString() + "GB";
+        }
+        BigDecimal result4 = new BigDecimal(teraBytes);
+        return result4.setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString()
+                + "TB";
+    }
+
+
 
 }

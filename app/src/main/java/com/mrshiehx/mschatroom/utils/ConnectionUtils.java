@@ -1,7 +1,11 @@
 package com.mrshiehx.mschatroom.utils;
 
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.util.Log;
 
+import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 
 import java.io.File;
@@ -54,6 +58,15 @@ public class ConnectionUtils {
                 return null;
             }
         }
+    }
+
+    public static ProgressDialog showConnectingDialog(Context context){
+        ProgressDialog dialog=new ProgressDialog(context);
+        dialog.setTitle(context.getString(R.string.dialog_title_wait));
+        dialog.setMessage(context.getString(R.string.dialog_connecting_message));
+        dialog.setCancelable(false);
+        dialog.show();
+        return dialog;
     }
 }
 

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ClipboardManager;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -16,27 +17,34 @@ import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Looper;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.webkit.URLUtil;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 
 import androidx.annotation.StringRes;
+import androidx.annotation.StyleRes;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.mrshiehx.mschatroom.MyApplication;
+import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -76,9 +84,9 @@ public class Utils {
 
     public static String getAndroidDirCachePath(Context context) {
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) || !Environment.isExternalStorageRemovable()) {
-            return context.getExternalCacheDir().getPath();
+            return context.getExternalCacheDir().getAbsolutePath();
         } else {
-            return context.getCacheDir().getPath();
+            return context.getCacheDir().getAbsolutePath();
         }
     }
 
@@ -108,7 +116,7 @@ public class Utils {
         return true;
     }
 
-    public static void deleteFile(Context context, String filePathAndName) {
+    /*public static void deleteFile(Context context, String filePathAndName) {
         try {
             File f = new File(filePathAndName);
             if (f.exists()) {
@@ -122,12 +130,10 @@ public class Utils {
                 Log.e("MSCR.Utils.deleteFile", "Delete file (" + filePathAndName + ") is not exists!");
             }
         } catch (Exception e) {
-            Looper.prepare();
             e.printStackTrace();
             Utils.exceptionDialog(context, e);
-            Looper.loop();
         }
-    }
+    }*/
 
     public static void downloadFile(final Context context, View forsb, final String downloadFileUrl, final String afterDownloadFileName, final String downloadToPath) {
         if (isNetworkConnected(context) == true) {
@@ -194,7 +200,7 @@ public class Utils {
         }
     }
 
-    public static String getJson(Context context, String filePathAndName) {
+    /*public static String getJson(Context context, String filePathAndName) {
         StringBuilder stringBuilder = new StringBuilder();
         try {
             //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(assetManager.open(fileName), "utf-8"));
@@ -232,30 +238,30 @@ public class Utils {
             exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_parsing_json_failed));
         }
         return stringBuilder.toString();
-    }
+    }*/
 
-    public static void showDialog(final Context context, String title, String message) {
+    public static AlertDialog showDialog(final Context context, String title, String message) {
         AlertDialog.Builder dialog =
                 new AlertDialog.Builder(context);
         dialog.setTitle(title).setMessage(message);
-        dialog.show();
+        return dialog.show();
     }
 
-    public static void showDialog(final Context context, String title, String message, String buttonName, DialogInterface.OnClickListener buttonOnClickListener) {
+    public static AlertDialog showDialog(final Context context, String title, String message, String buttonName, DialogInterface.OnClickListener buttonOnClickListener) {
         AlertDialog.Builder dialog =
                 new AlertDialog.Builder(context);
         dialog.setTitle(title).setMessage(message);
         dialog.setNegativeButton(context.getResources().getString(android.R.string.cancel), null);
         dialog.setPositiveButton(buttonName, buttonOnClickListener);
-        dialog.show();
+        return dialog.show();
     }
 
 
-    public static void exceptionDialog(final Context context, final Exception exception) {
+    public static AlertDialog exceptionDialog(final Context context, final Exception exception) {
         AlertDialog.Builder dialog =
                 new AlertDialog.Builder(context);
 
-        String dialogExceptionMessage = String.format(context.getResources().getString(R.string.dialog_exception_message), context, exception);
+        String dialogExceptionMessage = String.format(context.getResources().getString(R.string.dialog_exception_message), context.getClass().getName(), exception);
         dialog.setTitle(context.getResources().getString(R.string.dialog_exception_title)).setMessage(dialogExceptionMessage);
         dialog.setNegativeButton(context.getResources().getString(android.R.string.cancel),
                 new DialogInterface.OnClickListener() {
@@ -267,17 +273,17 @@ public class Utils {
         dialog.setPositiveButton(context.getResources().getString(R.string.dialog_exception_button_feedback), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                sendMail(context, Variables.AUTHOR_MAIL, "AN ERROR OF MSCR", "There is a problem, application package name is: (" + getPackageName(context) + "), application version name is: (" + getVersionName(context) + "), application version code is(" + getVersionCode(context) + "), android version is: (" + getSystemVersion() + "), device brand is: (" + getDeviceBrand() + "), device model is: (" + getDeviceModel() + "), class is: (" + context + "), error is: (" + exception + ")");
+                sendMail(context, Variables.AUTHOR_MAIL, "AN ERROR OF MSCR", "There is a problem, application package name is: (" + getPackageName(context) + "), application version name is: (" + getVersionName(context) + "), application version code is(" + getVersionCode(context) + "), android version is: (" + getSystemVersion() + "), device brand is: (" + getDeviceBrand() + "), device model is: (" + getDeviceModel() + "), class is: (" + context.getClass().getName() + "), error is: (" + exception + ")");
             }
         });
-        dialog.show();
+        return dialog.show();
     }
 
-    public static void exceptionDialog(final Context context, final Exception exception, final String detailException) {
+    public static AlertDialog exceptionDialog(final Context context, final Exception exception, final String detailException) {
         AlertDialog.Builder dialog =
                 new AlertDialog.Builder(context);
 
-        String dialogExceptionMessage = String.format(context.getResources().getString(R.string.dialog_exception_detail_message), context, exception, detailException);
+        String dialogExceptionMessage = String.format(context.getResources().getString(R.string.dialog_exception_detail_message), context.getClass().getName(), exception, detailException);
         dialog.setTitle(context.getResources().getString(R.string.dialog_exception_title)).setMessage(dialogExceptionMessage);
         dialog.setNegativeButton(context.getResources().getString(android.R.string.cancel),
                 new DialogInterface.OnClickListener() {
@@ -289,10 +295,10 @@ public class Utils {
         dialog.setPositiveButton(context.getResources().getString(R.string.dialog_exception_button_feedback), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                sendMail(context, Variables.AUTHOR_MAIL, "AN ERROR OF MSCR", "There is a problem, application package name is: (" + getPackageName(context) + "), application version name is: (" + getVersionName(context) + "), application version code is(" + getVersionCode(context) + "), android version is: (" + getSystemVersion() + "), device brand is: (" + getDeviceBrand() + "), device model is: (" + getDeviceModel() + "), class is: (" + context + "), error is: (" + exception + "), detail is:(" + detailException + ")");
+                sendMail(context, Variables.AUTHOR_MAIL, "AN ERROR OF MSCR", "There is a problem, application package name is: (" + getPackageName(context) + "), application version name is: (" + getVersionName(context) + "), application version code is(" + getVersionCode(context) + "), android version is: (" + getSystemVersion() + "), device brand is: (" + getDeviceBrand() + "), device model is: (" + getDeviceModel() + "), class is: (" + context.getClass().getName() + "), error is: (" + exception + "), detail is:(" + detailException + ")");
             }
         });
-        dialog.show();
+        return dialog.show();
     }
 
 
@@ -308,11 +314,13 @@ public class Utils {
         return false;
     }
 
-    public static void sendMail(Context context, String reciver, String subject, String text) {
+    public static void sendMail(Context context, String receiver, String subject, String text) {
         Intent data = new Intent(Intent.ACTION_SENDTO);
-        data.setData(Uri.parse("mailto:" + reciver));
-        data.putExtra(Intent.EXTRA_SUBJECT, subject);
-        data.putExtra(Intent.EXTRA_TEXT, text);
+        data.setData(Uri.parse("mailto:"+receiver+"?subject="+subject+"&body="+text));
+        //data.putExtra(Intent.EXTRA_EMAIL,receiver);
+        //data.putExtra("subject", subject);
+        //data.putExtra("text", text);
+        //data.putExtra("body", text);
         try {
             context.startActivity(data);
         }catch (Exception e){
@@ -348,7 +356,6 @@ public class Utils {
             return packageInfo.versionName;
         } catch (Exception e) {
             e.printStackTrace();
-            exceptionDialog(context, e);
         }
 
         return null;
@@ -363,7 +370,6 @@ public class Utils {
             return packageInfo.versionCode;
         } catch (Exception e) {
             e.printStackTrace();
-            exceptionDialog(context, e);
         }
 
         return 0;
@@ -384,47 +390,92 @@ public class Utils {
     }
 
 
-    public static void initialization(Activity context, @StringRes int titleId) {
+
+
+
+    public static void initializationNoTheme(Activity context, @StringRes int titleId ) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
         //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN,true);
-        if (isFirstRun == false) {
-            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, "en_US"));
-        } else {
+        if (isFirstRun == true) {
+            switch (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
+                case Configuration.UI_MODE_NIGHT_YES:
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").apply();
+                    editor.putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark");
+                    break;
+                case Configuration.UI_MODE_NIGHT_NO:
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "light").apply();
+                    editor.putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "light");
+                    break;
+            }
             //Get default language, and set it
             editor.putString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
-            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
+            //setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
         }
+        editor.apply();
+        setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE));
         makeIsFirstRunFalse(context);
-        String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, "en_US").split("_");
+        String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
         context.setTitle(getStringByLocale(context, titleId, languageAndCountry[0], languageAndCountry[1]));
-        initializationTheme(context);
-        MyApplication.getInstance().addActivity(context);
+        MSCRApplication.getInstance().addActivity(context);
     }
 
 
-    public static void initializationForPictureViewer(Activity context) {
+    public static void initialization(Activity context, @StringRes int titleId) {
+        initializationNoTheme(context,titleId);
+        initializationTheme(context,R.style.AppThemeDark,R.style.AppTheme);
+    }
+    public static void initialization(Activity context, @StringRes int titleId,@StyleRes int darkTheme,@StyleRes int lightTheme) {
+        initializationNoTheme(context,titleId);
+        initializationTheme(context,darkTheme,lightTheme);
+    }
+
+
+    /*public static void initializationForPictureViewer(Activity context) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
         //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN,true);
         if (isFirstRun == false) {
-            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, "en_US"));
+            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE));
         } else {
             //Get default language, and set it
             editor.putString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
             setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
         }
         makeIsFirstRunFalse(context);
-        //String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, "en_US").split("_");
+        //String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
         //context.setTitle(getStringByLocale(context, titleId, languageAndCountry[0], languageAndCountry[1]));
         //initializationTheme(context);
         MyApplication.getInstance().addActivity(context);
     }
 
+
+
+    public static void initializationForLoadingScreen(Activity context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
+        //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN,true);
+        if (isFirstRun == false) {
+            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE));
+        } else {
+            //Get default language, and set it
+            editor.putString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
+            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
+        }
+        makeIsFirstRunFalse(context);
+        //String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
+        //context.setTitle(getStringByLocale(context, titleId, languageAndCountry[0], languageAndCountry[1]));
+        initializationTheme(context, android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen,android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
+        MyApplication.getInstance().addActivity(context);
+    }*/
+
+
+
     public static boolean networkAvailableDialog(Context context) {
-        if (isNetworkConnected(context) == false) {
+        if (!isNetworkConnected(context)) {
 
             AlertDialog.Builder noNetworkDialog = new AlertDialog.Builder(context);
             noNetworkDialog.setTitle(context.getResources().getString(R.string.dialog_no_network_title))
@@ -438,7 +489,7 @@ public class Utils {
             noNetworkDialog.setPositiveButton(context.getResources().getString(R.string.dialog_no_network_button_exit), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    MyApplication.getInstance().exit();
+                    MSCRApplication.getInstance().exit();
                 }
             });
             noNetworkDialog.show();
@@ -458,16 +509,61 @@ public class Utils {
     }
 
 
-    public static void initializationTheme(Context context) {
+    /*public static void initializationTheme(Context context) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        if (sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "light").equals("dark")) {
-            context.setTheme(R.style.AppThemeDark);
-        } else {
+
+        boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
+        //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN,true);
+        if (isFirstRun) {
+            switch (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
+                case Configuration.UI_MODE_NIGHT_YES:
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").apply();
+                    context.setTheme(R.style.AppThemeDark);
+                    break;
+                case Configuration.UI_MODE_NIGHT_NO:
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "light").apply();
+                    context.setTheme(R.style.AppTheme);
+                    break;
+            }
+
+        }
+        if (sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").equals("light")) {
             context.setTheme(R.style.AppTheme);
+        } else {
+            context.setTheme(R.style.AppThemeDark);
         }
 
+
+    }*/
+
+
+    public static void initializationTheme(Context context, @StyleRes int dark,@StyleRes int light) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+
+        boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
+        //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN,true);
+        if (isFirstRun) {
+            switch (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
+                case Configuration.UI_MODE_NIGHT_YES:
+                    //PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").apply();
+                    context.setTheme(dark);
+                    break;
+                case Configuration.UI_MODE_NIGHT_NO:
+                    //PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "light").apply();
+                    context.setTheme(light);
+                    break;
+            }
+        }
+        if (sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").equals("light")) {
+            context.setTheme(light);
+        } else {
+            context.setTheme(dark);
+        }
     }
+
+
 
     public static void setLanguage(Activity context, String language) {
         Resources resources = context.getResources();
@@ -536,7 +632,7 @@ public class Utils {
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = mySharedPreferences.edit();
         editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, false);
-        editor.commit();
+        editor.apply();
 
     }
 
@@ -581,7 +677,7 @@ public class Utils {
                 return false;
             } else {
                 final ProgressDialog loggingIn = new ProgressDialog(context);
-                int loginMethod = sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0);
+                int loginMethod = sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1);
                 if (loginMethod == 0) {
                     String account = "";
                     try {
@@ -598,7 +694,7 @@ public class Utils {
                     } catch (BadPaddingException e) {
                         e.printStackTrace();
                     }
-                    AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                    AccountUtils ud = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
                     String accountE = null;
                     String passwordE = null;
                     try {
@@ -648,7 +744,7 @@ public class Utils {
                     } catch (BadPaddingException e) {
                         e.printStackTrace();
                     }
-                    AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                    AccountUtils ud = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
                     String emailE = null;
                     String passwordE = null;
                     try {
@@ -714,7 +810,7 @@ public class Utils {
                         });
             } else {
                 final ProgressDialog loggingIn = new ProgressDialog(context);
-                int loginMethod = sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0);
+                int loginMethod = sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1);
                 if (loginMethod == 0) {
                     new Thread(new Runnable() {
                         @Override
@@ -827,7 +923,7 @@ public class Utils {
         }
     }
 
-    public static String getString(InputStream inputStream) {
+    public static String inputStream2String(InputStream inputStream,boolean switchLine) {
         InputStreamReader inputStreamReader = null;
         try {
             inputStreamReader = new InputStreamReader(inputStream, "utf-8");
@@ -840,7 +936,9 @@ public class Utils {
         try {
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
-                sb.append("\n");
+                if(switchLine) {
+                    sb.append("\n");
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -849,7 +947,7 @@ public class Utils {
     }
 
     public static InputStream replaceUserInformationContents(InputStream file, String accountName, String accountGender, String accountWhatSUp) throws IOException {
-        String content = getString(file);
+        String content = inputStream2String(file,true);
         //InputStream in = con.getInputStream();
         //String content = IOUtils.toString(file, "UTF-8");
         Map<String, String> m = new HashMap<>();
@@ -873,7 +971,7 @@ public class Utils {
         return sr.toString();
     }
 
-    public static void copy(Context context,String content){
+    public static void copy(Context context,CharSequence content){
         ClipboardManager copy = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         copy.setText(content);
     }
@@ -916,5 +1014,135 @@ public class Utils {
             os.close();
             is.close();
         }
+    }
+
+    /**
+     * 删除文件夹和其里面的内容
+     * */
+    public static void deleteDirectory(File folder) {
+        if(folder.exists()) {
+            deleteDirectoryContent(folder.getAbsolutePath());
+            folder.delete();
+        }
+    }
+
+    /**
+     * 只删除文件夹里面的内容，不删除文件夹
+     * */
+    /*public static void deleteDirectoryContent(File folder) {
+        if (folder.exists()) {
+            File[] files = folder.listFiles();
+            if (files == null) {
+                return;
+            }
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isDirectory()) {
+                    deleteDirectory(files[i]);
+                } else {
+                    files[i].delete();
+                }
+            }
+        }
+    }*/
+
+
+
+    public static boolean deleteFile(String filePath) {
+        File file = new File(filePath);
+        if (file.isFile() && file.exists()) {
+            return file.delete();
+        }
+        return false;
+    }
+
+    /**
+     * 删除文件夹目录下的文件，不删除文件夹
+     * @param   filePath 被删除目录的文件路径
+     * @return  目录删除成功返回true，否则返回false
+     */
+    public static void deleteDirectoryContent(String filePath) {
+        //如果filePath不以文件分隔符结尾，自动添加文件分隔符
+        if (!filePath.endsWith(File.separator)) {
+            filePath = filePath + File.separator;
+        }
+        File dirFile = new File(filePath);
+        File[] files = dirFile.listFiles();
+        //遍历删除文件夹下的所有文件(包括子目录)
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].isFile()) {
+                //删除子文件
+                deleteFile(files[i].getAbsolutePath());
+            } else {
+                //删除子目录
+                deleteDirectory(files[i]);
+            }
+        }
+        //if (!flag) return false;
+        //删除当前空目录
+        //return dirFile.delete();
+    }
+
+    public static void deleteFilesByDirectory(File directory) {
+        if (directory != null && directory.exists() && directory.isDirectory()) {
+            for (File item : directory.listFiles()) {
+                if(item.isFile()){
+                    item.delete();
+                }else{
+                    deleteFilesByDirectory(item);
+                }
+            }
+        }
+    }
+
+    public static void scrollViewDown(final ScrollView scrollView){
+        scrollView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                scrollView.post(new Runnable() {
+                    public void run() {
+                        scrollView.fullScroll(View.FOCUS_DOWN);
+                    }
+                });
+            }
+        });
+    }
+    public static JSONArray jsonArrayRemove(JSONArray jsonArray, int index){
+        JSONArray mJsonArray  = new JSONArray();
+        if(index < 0)
+            return mJsonArray;
+
+        if(index > jsonArray.length())
+            return mJsonArray;
+
+        for(int i = 0; i < index; i++){
+            try {
+                mJsonArray.put(jsonArray.getJSONObject(i));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        for(int i=index+1;i< jsonArray.length();i++){
+            try {
+                mJsonArray.put(jsonArray.getJSONObject(i));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return mJsonArray;
+    }
+
+
+    public static Uri stringToUri(Context context,String path){
+        Uri uri = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            //如果是7.0android系统
+            ContentValues contentValues = new ContentValues(1);
+            contentValues.put(MediaStore.Images.Media.DATA,path);
+            uri=context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,contentValues);
+        }else{
+            uri = Uri.fromFile(new File(path));
+        }
+        return uri;
     }
 }

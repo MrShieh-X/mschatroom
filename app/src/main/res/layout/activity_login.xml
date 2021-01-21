@@ -58,7 +58,7 @@
 
             <CheckBox
                 android:id="@+id/log_show_password"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="50px"
                 android:layout_marginLeft="50px"
@@ -69,7 +69,7 @@
 
     <CheckBox
         android:id="@+id/remember_account_and_password"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="50px"
         android:layout_marginLeft="50px"

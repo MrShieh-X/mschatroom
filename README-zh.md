@@ -1,15 +1,19 @@
 # MS聊天室（MSCR）
-一个使用 MySQL 数据库的 Android 的~~聊天软件~~拥有登录注册功能的应用程序
+一个使用 MySQL 数据库的 Android 的~~聊天软件~~拥有登录注册功能的应用程序<br/>
+如果您要使用本应用程序的旧版本，您需要[下载目标版本的源代码](https://github.com/MrShieh-X/mschatroom/releases)，并解压，查阅它的README文件。
 
 [Click me to go to the README in English](https://github.com/MrShieh-X/mschatroom/blob/master/README.md) <br/>
 [点我转到本应用程序的更新日志](https://github.com/MrShieh-X/mschatroom/blob/master/update_logs-zh.md) <br/>
+
 ## 版权
 MrShiehX 拥有该应用程序的版权。<br/>
 任何人都可以对此应用程序提出意见和建议。
+
 ## 版本
 最新版本：<br/>
-<b>alpha-6 (2020年12月27日)</b><br/>
+<b>beta-1 (2021年1月21日)</b><br/>
 历史版本：<br/>
+<b>beta-1 (2021年1月21日)</b><br/>
 <b>alpha-6 (2020年12月27日)</b><br/>
 <b>alpha-5 (2020年12月26日)</b><br/>
 <b>alpha-4 (2020年12月20日)</b><br/>
@@ -27,12 +31,13 @@ MrShiehX 拥有该应用程序的版权。<br/>
 
 ## 已发现的漏洞
 - （已在alpha-6中修复）用户可以用户无需登录即可添加聊天。
-- 添加聊天时，当前聊天数量>=2，就会替换最后一个，但是它已经添加成功，重启应用即可看到新添加的聊天。
-- 修改用户信息有几率会闪退，原因未知。
+- （已在beta-1中修复）添加聊天时，当前聊天数量>=2，就会替换最后一个，但是它已经添加成功，重启应用即可看到新添加的聊天。
+- （已在beta-1中修复）修改用户信息有几率会闪退，原因未知。
 - （已在alpha-3中修复）在您登录后，打开设置，可能会显示不出用户信息（头像、昵称和个性签名），此问题将会在以后修复。
 
 ## 注意事项
 - 如果您要添加聊天，请确保目标用户和您使用的是同一个加密或解密算法。
+- 为了避免程序出现问题，请不要通过其他手段绕过加载界面（LoadingScreen）而直接进入应用程序。
 
 ## 文本加密和解密
 使用`src/java/com/mrshiehx/mschatroom/utils/EnDeCryptTextUtils.java`类的加密或解密算法
@@ -50,6 +55,14 @@ MrShiehX 拥有该应用程序的版权。<br/>
 在 SharedPreference 里删除邮箱地址或账号和密码数据。
 ### 删除账户
 把邮箱地址或账号和密码加密后，在 MySQL 数据库使用`delete`命令删除数据，并退出登录。
+### 修改头像
+把邮箱地址或账号和密码加密后，选择要设置成头像的文件，然后使用`update`命令更新 InputStream。
+### 修改昵称、性别或个性签名
+把邮箱地址或账号和密码加密后，从数据库下载 information 里的 InputStream，修改其内容，然后使用`update`命令更新 InputStream。
+### 清除缓存
+删除 `/data/data/com.mrshiehx.mschatroom/cache` 目录下的所有文件。
+### 清除应用数据
+删除 `/data/data/com.mrshiehx.mschatroom` 目录下的所有文件。
 
 ## 准备工作
 首先，您需要拥有一个服务器（如果您没有，可以使用本地计算机），并且此服务器上需要安装MySQL数据库，这些您都准备好后，需要在MySQL里新建一个数据库，“mscr”是数据库名称，可更改。
@@ -72,12 +85,11 @@ create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not
 
 | 变量名|含义|
 | --------|:----:|
-| SERVER_ADDRESS|服务器（或本地计算机）地址|
-| DATABASE_NAME|MySQL数据库名称|
-| DATABASE_USER|MySQL数据库账号|
-| DATABASE_PASSWORD|MySQL数据库密码|
-| DATABASE_TABLE_NAME|MySQL表格名称|
-| AUTHOR_MAIL|作者电子邮箱地址（用于出现错误时反馈给作者和关于界面联系作者）|
+| DEFAULT_SERVER_ADDRESS|默认服务器（或本地计算机）地址|
+| DEFAULT_DATABASE_NAME|默认MySQL数据库名称|
+| DEFAULT_DATABASE_USER_NAME|默认MySQL数据库账号|
+| DEFAULT_DATABASE_USER_PASSWORD|默认MySQL数据库密码|
+| DEFAULT_DATABASE_TABLE_NAME|默认MySQL表格名称|
 | TEXT_ENCRYPTION_KEY|文本加密密钥（不能太长，也不能太短）|
 | CAPTCHA_EMAIL_SMTP_SERVER_ADDRESS|发送验证码邮件的邮箱的SMTP服务器地址（见下文）|
 | CAPTCHA_EMAIL_ADDRESS|发送验证码邮件的邮箱地址（见下文）|

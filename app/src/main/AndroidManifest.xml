@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="com.mrshiehx.mschatroom">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
     <application
         android:allowBackup="true"
@@ -15,10 +15,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
-        android:name=".MyApplication">
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:name=".MSCRApplication">
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
         <activity
-            android:name=".StartScreen"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:name=".LoadingScreen"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
+            android:screenOrientation="portrait"
             android:label="@string/app_name_short">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -60,7 +65,7 @@
         </activity>
         <activity
             android:name=".login.screen.LoginScreen"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_login_screen_name">
             <!--intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -81,7 +86,7 @@
         </activity>
         <activity
             android:name=".register.screen.RegisterScreen"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_register_screen_name">
             <!--intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -102,7 +107,7 @@
         </activity>
         <activity
             android:name=".settings.screen.SettingsScreen"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_settings_screen_name">
             <!--intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -123,7 +128,8 @@
         </activity>
         <activity
             android:name=".PETest"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
+            android:theme="@android:style/Theme.DeviceDefault"
             android:label="PETEST">
             <intent-filter>
                 <data
@@ -145,7 +151,7 @@
         </activity>
         <activity
             android:name=".reset_password.screen.ResetPasswordScreen1"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_reset_password_name">
             <!--intent-filter>
                  <action android:name="android.intent.action.MAIN" />
@@ -172,7 +178,7 @@
         </activity>
         <activity
             android:name=".reset_password.screen.ResetPasswordScreen2"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_reset_password_name">
             <!--intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -182,7 +188,7 @@
         </activity>
         <activity
             android:name=".modify_user_information.screen.ModifyUserInformationScreen"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_modify_user_information_screen_name">
             <intent-filter>
                 <data
@@ -204,7 +210,7 @@
         </activity>
         <activity
             android:name=".login_by_ec.screen.LoginByEmailAndCAPTCHA"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_login_by_ec_screen_name">
             <intent-filter>
                 <data
@@ -226,7 +232,7 @@
         </activity>
         <activity
             android:name=".main.screen.MainScreen"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/app_name">
             <intent-filter>
                 <data
@@ -242,7 +248,7 @@
         </activity>
         <activity
             android:name=".about.screen.AboutScreen"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_about_screen_name">
             <intent-filter>
                 <data
@@ -258,7 +264,7 @@
         </activity>
         <activity
             android:name=".picture_viewer.screen.PictureViewerScreen"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_picture_viewer_name"
             android:theme="@android:style/Theme.DeviceDefault">
             <intent-filter>
@@ -282,11 +288,69 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
+            <intent-filter>
+
+                <category
+                    android:name="android.intent.category.DEFAULT" />
+
+                <action
+                    android:name="android.intent.action.VIEW" />
+
+                <action
+                    android:name="android.intent.action.EDIT" />
+
+                <data
+                    android:scheme="file" />
+
+                <data
+                    android:scheme="content" />
+
+                <data
+                    android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".StartScreen"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <data
+                    android:host="old_start_screen"
+                    android:scheme="mscr"/>
+                <data
+                    android:host="oss"
+                    android:scheme="mschatroom"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".developer_options.screen.DeveloperOptions"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
+            android:label="@string/activity_developer_options_name">
+            <intent-filter>
+                <data
+                    android:host="developer_options"
+                    android:scheme="mscr" />
+                <data
+                    android:host="developer_options"
+                    android:scheme="mschatroom" />
+                <data
+                    android:host="do"
+                    android:scheme="mscr"/>
+                <data
+                    android:host="do"
+                    android:scheme="mschatroom"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
         </activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.mrshiehx.pickphoto.fileprovider"
+            android:authorities="com.mrshiehx.mschatroom.FileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

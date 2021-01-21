@@ -1,7 +1,9 @@
 package com.mrshiehx.mschatroom.reset_password.screen;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -9,7 +11,6 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +18,6 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
-import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.utils.CountDownTimerUtils;
@@ -45,10 +45,10 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        Utils.initialization(this, R.string.activity_reset_password_name);
         super.onCreate(savedInstanceState);
 
         THIS = this;
-        Utils.initialization(this, R.string.activity_reset_password_name);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setContentView(R.layout.activity_reset_password_1);
 
@@ -157,30 +157,43 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
                     if (TextUtils.isEmpty(input_email.getText().toString()) || TextUtils.isEmpty(input_captcha.getText().toString())) {
                         Snackbar.make(get_captcha, getResources().getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
                     } else {
-                        if (input_captcha.getText().toString().equals(captcha)) {
-                            AccountUtils mysqlUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                            ;
-                            try {
-                                if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY))) {
-                                    ResetPasswordScreen2.email = email;
-                                    Utils.startActivity(context, ResetPasswordScreen2.class);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Looper.prepare();
+                                if (input_captcha.getText().toString().equals(captcha)) {
+                                    AccountUtils mysqlUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                                    ;
+                                    try {
+                                        if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY))) {
+                                            //ResetPasswordScreen2.email = email;
+                                            //Utils.startActivity(context, ResetPasswordScreen2.class);
+                                            Intent intent=new Intent(context,ResetPasswordScreen2.class);
+                                            intent.putExtra("email",email);
+                                            startActivity(intent);
+                                        } else {
+                                            Snackbar.make(get_captcha, getResources().getString(R.string.toast_account_not_exist), Snackbar.LENGTH_SHORT).show();
+                                        }
+                                    } catch (InvalidKeySpecException e) {
+                                        e.printStackTrace();
+                                    } catch (InvalidKeyException e) {
+                                        e.printStackTrace();
+                                    } catch (NoSuchPaddingException e) {
+                                        e.printStackTrace();
+                                    } catch (IllegalBlockSizeException e) {
+                                        e.printStackTrace();
+                                    } catch (BadPaddingException e) {
+                                        e.printStackTrace();
+                                    }
                                 } else {
-                                    Snackbar.make(get_captcha, getResources().getString(R.string.toast_account_not_exist), Snackbar.LENGTH_SHORT).show();
+                                    Snackbar.make(get_captcha, getResources().getString(R.string.toast_captcha_incorrect), Snackbar.LENGTH_SHORT).show();
                                 }
-                            } catch (InvalidKeySpecException e) {
-                                e.printStackTrace();
-                            } catch (InvalidKeyException e) {
-                                e.printStackTrace();
-                            } catch (NoSuchPaddingException e) {
-                                e.printStackTrace();
-                            } catch (IllegalBlockSizeException e) {
-                                e.printStackTrace();
-                            } catch (BadPaddingException e) {
-                                e.printStackTrace();
+                                Looper.loop();
                             }
-                        } else {
-                            Snackbar.make(get_captcha, getResources().getString(R.string.toast_captcha_incorrect), Snackbar.LENGTH_SHORT).show();
-                        }
+                        }).start();
+
+
+
                     }
                 } else {
                     Snackbar.make(get_captcha, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();

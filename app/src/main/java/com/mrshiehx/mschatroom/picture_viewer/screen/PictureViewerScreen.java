@@ -12,8 +12,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -28,6 +30,7 @@ import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.utils.FormatTools;
 import com.mrshiehx.mschatroom.utils.Utils;
+import com.mrshiehx.mschatroom.widget.PictureViewerImageView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,7 +42,7 @@ import java.net.URL;
 public class PictureViewerScreen extends Activity {
     Context context=PictureViewerScreen.this;
     //Button back;
-    ImageView image;
+    PictureViewerImageView image;
     //private View contentViewGroup;
     boolean ps;
     String[] permissions=StartScreen.permissions;
@@ -50,12 +53,12 @@ public class PictureViewerScreen extends Activity {
     public static InputStream imageInputStream;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        Utils.initialization(PictureViewerScreen.this,R.string.activity_picture_viewer_name, android.R.style.Theme_DeviceDefault,android.R.style.Theme_DeviceDefault);
         super.onCreate(savedInstanceState);
-        Utils.initializationForPictureViewer(PictureViewerScreen.this);
         getActionBar().setDisplayHomeAsUpEnabled(true);
         LinearLayout mainLayout = new LinearLayout(this);
         //Button b=new Button(this);
-        image = new ImageView(context);
+        image = new PictureViewerImageView(context);
         LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         image.setLayoutParams(llp);
         mainLayout.setLayoutParams(llp);
@@ -78,12 +81,12 @@ public class PictureViewerScreen extends Activity {
         }
         //InputStreamItem inputStream = (InputStreamItem) getIntent().getSerializableExtra("image");
         /**
-         *  优先加载Intent的，Intent没有就加载Scheme的
+         *  优先加载Intent的，Intent没有就加载Scheme的，Scheme没有加载通过MIME打开的
          */
         if (imageInputStream == null) {
             Intent intent = getIntent();
             Uri uri = intent.getData();
-            if (uri != null) {
+            if (uri != null && !TextUtils.isEmpty(uri.getQuery())) {
                 //query部分
                 String[] queryString = uri.getQuery().split("=");
                 contentType = queryString[0];
@@ -109,16 +112,36 @@ public class PictureViewerScreen extends Activity {
                 }
 
 
+            } else if (uri != null) {
+                String qianzhui="file://";
+                if (uri.toString().startsWith(qianzhui)){
+                    //Toast.makeText(context, "117", Toast.LENGTH_SHORT).show();
+                    try {
+                        //InputStream inputStream=new FileInputStream(uri.toString().substring(/*7*/qianzhui.length()));
+                        //Toast.makeText(context, "120", Toast.LENGTH_SHORT).show();
+                        image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(getContentResolver().openInputStream(uri)));
+                        //Toast.makeText(context, "122", Toast.LENGTH_SHORT).show();
+                    } catch (FileNotFoundException e) {
+                        //Toast.makeText(context, "124", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                        Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_load_image));
+                    }
+                }else{
+                    //Toast.makeText(context, "126", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, getString(R.string.dialog_exception_failed_to_load_image), Toast.LENGTH_SHORT).show();
+                }
             } else {
+                //Toast.makeText(context, "130", Toast.LENGTH_SHORT).show();
                 Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
-                //Utils.showLongSnackbar(image,getString(R.string.toast_picture_viewer_nothing));
             }
         } else {
+            //Toast.makeText(context, "139", Toast.LENGTH_SHORT).show();
             try {
                 //Toast.makeText(context, "117", Toast.LENGTH_SHORT).show();
                 //Toast.makeText(context, imageInputStream.toString(), Toast.LENGTH_SHORT).show();
                 image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(imageInputStream));
 
+                //Toast.makeText(context, "139", Toast.LENGTH_SHORT).show();
                 //Toast.makeText(context, "120", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 e.printStackTrace();

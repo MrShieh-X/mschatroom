@@ -1,8 +1,10 @@
 package com.mrshiehx.mschatroom.login.screen;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Looper;
@@ -24,7 +26,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.mrshiehx.mschatroom.MyApplication;
+import com.mrshiehx.mschatroom.LoadingScreen;
+import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
@@ -83,8 +86,7 @@ public class LoginScreen extends AppCompatActivity {
                                 }
                             });
                         } else {
-                            if (remember_account_and_password.isChecked())
-                                loginByEmail();
+                            loginByEmail();
                         }
 
 
@@ -122,14 +124,15 @@ public class LoginScreen extends AppCompatActivity {
     };
 
     void loginByEmail() {
-        try {
-            loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
-            loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
-            loggingIn.setCancelable(false);
-            loggingIn.show();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+        loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
+        loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
+        loggingIn.setCancelable(false);
+        loggingIn.show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                try {
                     String email = input_account_or_email.getText().toString();
                     String password = input_password.getText().toString();
                     AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
@@ -152,36 +155,34 @@ public class LoginScreen extends AppCompatActivity {
                     Boolean result = ud.login(context, loggingIn, AccountUtils.BY_EMAIL, emailE, passwordE);
                     if (!result) {
                         loggingIn.dismiss();
-                        Looper.prepare();
                         Snackbar.make(login, getResources().getString(R.string.toast_email_or_password_incorrect), Snackbar.LENGTH_SHORT).show();
-                        Looper.loop();
                     } else {
                         loggingIn.dismiss();
-                        Looper.prepare();
                         Snackbar.make(login, getResources().getString(R.string.toast_successfully_login), Snackbar.LENGTH_SHORT).show();
                         afterLogin();
-                        Looper.loop();
                     }
+                } catch (Exception e) {
+                    loggingIn.dismiss();
+                    e.printStackTrace();
+                    Snackbar.make(login, getResources().getString(R.string.toast_failed_login), Snackbar.LENGTH_SHORT).show();
+                    Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_login));
                 }
-            }).start();
-        } catch (Exception e) {
-            loggingIn.dismiss();
-            e.printStackTrace();
-            Snackbar.make(login, getResources().getString(R.string.toast_failed_login), Snackbar.LENGTH_SHORT).show();
-            Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_login));
-        }
+                Looper.loop();
+            }
+        }).start();
 
     }
 
     void loginByAccount() {
-        try {
-            loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
-            loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
-            loggingIn.setCancelable(false);
-            loggingIn.show();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+        loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
+        loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
+        loggingIn.setCancelable(false);
+        loggingIn.show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                try {
                     String account = input_account_or_email.getText().toString();
                     String password = input_password.getText().toString();
                     AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
@@ -204,31 +205,28 @@ public class LoginScreen extends AppCompatActivity {
                     boolean result = ud.login(context, loggingIn, AccountUtils.BY_ACCOUNT, accountE, passwordE);
                     if (!result) {
                         loggingIn.dismiss();
-                        Looper.prepare();
                         Snackbar.make(login, getResources().getString(R.string.toast_account_or_password_incorrect), Snackbar.LENGTH_SHORT).show();
-                        Looper.loop();
                     } else {
                         loggingIn.dismiss();
-                        Looper.prepare();
                         Snackbar.make(login, getResources().getString(R.string.toast_successfully_login), Snackbar.LENGTH_SHORT).show();
                         afterLogin();
-                        Looper.loop();
                     }
+                } catch (Exception e) {
+                    loggingIn.dismiss();
+                    e.printStackTrace();
+                    Snackbar.make(login, getResources().getString(R.string.toast_failed_login), Snackbar.LENGTH_SHORT).show();
+                    Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_login));
                 }
-            }).start();
-        } catch (Exception e) {
-            loggingIn.dismiss();
-            e.printStackTrace();
-            Snackbar.make(login, getResources().getString(R.string.toast_failed_login), Snackbar.LENGTH_SHORT).show();
-            Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_login));
-        }
+                Looper.loop();
+            }
+        }).start();
     }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        Utils.initialization(this, R.string.activity_login_screen_name);
         super.onCreate(savedInstanceState);
 
-        Utils.initialization(this, R.string.activity_login_screen_name);
         setContentView(R.layout.activity_login);
         if (can_i_back == true) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -250,7 +248,26 @@ public class LoginScreen extends AppCompatActivity {
             login.setEnabled(false);
             login_by_ec.setEnabled(false);
         }
-
+        final Intent intent=getIntent();
+        if(intent.getBooleanExtra("showSaveDialog",false)){
+            AlertDialog.Builder dialog_retry_connect_success = new AlertDialog.Builder(context);
+            dialog_retry_connect_success.setTitle(getString(R.string.dialog_title_notice));
+            dialog_retry_connect_success.setMessage(getString(R.string.dialog_retry_connect_success_message));
+            dialog_retry_connect_success.setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String[] infos=intent.getStringArrayExtra("infos");
+                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS,infos[0]);
+                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_DATABASE_NAME,infos[1]);
+                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME,infos[2]);
+                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD,infos[3]);
+                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME,infos[4]);
+                    MSCRApplication.getSharedPreferences().edit().apply();
+                }
+            });
+            dialog_retry_connect_success.setNegativeButton(getString(android.R.string.no), null);
+            dialog_retry_connect_success.show();
+        }
 
         //input_password.setInputType(129);
         //input_password.setKeyListener(DigitsKeyListener.getInstance("qwertyuiopasdfghjklzxcvbnm1234567890_QWERTYUIOPASDFGHJKLZXCVBNM"));
@@ -337,7 +354,7 @@ public class LoginScreen extends AppCompatActivity {
             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
             editor.putBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, true);
             editor.putBoolean(Variables.SHARED_PREFERENCE_IS_REMEMBER_EOA_AND_PASSWORD, remember_account_and_password.isChecked());
-            /*
+            /**
              * Login method
              * 0 is account
              * 1 is email
@@ -355,15 +372,13 @@ public class LoginScreen extends AppCompatActivity {
                 editor.remove(Variables.SHARED_PREFERENCE_IS_REMEMBER_EOA_AND_PASSWORD);
                 editor.remove(Variables.SHARED_PREFERENCE_EMAIL_OR_ACCOUNT_AND_PASSWORD);
             }
-            editor.commit();
+            editor.apply();
         } catch (Exception e) {
             e.printStackTrace();
-            Looper.prepare();
             Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_to_save_data));
-            Looper.loop();
         }
         finish();
-        Utils.startActivity(context, StartScreen.class);
+        Utils.startActivity(context, LoadingScreen.class);
     }
 
 
@@ -387,11 +402,11 @@ public class LoginScreen extends AppCompatActivity {
                 if (can_i_back == false) {
                     long secondTime = System.currentTimeMillis();
                     if (secondTime - firstTime > 2000) {
-                        Toast.makeText(this, getResources().getString(R.string.toast_press_again_exit_application), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, getResources().getString(R.string.toast_press_again_exit_application), Toast.LENGTH_SHORT).show();
                         firstTime = secondTime;
                         return true;
                     } else {
-                        MyApplication.getInstance().exit();
+                        MSCRApplication.getInstance().exit();
                     }
                 } else {
                     finish();

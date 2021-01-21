@@ -23,30 +23,24 @@ import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 import com.mrshiehx.mschatroom.main.screen.MainScreen;
 import com.mrshiehx.mschatroom.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
+public class StartScreen extends Activity{
 
-public class StartScreen extends Activity {
-
-    public static final String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET,
-            Manifest.permission.ACCESS_NETWORK_STATE};
+    public static final String[] permissions = Variables.PERMISSIONS;
     AlertDialog.Builder dialog_no_permissions;
     AlertDialog dialog2;
     boolean ps;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MyApplication.getInstance().addActivity(this);
+        MSCRApplication.getInstance().addActivity(this);
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         // 检查该权限是否已经获取
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ps = shouldShowRequestPermissionRationale(permissions[0]);
         }
         int WRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(getApplicationContext(), permissions[0]);
-        int INTERNET = ContextCompat.checkSelfPermission(getApplicationContext(), permissions[1]);
-        int ACCESS_NETWORK_STATE = ContextCompat.checkSelfPermission(getApplicationContext(), permissions[2]);
         // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
-        if (WRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED || INTERNET != PackageManager.PERMISSION_GRANTED || ACCESS_NETWORK_STATE != PackageManager.PERMISSION_GRANTED) {
+        if (WRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED) {
             // 如果没有授予该权限，就去提示用户请求
             startRequestPermission();
         } else {
@@ -85,7 +79,7 @@ public class StartScreen extends Activity {
                         showDialogTipUserGoToAppSettting();
                     } else {
                         //Toast.makeText(this, "asdfiasdflf", Toast.LENGTH_SHORT).show();
-                        MyApplication.getInstance().exit();
+                        MSCRApplication.getInstance().exit();
                     }
                 } else {
                     method01();
@@ -108,7 +102,7 @@ public class StartScreen extends Activity {
                 }).setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        MyApplication.getInstance().exit();
+                        MSCRApplication.getInstance().exit();
                     }
                 }).setCancelable(false);
         dialog2=dialog_no_permissions.show();
@@ -154,8 +148,10 @@ public class StartScreen extends Activity {
                 //try{
                 if (isLogined == false) {
                     Utils.startActivity(StartScreen.this, LoginScreen.class);
+                    finish();
                 } else {
                     Utils.startActivity(StartScreen.this, MainScreen.class);
+                    finish();
                 }
             }
         });
@@ -163,12 +159,15 @@ public class StartScreen extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Utils.startActivity(StartScreen.this, LoginScreen.class);
+                finish();
             }
         });
         inputDialog.setNeutralButton(getResources().getString(R.string.input_information_settings), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+
                 Utils.startActivity(StartScreen.this, MainScreen.class);
+                finish();
             }
         });
         inputDialog.setCancelable(false);

@@ -1,5 +1,25 @@
 # Update Logs
-Currently, the latest version is alpha-6, which was updated on December 27, 2020.
+Currently, the latest version is beta-1, which was updated on January 21, 2021.
+
+## beta-1 (Jan. 21, 2021)
+- (Some models may be invalid) Added the function of clearing cache and clearing application data, you can see them on the Settings interface.
+- (Some models may be invalid) Logout can choose whether to delete the added chats and chat files.
+- The first startup will get whether the system display interface is a dark theme or a light theme, and save it in SharedPreferences.
+- Fixed the problem that the email address cannot be used to login.
+- Fixed the problem that may crash after modifying user information.
+- Fixed the problem that language and theme information could not be saved when starting the app for the first time.
+- Optimized the code to Modify User Information interface to make this interface more stable.
+- Added the "Verifying" dialog to verify the password after entering the password of the deleted account.
+- Added the function of deleting chats. This option is located in the menu that pops up by long pressing any item on the Main interface.
+- When you add a chat, if your target account has been added, it will prompt ""(target account)" This chat has been added, it is the "(current list of chats)" of the current list
+- Added the ability to check for updates, which is located on the about interface.
+- You can choose a picture in other apps to open it with the picture viewer of this app.
+- Added the function of zooming in the picture viewer.
+- Added "LoadingScreen" (loading interface), this interface is used to load part of the information of the logged-in account. The function is that the Main interface, Setting interface and Modify User Information interface after starting do not need to be loaded again, so that the application runs faster.
+- Added "Developer Options" interface, which can be used to modify the server information, etc.
+- The application will establish a connection to the server every time it starts the interface, and there is no need to establish it again afterwards, saving time.
+- Many problems have been fixed to make the application more stable.
+
 
 ## alpha-6 (Dec. 27, 2020)
 - Fixed an issue where users can add chat without login.

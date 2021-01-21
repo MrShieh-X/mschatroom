@@ -20,7 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.mrshiehx.mschatroom.MyApplication;
+import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
@@ -49,9 +49,9 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
     ProgressDialog loggingIn;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        Utils.initialization(LoginByEmailAndCAPTCHA.this, R.string.activity_login_by_ec_screen_name);
         super.onCreate(savedInstanceState);
 
-        Utils.initialization(LoginByEmailAndCAPTCHA.this, R.string.activity_login_by_ec_screen_name);
         if (can_i_back) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
@@ -168,11 +168,12 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    Looper.prepare();
                                     try {
                                         if (input_captcha.getText().toString().equals(captcha)) {
                                             AccountUtils mysqlUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
                                             try {
-                                                clean_password = EnDeCryptTextUtils.decrypt(mysqlUtils.getString(context, "password", AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
+                                                clean_password = EnDeCryptTextUtils.decrypt(mysqlUtils.getStringNoThread(context, "password", AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
                                             } catch (InvalidKeySpecException e) {
                                                 e.printStackTrace();
                                             } catch (InvalidKeyException e) {
@@ -188,7 +189,6 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
 
                                                 if (mysqlUtils.login(context, loggingIn, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(clean_password, Variables.TEXT_ENCRYPTION_KEY))) {
 
-                                                    Looper.prepare();
                                                     loggingIn.dismiss();
                                                     Snackbar.make(login, getResources().getString(R.string.toast_successfully_login), Snackbar.LENGTH_SHORT).show();
                                                     //after login
@@ -197,7 +197,7 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                                                         editor.putBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, true);
                                                         editor.putInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 1);
                                                         editor.putString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, EnDeCryptTextUtils.encrypt(email + Variables.SPLIT_SYMBOL + clean_password, Variables.TEXT_ENCRYPTION_KEY));
-                                                        editor.commit();
+                                                        editor.apply();
                                                     } catch (Exception e) {
                                                         e.printStackTrace();
                                                         //Looper.prepare();
@@ -207,12 +207,9 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                                                     finish();
                                                     Utils.startActivity(context, StartScreen.class);
 
-                                                    Looper.loop();
                                                 } else {
-                                                    Looper.prepare();
                                                     Snackbar.make(login, getResources().getString(R.string.toast_failed_login), Snackbar.LENGTH_SHORT).show();
                                                     loggingIn.dismiss();
-                                                    Looper.loop();
                                                 }
                                             } catch (InvalidKeySpecException e) {
                                                 e.printStackTrace();
@@ -227,17 +224,14 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                                             }
 
                                         } else {
-                                            Looper.prepare();
                                             loggingIn.dismiss();
                                             Snackbar.make(login, getResources().getString(R.string.toast_captcha_incorrect), Snackbar.LENGTH_SHORT).show();
-                                            Looper.loop();
                                         }
                                     }catch (Exception e){
-                                        Looper.prepare();
                                         loggingIn.dismiss();
                                         Utils.exceptionDialog(context,e,getResources().getString(R.string.toast_failed_login));
-                                        Looper.loop();
                                     }
+                                    Looper.loop();
                                 }
                             }).start();
                         }catch (Exception e){
@@ -286,7 +280,7 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                         firstTime = secondTime;
                         return true;
                     } else {
-                        MyApplication.getInstance().exit();
+                        MSCRApplication.getInstance().exit();
                     }
                 } else {
                     finish();

@@ -2,6 +2,7 @@ package com.mrshiehx.mschatroom.reset_password.screen;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
 import android.text.Editable;
@@ -15,7 +16,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,7 +23,6 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
-import com.mrshiehx.mschatroom.MyApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
@@ -43,16 +42,16 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
     TextInputLayout til_rp_input_new_password, til_rp_input_confirm_password;
     AppCompatEditText input_new_password, input_confirm_password;
     Button reset_password;
-    public static String email;
+    String email;
     CheckBox show_password;
     Context context = ResetPasswordScreen2.this;
     ProgressDialog resetting;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        Utils.initialization(this, R.string.activity_reset_password_name);
         super.onCreate(savedInstanceState);
 
-        Utils.initialization(this, R.string.activity_reset_password_name);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setContentView(R.layout.activity_reset_password_2);
 
@@ -63,6 +62,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
         input_confirm_password = findViewById(R.id.rp_input_confirm_password);
         show_password = findViewById(R.id.rp_show_password);
 
+        email=getIntent().getStringExtra("email");
 
         input_new_password.setTransformationMethod(PasswordTransformationMethod.getInstance());
         input_confirm_password.setTransformationMethod(PasswordTransformationMethod.getInstance());
@@ -95,17 +95,17 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                             if (input_new_password.length() < 8 || input_new_password.length() > 16) {
                             } else {
                                 resetting = new ProgressDialog(context);
-                                try {
-                                    resetting.setTitle(getResources().getString(R.string.dialog_title_wait));
-                                    resetting.setMessage(getResources().getString(R.string.dialog_resetting_message));
-                                    resetting.setCancelable(false);
-                                    resetting.show();
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public void run() {
+                                resetting.setTitle(getResources().getString(R.string.dialog_title_wait));
+                                resetting.setMessage(getResources().getString(R.string.dialog_resetting_message));
+                                resetting.setCancelable(false);
+                                resetting.show();
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Looper.prepare();
+                                        try {
                                             String password = input_new_password.getText().toString();
                                             AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                                            ;
                                             int result = 0;
                                             try {
                                                 result = ud.resetPassword(context, resetting, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY));
@@ -122,25 +122,25 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                                             }
                                             if (result == 0) {
                                                 resetting.dismiss();
-                                                Looper.prepare();
                                                 Snackbar.make(reset_password, getResources().getString(R.string.toast_failed_reset_password), Snackbar.LENGTH_SHORT).show();
-                                                Looper.loop();
                                             } else {
                                                 resetting.dismiss();
-                                                Looper.prepare();
                                                 Snackbar.make(reset_password, getResources().getString(R.string.toast_successfully_reset_password), Snackbar.LENGTH_SHORT).show();
                                                 LoginScreen.can_i_back = false;
                                                 Utils.startActivity(context, LoginScreen.class);
-                                                Looper.loop();
                                             }
+                                        } catch (Exception e) {
+                                            resetting.dismiss();
+                                            e.printStackTrace();
+                                            Snackbar.make(reset_password, getResources().getString(R.string.toast_failed_reset_password), Snackbar.LENGTH_SHORT).show();
+                                            Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_reset_password));
                                         }
-                                    }).start();
-                                } catch (Exception e) {
-                                    resetting.dismiss();
-                                    e.printStackTrace();
-                                    Snackbar.make(reset_password, getResources().getString(R.string.toast_failed_reset_password), Snackbar.LENGTH_SHORT).show();
-                                    Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_reset_password));
-                                }
+
+
+                                        Looper.loop();
+                                    }
+                                }).start();
+
                             }
 
 

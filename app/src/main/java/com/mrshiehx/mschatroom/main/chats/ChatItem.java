@@ -1,5 +1,7 @@
 package com.mrshiehx.mschatroom.main.chats;
 
+import androidx.annotation.NonNull;
+
 public class ChatItem {
     private String emailOrAccount;
     private String avatarFilePAN;
@@ -7,7 +9,7 @@ public class ChatItem {
     private String latestMsg;
     private String latestMsgDate;
 
-    public ChatItem(String emailOrAccount,String avatarFilePAN, String name, String latestMsg, String latestMsgDate) {
+    public ChatItem(@NonNull String emailOrAccount, String avatarFilePAN, String name, String latestMsg, String latestMsgDate) {
         this.emailOrAccount = emailOrAccount;
         this.avatarFilePAN = avatarFilePAN;
         this.name = name;

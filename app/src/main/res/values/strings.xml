@@ -1,7 +1,7 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">MSChatRoom</string>
     <string name="app_name_short">MSCR</string>
-    <string name="activity_main_screen_no_network_name">MSChatRoom (No network)</string>
+    <string name="activity_main_screen_offline_mode_name">MSChatRoom (Offline Mode)</string>
     <string name="activity_login_screen_name">Login</string>
     <string name="activity_register_screen_name">Register</string>
     <string name="activity_settings_screen_name">Settings</string>
@@ -11,6 +11,9 @@
     <string name="activity_login_by_ec_screen_name">Login By Email CAPTCHA</string>
     <string name="activity_about_screen_name">About</string>
     <string name="activity_picture_viewer_name">Picture Viewer</string>
+    <string name="activity_developer_options_name">Developer Options</string>
+    <string name="activity_modify_user_information_screen_offline_mode_name">Modify User Information (Offline Mode)</string>
+    <string name="activity_settings_screen_offline_mode_name">Settings (Offline Mode)</string>
 
     <string name="edittexthint_input_account_or_email">Account or Email Address</string>
     <string name="edittexthint_input_password">Password</string>
@@ -21,6 +24,11 @@
     <string name="edittexthint_input_captcha">CAPTCHA</string>
     <string name="edittexthint_input_new_password">Input New Password</string>
     <string name="edittexthint_lbec_input_email">Email Address</string>
+    <string name="edittexthint_dialog_set_server_information_server_address">Server Address</string>
+    <string name="edittexthint_dialog_set_server_information_database_name">Database Name</string>
+    <string name="edittexthint_dialog_set_server_information_database_user_name">Database User Name</string>
+    <string name="edittexthint_dialog_set_server_information_database_user_password">Database User Password</string>
+    <string name="edittexthint_dialog_set_server_information_database_table_name">Database Table Name</string>
 
     <string name="button_register">Register</string>
     <string name="button_reinput_email">Re input email</string>
@@ -39,12 +47,18 @@
     <string name="textview_about_what_is_this">An open source chat application</string>
     <string name="textview_about_version_partical">Version</string>
     <string name="textview_about_copyrightForChinese" translatable="false">MrShiehX 版权所有</string>
-    <string name="textview_about_copyright" translatable="false">Copyright © 2020 MrShiehX</string>
+    <string name="textview_about_copyright" translatable="false">Copyright © 2021 MrShiehX</string>
     <string name="textview_about_author">MrShiehX is the author of this application.</string>
+    <string name="textview_dialog_set_server_information_server_address_tip">Server Address:</string>
+    <string name="textview_dialog_set_server_information_database_name_tip">Database Name:</string>
+    <string name="textview_dialog_set_server_information_database_user_name_tip">Database User Name:</string>
+    <string name="textview_dialog_set_server_information_database_user_password_tip">Database User Password:</string>
+    <string name="textview_dialog_set_server_information_database_table_name_tip">Database Table Name:</string>
 
     <string name="checkbox_show_password">Show password</string>
     <string name="checkbox_remember_account_or_email_and_password">Remember the account or email and password</string>
 
+    <!-- AppCompatEditText Error -->
     <string name="aceterror_password_insufficient_length_or_too_long">Please enter an 8-16 digit password</string>
     <string name="aceterror_invalid_email">Invalid Email Address</string>
     <string name="aceterror_password_different">The two passwords entered are different.</string>
@@ -54,7 +68,7 @@
     <string name="preference_settings_list_modify_theme_dialogtitle">Select a theme</string>
     <string name="preference_settings_list_modify_language_title">Language</string>
     <string name="preference_settings_list_modify_language_dialogtitle">Select a language</string>
-    <string name="preference_account_notlogged_title">No login account</string>
+    <string name="preference_account_notlogged_title">Account is not logged in</string>
     <string name="preference_account_notlogged_summary">Click to login</string>
     <string name="preference_account_logout">Log out</string>
     <string name="preference_account_title_no_name_set">User %s</string>
@@ -75,6 +89,25 @@
     <string name="preference_delete_account_input_email">Please input password</string>
     <string name="preference_account_title">Account</string>
     <string name="preference_account_email_title">Email Address</string>
+    <string name="preference_settings_category_application_title">Application</string>
+    <string name="preference_clear_cache_title">Clear Cache</string>
+    <string name="preference_clear_cache_summary">Clear application cache (temporary data)</string>
+    <string name="preference_clear_application_data_title">Clear Application Data</string>
+    <string name="preference_clear_application_data_summary">Clear all data of application</string>
+    <string name="preference_settings_category_account_title">Account</string>
+    <string name="preference_server_address_title">Server Address</string>
+    <string name="preference_server_address_summary">Please set the server address</string>
+    <string name="preference_database_name_title">Database Name</string>
+    <string name="preference_database_name_summary">Please set the database name</string>
+    <string name="preference_database_user_name_title">Database User Name</string>
+    <string name="preference_database_user_name_summary">Please set the database user name</string>
+    <string name="preference_database_user_password_title">Database User Password</string>
+    <string name="preference_database_user_password_summary">Please set the database user password</string>
+    <string name="preference_database_user_password_seted_summary">Password has been set</string>
+    <string name="preference_database_table_name_title">Database Table Name</string>
+    <string name="preference_database_table_name_summary">Please set the database table name</string>
+    <string name="preference_show_logs_in_loading_interface_title">Show Logs In Loading Interface</string>
+    <string name="preference_show_logs_in_loading_interface_summary">Show the loading log in loading interface</string>
 
     <string name="dialog_exception_parsing_json_failed">JSON file parsing failed</string>
     <string name="dialog_exception_parsing_xml_failed">XML file parsing failed</string>
@@ -111,7 +144,7 @@
     <string name="dialog_choose_photo_button_select">Choose from Album</string>
     <string name="dialog_uploading_message">Uploading... (If it takes too long to upload, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
     <string name="dialog_exception_failed_to_changeavatar">Failed to change avatar</string>
-    <string name="dialog_no_login_message">No login account. Do you want to login now?</string>
+    <string name="dialog_no_login_message">Account is not logged in. Do you want to login now?</string>
     <string name="dialog_no_login_button_gotologin_text">Go to login</string>
     <string name="dialog_downloading_avatar">Downloading Avatar... (If it takes too long to download, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
     <string name="dialog_exception_failed_to_downloadavatar">Failed to download avatar</string>
@@ -134,6 +167,31 @@
     <string name="dialog_no_permissions_title">Application permissions are not available</string>
     <string name="dialog_no_permissions_message">Please in the application settings - permissions, allow the application to use the device permissions to use the application.</string>
     <string name="dialog_no_permissions_button_gotosettings">Go to settings</string>
+    <string name="dialog_clear_cache_message">Are you sure you want to clear the cache?</string>
+    <string name="dialog_clear_application_data_message">Are you sure you want to clear application data? This action will exit the application.</string>
+    <string name="dialog_getting_user_information">Getting User Information... (If it takes too long to get, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_logout_checkbox_text">Delete added chats and chat files</string>
+    <string name="dialog_verifying_message">Verifying... (If it takes too long to verify, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_exception_failed_to_get_files_size">Failed to get files size</string>
+    <string name="dialog_set_server_information_title">Please set the server information</string>
+    <string name="dialog_set_server_information_tip_firstuse">For the first use, please enter server information</string>
+    <string name="dialog_set_server_information_tip_missing">Server information is missing, please re-enter</string>
+    <string name="dialog_set_server_information_tip_failed_connect">Failed to connect to the server, please re-enter the server information and try again</string>
+    <string name="dialog_set_server_information_button_retry_text">Retry</string>
+    <string name="dialog_set_server_information_button_retry_save_text">Save And Retry</string>
+    <string name="dialog_retry_connect_success_message">The re-entered server information is valid. Do you want to replace the original server information?</string>
+    <string name="dialog_button_offline_mode_text">Offline Mode</string>
+    <string name="dialog_set_server_information_button_retry_operations">More Operations</string>
+    <string name="dialog_loading_not_logged_in_button_gotomain_text">Go to main interface after loading chats</string>
+    <string name="dialog_checking_updates_message">Checking for updates... (If it takes too long to check, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_exception_failed_download_file">Failed to download file</string>
+    <string name="dialog_exception_failed_download_files">Failed to download files</string>
+    <string name="dialog_new_version_title">New Version: %s(%d)</string>
+    <string name="dialog_new_version_message">Update date: %1$s\n\nUpdate content:\n%2$s\n\nDo you want to update this version?</string>
+    <string name="dialog_new_version_button_update">Update</string>
+    <string name="dialog_downloading_file_message">Downloading file...</string>
+    <string name="dialog_downloading_files_message">Downloading files...</string>
+    <string name="dialog_connecting_message">Connecting to the server... (If it takes too long to check, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
 
     <string name="toast_captcha_incorrect">The CAPTCHA is incorrect</string>
     <string name="toast_registered_email">The email has been used, please change, after the change you must get CAPTCHA again</string>
@@ -172,10 +230,20 @@
     <string name="toast_account_copied">Account has been copied</string>
     <string name="toast_email_copied">Email address has been copied</string>
     <string name="toast_failed_to_get_information">Failed to get user information</string>
-    <string name="toast_add_chat_by_email_but_already_add_with_account">"%1$s" This chat has been added with account, and its account is "%2$s"</string>
-    <string name="toast_add_chat_by_account_but_already_add_with_email">"%1$s" This chat has been added with email address, and its email address is "%2$s"</string>
+    <!--<string name="toast_add_chat_by_email_but_already_add_with_account">"%1$s" this chat has been added with account, its account or nickname is "%2$s"</string>
+    <string name="toast_add_chat_by_account_but_already_add_with_email">"%1$s" this chat has been added with email, its email or nickname is "%2$s"</string>-->
+    <string name="toast_add_chat_by_account_but_already_add">\"<xliff:g id="0">%1$s</xliff:g>\" this chat has been added, it is the \"<xliff:g id="1">%2$s</xliff:g>\" of the current list</string>
     <string name="toast_is_not_a_vaild_url">The content entered is not a valid URL</string>
     <string name="toast_picture_viewer_nothing">Nothing to view</string>
+    <string name="toast_successfully_deleted_cache">Clear cache successfully</string>
+    <string name="toast_successfully_deleted_application_data">Clear application data successfully</string>
+    <string name="toast_failed_to_deleted_cache">Failed to clear cache</string>
+    <string name="toast_failed_to_deleted_application_data">Failed to clear application data</string>
+    <string name="toast_not_found_target_chat">Can\'t find target chat</string>
+    <string name="toast_failed_delete_chat">Failed to delete chat</string>
+    <string name="toast_successfully_delete_chat">Successfully to delete chat</string>
+    <string name="toast_check_updates_isnew">The current version is the latest version</string>
+    <string name="toast_failed_check_updates">Failed to check for updates</string>
 
     <string name="toast_tip_set_name">Please set account nickname</string>
     <string name="toast_tip_set_avatar">Please set account avatar</string>
@@ -189,10 +257,44 @@
     <string name="menu_main_settings">Settings</string>
     <string name="menu_main_exit">Exit</string>
     <string name="menu_about_exit">About</string>
+    <string name="menu_main_developer_options">Developer Options</string>
+    <string name="menu_main_item_delete">Delete This Chat</string>
 
     <string name="listviewtext_about_users_can_do_item_contact">Contact MrShiehX</string>
     <string name="listviewtext_about_users_can_do_item_visit_github">Visit the GitHub repository of this application</string>
     <string name="listviewtext_about_users_can_do_item_visit_msxw">Visit MSXW (MrShiehX\'s website)</string>
     <string name="listviewtext_about_users_can_do_item_visit_author_github">Visit MrShiehX\'s GitHub repository</string>
+    <string name="listviewtext_about_users_can_do_item_check">Check for updates</string>
 
+    <string name="loadinglog_main_information">Version name: %1$s, version code:%2$s</string>
+    <string name="loadinglog_start_loading">Start loading</string>
+    <string name="loadinglog_finish_loading">Finish loading</string>
+    <string name="loadinglog_checking_network">Checking the network status...</string>
+    <string name="loadinglog_network_connected">Network is connected</string>
+    <string name="loadinglog_preparing_server_information">Preparing server information</string>
+    <string name="loadinglog_network_not_connected">Network not connected</string>
+    <string name="loadinglog_failed_connect_setinfo">Failed to connect to the server, please reset the server information</string>
+    <string name="loadinglog_empty_content">The content cannot be empty, please re-enter</string>
+    <string name="loadinglog_setinfo_success">Set server information successfully</string>
+    <string name="loadinglog_start_connecting">Connecting to the server...</string>
+    <string name="loadinglog_missing_information">Server information is missing, please re-enter</string>
+    <string name="loadinglog_firstuse_setinfo">First use, please set the server information</string>
+    <string name="loadinglog_success_connect">Successfully connected to the server</string>
+    <string name="loadinglog_checking_login_status">Checking login status...</string>
+    <string name="loadinglog_logined">Account is logged in</string>
+    <string name="loadinglog_not_login">Account is not logged in</string>
+    <string name="loadinglog_checking_can_login">Checking if you can login...</string>
+    <string name="loadinglog_result_can_login">Account can login</string>
+    <string name="loadinglog_result_cannot_login">Account can not login</string>
+    <string name="loadinglog_getting_account_information">Getting account information...</string>
+    <string name="loadinglog_getting_account_avatar">Getting account avatar...</string>
+    <string name="loadinglog_success_get_account_information">Successfully to get account information</string>
+    <string name="loadinglog_success_get_account_avatar">Successfully to get account avatar</string>
+    <string name="loadinglog_failed_get_account_avatar">Failed to get account avatar, the error is: %s</string>
+    <string name="loadinglog_account_avatar_is_empty">Account avatar is empty</string>
+    <string name="loadinglog_start_load_chats">Loading chats...</string>
+    <string name="loadinglog_success_load_chats">Successfully to load chats</string>
+    <string name="loadinglog_failed_load_chats">Failed to load chats</string>
+    <string name="loadinglog_failed_get_user_avatar">Failed to get the avatar of user \"<xliff:g id="0">%s</xliff:g>\"</string>
+    <string name="loadinglog_failed_get_user_name">Failed to get the nickname of user \"<xliff:g id="0">%s</xliff:g>\"</string>
 </resources>

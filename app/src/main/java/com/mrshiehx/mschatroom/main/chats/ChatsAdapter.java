@@ -1,6 +1,7 @@
 package com.mrshiehx.mschatroom.main.chats;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,22 +57,41 @@ public class ChatsAdapter extends ArrayAdapter {
             }
         }
 
-        try {
-            name.setText(EnDeCryptTextUtils.decrypt(chatItem.getName(),Variables.TEXT_ENCRYPTION_KEY));
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
+        if(!TextUtils.isEmpty(chatItem.getName())) {
+            try {
+                name.setText(EnDeCryptTextUtils.decrypt(chatItem.getName(), Variables.TEXT_ENCRYPTION_KEY));
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+        }else {
+            try {
+                name.setText(EnDeCryptTextUtils.decrypt(chatItem.getEmailOrAccount(), Variables.TEXT_ENCRYPTION_KEY));
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
         }
-        latestMsg.setText(chatItem.getLatestMsg());
-        date.setText(chatItem.getLatestMsgDate());
-
+        if(!TextUtils.isEmpty(chatItem.getLatestMsg())) {
+            latestMsg.setText(chatItem.getLatestMsg());
+        }
+        if(!TextUtils.isEmpty(chatItem.getLatestMsgDate())) {
+            date.setText(chatItem.getLatestMsgDate());
+        }
 
         return view;
     }

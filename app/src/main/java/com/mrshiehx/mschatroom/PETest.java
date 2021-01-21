@@ -1,11 +1,13 @@
 package com.mrshiehx.mschatroom;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.util.Xml;
 import android.view.View;
 import android.widget.Button;
@@ -14,53 +16,93 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatEditText;
 
 import android.app.AlertDialog;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputLayout;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
-import com.mrshiehx.mschatroom.utils.FormatTools;
+import com.mrshiehx.mschatroom.utils.FileUtils;
+import com.mrshiehx.mschatroom.utils.Utils;
 import com.mrshiehx.mschatroom.xml.user_information.User;
 
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 //没用的，用来做测试的
-public class PETest extends AppCompatActivity {
+public class PETest extends Activity {
     EditText num, pas;
     Button sav, rea, thi;
     ImageView ima;
     int yourChoice, nowGender;
     private List<User> userInformationList;
-
+AccountUtils accountUtils;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);MyApplication.getInstance().addActivity(this);
+        super.onCreate(savedInstanceState);
+        MSCRApplication.getInstance().addActivity(this);
         setContentView(R.layout.petest);
-        initData();
+        /*initData();
         CreateXML();
         test();
-        a();
+        a();*/
+
 
         num = findViewById(R.id.num);
+        num.setText("/data/data/com.mrshiehx.mschatroom");
         pas = findViewById(R.id.pas);
+        pas.setText("cache");
         sav = findViewById(R.id.sav);
         rea = findViewById(R.id.rea);
         thi = findViewById(R.id.third);
         ima = findViewById(R.id.ima);
-        sav.setOnClickListener(new View.OnClickListener() {
+        //Toast.makeText(this, getCacheDir().toString(), Toast.LENGTH_LONG).show();
+        //Toast.makeText(this, Utils.getDataFilesPath(PETest.this), Toast.LENGTH_LONG).show();
+        sav.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
+                //new AlertDialog.Builder(PETest.this).setMessage("fuck").show();
+new Thread(new Runnable() {
+    @Override
+    public void run() {
+
+        accountUtils=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);
+                Looper.prepare();
+        Toast.makeText(PETest.this, "done", Toast.LENGTH_SHORT).show();
+        Looper.loop();
+    }
+}).start();
+
+
+
+
+
+
+
+
+
+
+                /*File file=new File(num.getText().toString(),pas.getText().toString());
+                Toast.makeText(PETest.this, String.valueOf(file.exists()), Toast.LENGTH_SHORT).show();
+                Utils.deleteDirectory(file);
+                TextInputLayout inputLayout=new TextInputLayout(PETest.this);
+                inputLayout.addView(new AppCompatEditText(PETest.this));
+                new AlertDialog.Builder(PETest.this).setView(inputLayout).show();*/
+                //org.apache.commons.io.FileUtils.deleteQuietly(file);
+
+
+
+
                 /*try {
                     pas.setText(EncryptText.encrypt(num.getText().toString(),"aaa"));
                 } catch (InvalidKeySpecException e) {
@@ -195,14 +237,32 @@ public class PETest extends AppCompatActivity {
                 }).start();*/
 
 
-                a();
+                //a();
             }
         });
         rea.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                new Thread(new Runnable(){
+                    @Override
+                    public void run(){
+                        Looper.prepare();
+                        Toast.makeText(PETest.this, accountUtils.getStringNoThread(PETest.this,"email","account","F864B3BA990F36A2"), Toast.LENGTH_SHORT).show();
+
+                        Looper.loop();
+                    }
+                }).start();
 
 
+                /* try {
+                    Toast.makeText(PETest.this, FileUtils.getFormatSize(FileUtils.getFolderSize(new File(num.getText().toString(),pas.getText().toString()))), Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }*/
+                //Context f=PETest.this;
+                //Toast.makeText(f, (CharSequence) f, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(f, f.getClass().getName(), Toast.LENGTH_SHORT).show();
+                //MSCRApplication.getSharedPreferences().edit().remove(Variables.SHARED_PREFERENCE_IS_LOGINED).remove(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD).remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD).remove(Variables.SHARED_PREFERENCE_LOGIN_METHOD).apply();
             /*try {
                 num.setText(EncryptText.decrypt(pas.getText().toString(),"aaa"));
             } catch (Exception e) {
@@ -280,11 +340,16 @@ public class PETest extends AppCompatActivity {
         thi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(new Runnable() {
+
+
+                File file=new File(num.getText().toString(),pas.getText().toString());
+                Toast.makeText(PETest.this, Arrays.toString(file.listFiles()), Toast.LENGTH_SHORT).show();
+
+                /*new Thread(new Runnable() {
                     @Override
                     public void run() {
                         final AccountUtils au = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                        final InputStream is = au.getInputStream(PETest.this, "avatar", "password", "38280D93AE3033B05697894046BAFCBD");
+                        final InputStream is = au.getInputStreamNoThread(PETest.this, "avatar", "password", "38280D93AE3033B05697894046BAFCBD");
                         if (is != null) {
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -299,15 +364,7 @@ public class PETest extends AppCompatActivity {
                         }
                     }
                 }).start();
-            }
-        });
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_SHORT)
-                        .setAction("Action", null).show();
-            }
+            */}
         });
     }
 

@@ -1,16 +1,19 @@
 # MSChatRoom (MSCR)
-An Android ~~chat application~~ application with a login and registration function using MySQL database
+An Android ~~chat application~~ application with a login and registration function using MySQL database<br/>
+If you want to use the old version of this application, you need to [download the source code of the target version](https://github.com/MrShieh-X/mschatroom/releases), unzip it, and check its README file.
 
 [点我转到中文的README页面](https://github.com/MrShieh-X/mschatroom/blob/master/README-zh.md) <br/>
 [Click me to go to the update log of this application](https://github.com/MrShieh-X/mschatroom/blob/master/update_logs.md) <br/>
+
 ## Copyright
 MrShiehX own this application's copyright.<br/>
 Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>alpha-6 (Dec. 27, 2020)</b><br/>
+<b>beta-1 (Jan. 21, 2021)</b><br/>
 Historical version: <br/>
+<b>beta-1 (Jan. 21, 2021)</b><br/>
 <b>alpha-6 (Dec. 27, 2020)</b><br/>
 <b>alpha-5 (Dec. 26, 2020)</b><br/>
 <b>alpha-4 (Dec. 20, 2020)</b><br/>
@@ -28,21 +31,22 @@ You can set the language in the settings.
 
 ## Found BUGs
 - (Fixed in alpha-6) Users can add chats without login.
-- When adding a chat, if the current number of chats >= 2, it will replace the last one, but it has been added successfully. Restart the application to see the newly added chat.
-- The application may crash after modifying the user information for unknown reasons.
+- (Fixed in beta-1) When adding a chat, if the current number of chats >= 2, it will replace the last one, but it has been added successfully. Restart the application to see the newly added chat.
+- (Fixed in beta-1) The application may crash after modifying the user information for unknown reasons.
 - (Fixed in alpha-3) After you login, open the settings, the user information (avatar, name and what's up) may not be displayed. This problem will be fixed in the future.
 
 ## Precautions
 - If you want to add a chat, make sure that the target user and you are using the same encryption or decryption algorithm.
+- In order to avoid problems in the program, please do not bypass the Loading interface (LoadingScreen) and directly enter the application by other means.
 
 ## Text encryption and decryption
 Use the encryption or decryption algorithm of the `src/java/com/mrshiehx/mschatroom/utils/EnDeCryptTextUtils.java` class
 
 ## Working Principle
 ### Register
-After encrypting the email address, account number and password, use the `insert` command to create new data in the MySQL database.
+After encrypting the email address or account and password, use the `insert` command to create new data in the MySQL database.
 ### Login
-After encrypting the email address or account number and password, use the `select` command to check whether the data exists in the MySQL database. If it exists, store the login data in SharedPreference.
+After encrypting the email address or account and password, use the `select` command to check whether the data exists in the MySQL database. If it exists, store the login data in SharedPreference.
 ### Reset password
 After encrypting the email address and password, check whether the account exists. If it exists, use the `update` command to modify the password data.
 ### Login with email address
@@ -50,7 +54,15 @@ After encrypting the email address, use the `select` command in the MySQL databa
 ### Log out
 Delete the email address or account and password data in SharedPreference.
 ### Delete account
-After encrypting the email address or account number and password, use the `delete` command to delete the data in the MySQL database and log out.
+After encrypting the email address or account and password, use the `delete` command to delete the data in the MySQL database and log out.
+### Modify avatar
+After encrypting the email address or account and password, select the file to be set as the avatar, and then use the `update` command to update the InputStream.
+### Modify nickname, gender or what's up
+After encrypting the email address or account and password, download the InputStream in the information from the database, modify its content, and then use the `update` command to update the InputStream.
+### Clear cache
+Delete all files in the `/data/data/com.mrshiehx.mschatroom/cache` directory.
+### Clear application data
+Delete all files in the `/data/data/com.mrshiehx.mschatroom` directory.
 
 ## Ready to work
 First of all, you need to have a server (if you don’t have one, you can use your local computer), and the MySQL database needs to be installed on this server. After you are ready, you need to create a new database in MySQL. "mscr" is the database name, you can change it.
@@ -73,12 +85,11 @@ After setting up a server with MySQL, modify the variable content in the file `V
 
 | Variable name|Meaning|
 | --------|:----:|
-| SERVER_ADDRESS|Server (or local computer) address|
-| DATABASE_NAME|MySQL database name|
-| DATABASE_USER|MySQL database account|
-| DATABASE_PASSWORD|MySQL database password|
-| DATABASE_TABLE_NAME|MySQL table name|
-| AUTHOR_MAIL|Author's email address (sed to give feedback to the author when there is an error and contact the author about the interface)|
+| DEFAULT_SERVER_ADDRESS|Default server (or local computer) address|
+| DEFAULT_DATABASE_NAME|Default MySQL database name|
+| DEFAULT_DATABASE_USER_NAME|Default MySQL database account|
+| DEFAULT_DATABASE_USER_PASSWORD|Default MySQL database password|
+| DEFAULT_DATABASE_TABLE_NAME|Default MySQL table name|
 | TEXT_ENCRYPTION_KEY|Text encryption key (not too long or too short)|
 | CAPTCHA_EMAIL_SMTP_SERVER_ADDRESS|The SMTP server address of the mailbox that sends the CAPTCHA email (see below)|
 | CAPTCHA_EMAIL_ADDRESS|The email address for sending the CAPTCHA email (see below)|

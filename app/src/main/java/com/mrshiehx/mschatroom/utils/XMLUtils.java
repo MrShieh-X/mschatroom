@@ -1,6 +1,6 @@
 package com.mrshiehx.mschatroom.utils;
 
-import com.mrshiehx.mschatroom.MyApplication;
+import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.xml.XMLContentHandler;
 import com.mrshiehx.mschatroom.xml.user_information.UserInformation;
@@ -23,7 +23,7 @@ public class XMLUtils {
             return handler.getUserInformation();
         } catch (Exception e) {
             e.printStackTrace();
-            Utils.exceptionDialog(MyApplication.getContext(),e,MyApplication.getContext().getString(R.string.dialog_exception_parsing_xml_failed));
+            Utils.exceptionDialog(MSCRApplication.getContext(),e, MSCRApplication.getContext().getString(R.string.dialog_exception_parsing_xml_failed));
         }
         return null;
     }

@@ -23,7 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.mrshiehx.mschatroom.MyApplication;
+import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 import com.mrshiehx.mschatroom.R;
@@ -71,8 +71,6 @@ public class RegisterScreen extends AppCompatActivity {
                 input_content_empty.setVisibility(View.GONE);
                 if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == false) {
                     password_different.setVisibility(View.VISIBLE);
-
-
                 } else if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == true) {
                     password_different.setVisibility(View.GONE);
                     if (reg_input_password.length() < 8 || reg_input_password.length() > 16) {
@@ -99,6 +97,7 @@ public class RegisterScreen extends AppCompatActivity {
                                         new Thread(new Runnable() {
                                             @Override
                                             public void run() {
+                                                Looper.prepare();
                                                 String account = reg_input_account.getText().toString();
                                                 String password = reg_input_password.getText().toString();
                                                 AccountUtils mysqlUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
@@ -106,20 +105,14 @@ public class RegisterScreen extends AppCompatActivity {
                                                 //Boolean resultEmail = registerAndLogin.loginByEmail(context, email, password);
                                                 //String emaila=reg_input_email.getText().toString();
                                                 try {
-                                                    if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)) == true) {
+                                                    if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)) == true) {
                                                         //邮箱已存在
-                                                        registering.dismiss();
-                                                        Looper.prepare();
                                                         Snackbar.make(register, getResources().getString(R.string.toast_registered_email), Snackbar.LENGTH_LONG).show();
-                                                        Looper.loop();
-                                                    } else if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)) == false) {
-                                                        if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == true) {
+                                                    } else if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)) == false) {
+                                                        if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == true) {
                                                             //账号已存在
-                                                            registering.dismiss();
-                                                            Looper.prepare();
                                                             Snackbar.make(register, getResources().getString(R.string.toast_registered_account), Snackbar.LENGTH_SHORT).show();
-                                                            Looper.loop();
-                                                        } else if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == false) {
+                                                        } else if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == false) {
                                                             //Real register
                                                             String accountR = reg_input_account.getText().toString();
                                                             String passwordR = reg_input_password.getText().toString();
@@ -143,23 +136,19 @@ public class RegisterScreen extends AppCompatActivity {
                                                                 Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_register));
                                                             }
                                                             if (result == 0) {
-                                                                Looper.prepare();
-                                                                registering.dismiss();
                                                                 Snackbar.make(register, getResources().getString(R.string.toast_failed_register), Snackbar.LENGTH_SHORT).show();
-                                                                Looper.loop();
                                                             } else {
-                                                                Looper.prepare();
-                                                                registering.dismiss();
                                                                 Snackbar.make(register, getResources().getString(R.string.toast_successfully_registered), Snackbar.LENGTH_SHORT).show();
                                                                 Utils.startActivity(context, LoginScreen.class);
                                                                 LoginScreen.can_i_back = true;
-                                                                Looper.loop();
                                                             }
                                                         /*Looper.prepare();
-                                                        Snackbar.make(context, String.valueOf(result), Snackbar.LENGTH_SHORT).show();
-                                                        Looper.loop();*/
+                                                        Snackbar.make(context, String.valueOf(result), Snackbar.LENGTH_SHORT).show();*/
+
                                                         }
+
                                                     }
+                                                    registering.dismiss();
                                                 } catch (InvalidKeySpecException e) {
                                                     e.printStackTrace();
                                                 } catch (InvalidKeyException e) {
@@ -171,6 +160,7 @@ public class RegisterScreen extends AppCompatActivity {
                                                 } catch (BadPaddingException e) {
                                                     e.printStackTrace();
                                                 }
+                                                Looper.loop();
                                             }
                                         }).start();
                                     } catch (Exception e) {
@@ -197,9 +187,9 @@ public class RegisterScreen extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        Utils.initialization(this, R.string.activity_register_screen_name);
         super.onCreate(savedInstanceState);
 
-        Utils.initialization(this, R.string.activity_register_screen_name);
         if (can_i_back == true) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
@@ -299,8 +289,8 @@ public class RegisterScreen extends AppCompatActivity {
                     reg_input_confirm_password.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
                     //reg_input_password.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
                     //reg_input_confirm_password.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                    reg_input_password.setSelection(reg_input_password.getText().length());
-                    reg_input_confirm_password.setSelection(reg_input_confirm_password.getText().length());
+                    //reg_input_password.setSelection(reg_input_password.getText().length());
+                    //reg_input_confirm_password.setSelection(reg_input_confirm_password.getText().length());
                     //reg_input_password.setKeyListener(DigitsKeyListener.getInstance("qwertyuiopasdfghjklzxcvbnm1234567890_QWERTYUIOPASDFGHJKLZXCVBNM"));
                     //reg_input_confirm_password.setKeyListener(DigitsKeyListener.getInstance("qwertyuiopasdfghjklzxcvbnm1234567890_QWERTYUIOPASDFGHJKLZXCVBNM"));
                 } else {
@@ -308,11 +298,13 @@ public class RegisterScreen extends AppCompatActivity {
                     reg_input_confirm_password.setTransformationMethod(PasswordTransformationMethod.getInstance());
                     //reg_input_password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                     //reg_input_confirm_password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                    reg_input_password.setSelection(reg_input_password.getText().length());
-                    reg_input_confirm_password.setSelection(reg_input_confirm_password.getText().length());
+                    //reg_input_password.setSelection(reg_input_password.getText().length());
+                    //reg_input_confirm_password.setSelection(reg_input_confirm_password.getText().length());
                     //reg_input_password.setKeyListener(DigitsKeyListener.getInstance("qwertyuiopasdfghjklzxcvbnm1234567890_QWERTYUIOPASDFGHJKLZXCVBNM"));
                     //reg_input_confirm_password.setKeyListener(DigitsKeyListener.getInstance("qwertyuiopasdfghjklzxcvbnm1234567890_QWERTYUIOPASDFGHJKLZXCVBNM"));
                 }
+                reg_input_password.setSelection(reg_input_password.getText().length());
+                reg_input_confirm_password.setSelection(reg_input_confirm_password.getText().length());
             }
         });
         /*Utils.inputFilterSpace(reg_input_email);
@@ -484,7 +476,7 @@ public class RegisterScreen extends AppCompatActivity {
                         firstTime = secondTime;
                         return true;
                     } else {
-                        MyApplication.getInstance().exit();
+                        MSCRApplication.getInstance().exit();
                     }
                 } else {
                     finish();

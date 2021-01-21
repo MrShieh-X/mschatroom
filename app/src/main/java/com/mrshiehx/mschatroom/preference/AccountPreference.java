@@ -141,6 +141,7 @@ public class AccountPreference extends Preference {
 
     @Override
     public void onBindView(View view) {
+        super.onBindView(view);
         final TextView titleView = (TextView) view.findViewById(R.id.account_name);
         if (titleView != null) {
             final CharSequence title = getTitle();
