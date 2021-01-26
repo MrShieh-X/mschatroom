@@ -27,8 +27,12 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -437,10 +441,12 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                                         if (which != -1) {
                                                             accountGenderContent = gen;
                                                             final int finalWhich = which;
+                                                            final String finalGen = gen;
                                                             runOnUiThread(new Runnable() {
                                                                 @Override
                                                                 public void run() {
                                                                     gender.setSummary(items[finalWhich]);
+                                                                    Variables.ACCOUNT_INFORMATION.setGender(finalGen);
                                                                 }
                                                             });
                                                         } else {
@@ -514,6 +520,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                                 }
                                             });
                                             tNameET = nameET.getText().toString();
+                                            Variables.ACCOUNT_INFORMATION.setNickname(tNameET);
                                         } else {
                                             runOnUiThread(new Runnable() {
                                                 @Override
@@ -576,6 +583,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                                 }
                                             });
                                             tWhatsupET = whatsupET.getText().toString();
+                                            Variables.ACCOUNT_INFORMATION.setWhatsup(tWhatsupET);
                                         } else {
                                             tWhatsupET = null;
                                             runOnUiThread(new Runnable() {
@@ -926,11 +934,18 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
     }
 
     void showDeleteAccountDialog(final EditText et) {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-        dialog.setTitle(getResources().getString(R.string.dialog_title_notice))
-                .setMessage(getResources().getString(R.string.dialog_delete_account_message))
-                .setNegativeButton(context.getResources().getString(android.R.string.cancel), null)
-                .setPositiveButton(getResources().getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+        AlertDialog.Builder dialog=new AlertDialog.Builder(context);
+        final View dialogView = LayoutInflater.from(context)
+                .inflate(R.layout.checkbox_dialog,null);
+        dialog.setView(dialogView);
+        dialog.setTitle(getResources().getString(R.string.dialog_title_notice));
+        TextView textView=dialogView.findViewById(R.id.checkbox_dialog_message);
+        textView.setText(getResources().getString(R.string.dialog_delete_account_message));
+        final CheckBox checkBox = dialogView.findViewById(R.id.checkbox_dialog_checkbox);
+        checkBox.setText(getString(R.string.dialog_logout_checkbox_text));
+        checkBox.setChecked(true);
+        dialog.setNegativeButton(context.getResources().getString(android.R.string.cancel), null);
+        dialog.setPositiveButton(getResources().getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         final ProgressDialog deleting = new ProgressDialog(context);
@@ -1028,11 +1043,28 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                             .remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)
                                             .remove(Variables.SHARED_PREFERENCE_LOGIN_METHOD)
                                             .apply();
+                                    if(checkBox.isChecked()){
+                                        Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"chat_avatars"));
+                                        Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"chats"));
+                                        Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"information"));
+                                        File chatsFile=new File(Utils.getDataFilesPath(context),"chats.json");
+                                        chatsFile.delete();
+                                    }
+                                    File file;
+                                    if(MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD,-1)!=1){
+                                        //account
+                                        file = new File(Utils.getDataFilesPath(context), "avatar_" + getAccountEncrypted())/*EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0],Variables.TEXT_ENCRYPTION_KEY))*/;
+                                    }else{
+                                        //email
+                                        file = new File(Utils.getDataFilesPath(context), "avatar_" + getEmailEncrypted()/*EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0],Variables.TEXT_ENCRYPTION_KEY)*/);
+                                    }
+                                    if(file!=null&&file.exists()) {
+                                        file.delete();
+                                    }
                                     finish();
                                     Utils.startActivity(context, StartScreen.class);
                                 } else {
                                     Toast.makeText(ModifyUserInformationScreen.this, getResources().getString(R.string.toast_failed_to_delete_account), Toast.LENGTH_SHORT).show();
-
                                 }
                                 Looper.loop();
                             }
@@ -1041,8 +1073,6 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                     }
                 }).show();
     }
-
-    int RETURN = 1;
 
     public int uploadInformation(final String name, final String gender, final String whatSUp) {
         runOnUiThread(new Runnable() {

@@ -42,6 +42,7 @@ import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.about.screen.AboutScreen;
 import com.mrshiehx.mschatroom.broadcast_receivers.NetworkStateReceiver;
+import com.mrshiehx.mschatroom.chat.screen.ChatScreenLauncher;
 import com.mrshiehx.mschatroom.developer_options.screen.DeveloperOptions;
 import com.mrshiehx.mschatroom.main.chats.ChatsAdapter;
 import com.mrshiehx.mschatroom.main.chats.ChatItem;
@@ -184,16 +185,6 @@ public class MainScreen extends AppCompatActivity {
             dialog_retry_connect_success.setNegativeButton(getString(android.R.string.no), null);
             dialog_retry_connect_success.show();
         }
-
-        if(Variables.ACCOUNT_INFORMATION!=null){
-
-        }else{
-
-        }
-
-
-
-
 
         if(intent.getIntExtra("offlineMode",-1)==LoadingScreen.OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK){
 
@@ -534,6 +525,57 @@ public class MainScreen extends AppCompatActivity {
                 menu.add(0, 0, 0, getString(R.string.menu_main_item_delete));
             }
         });
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ChatItem item=(ChatItem)lv.getItemAtPosition(position);
+                String name=item.getName();
+                String nameDecrypted;
+                String eoaDecrypted;
+                String finalIntentString = null;
+                if(!TextUtils.isEmpty(name)){
+                    try {
+                        nameDecrypted=EnDeCryptTextUtils.decrypt(name,Variables.TEXT_ENCRYPTION_KEY);
+                        finalIntentString=nameDecrypted;
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeySpecException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    try {
+                        eoaDecrypted=EnDeCryptTextUtils.decrypt(item.getEmailOrAccount(),Variables.TEXT_ENCRYPTION_KEY);
+                        finalIntentString=eoaDecrypted;
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeySpecException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
+                }
+                boolean canContinue = false;
+                if(Utils.isNetworkConnected(context)){
+                    if(Variables.ACCOUNT_UTILS!=null){
+                        if(sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED,false)){
+                            /**检测是否能登录*/
+                            canContinue=true;
+                        }
+                    }
+                }
+                new ChatScreenLauncher(context,item.getEmailOrAccount(),finalIntentString,canContinue).startChatScreen();
+            }
+        });
         cl.addView(lv, 0);
         cl.addView(fab, 1);
         setContentView(cl);
@@ -543,61 +585,70 @@ public class MainScreen extends AppCompatActivity {
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         //info.id得到listview中选择的条目绑定的id
-        long selectedId=info.id;
+        final long selectedId=info.id;
         switch (item.getItemId()) {
             case 0:
-                File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
-                //File chatsFile2 = new File(Utils.getDataFilesPath(context), "chats2.json");
-                if(chatsFile.exists()) {
-                    try {
-                        String chatsFileContent = FileUtils.getString(chatsFile);
-                        Gson gson = new Gson();
-                        List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {}.getType());
-
-                        /**Encrypted*/
-                        List<String> eoas = new ArrayList<String>();
-                        for (ChatItem chatItem : list) {
-                            eoas.add(chatItem.getEmailOrAccount());
+                new AlertDialog.Builder(context).setTitle(getString(R.string.dialog_title_notice)).setMessage(getString(R.string.dialog_delete_chat_message)).setNegativeButton(getString(android.R.string.cancel),null).setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+                        File chatFile=new File(Utils.getDataFilesPath(context),"chats"+File.separator+((ChatItem)lv.getItemAtPosition((int)selectedId)).getEmailOrAccount()+".json");
+                        if(chatFile.exists()){
+                            chatFile.delete();
                         }
+                        //File chatsFile2 = new File(Utils.getDataFilesPath(context), "chats2.json");
+                        if(chatsFile.exists()) {
+                            try {
+                                String chatsFileContent = FileUtils.getString(chatsFile);
+                                Gson gson = new Gson();
+                                List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {}.getType());
 
-                        ChatItem itemOnListView = (ChatItem) lv.getItemAtPosition((int) selectedId);
-                        String emailOrAccount = itemOnListView.getEmailOrAccount();
+                                /**Encrypted*/
+                                List<String> eoas = new ArrayList<String>();
+                                for (ChatItem chatItem : list) {
+                                    eoas.add(chatItem.getEmailOrAccount());
+                                }
 
-                        int indexOf = eoas.indexOf(emailOrAccount);
-                        if (indexOf != -1) {
-                            /**
-                             * 删除
-                             */
-                            JSONArray array=new JSONArray(chatsFileContent);
-                            String newArray=Utils.jsonArrayRemove(array,indexOf).toString();
+                                ChatItem itemOnListView = (ChatItem) lv.getItemAtPosition((int) selectedId);
+                                String emailOrAccount = itemOnListView.getEmailOrAccount();
+
+                                int indexOf = eoas.indexOf(emailOrAccount);
+                                if (indexOf != -1) {
+                                    /**
+                                     * 删除
+                                     */
+                                    JSONArray array=new JSONArray(chatsFileContent);
+                                    String newArray=Utils.jsonArrayRemove(array,indexOf).toString();
                             /*OutputStream outputStream=new FileOutputStream(chatsFile);
                             outputStream.write(array.toString().getBytes());
                             outputStream.flush();
                             outputStream.close();*/
-                            chatsFile.delete();
-                            chatsFile.createNewFile();
-                            FileUtils.writeToFile(newArray, chatsFile);
+                                    chatsFile.delete();
+                                    chatsFile.createNewFile();
+                                    FileUtils.writeToFile(newArray, chatsFile);
 
-                            File avatar=new File(itemOnListView.getAvatarFilePAN());
-                            if(avatar.exists()){
-                                avatar.delete();
+                                    File avatar=new File(itemOnListView.getAvatarFilePAN());
+                                    if(avatar.exists()){
+                                        avatar.delete();
+                                    }
+                                    contentAdapter=null;
+                                    content.clear();
+                                    initFromFile(lv,content);
+
+                                    Utils.showShortSnackbar(lv, getString(R.string.toast_successfully_delete_chat));
+                                } else {
+                                    Utils.showShortSnackbar(lv, getString(R.string.toast_not_found_target_chat));
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Utils.showShortSnackbar(lv,getString(R.string.toast_failed_delete_chat));
+                                Utils.exceptionDialog(context,e,getString(R.string.toast_failed_delete_chat));
                             }
-                            contentAdapter=null;
-                            content.clear();
-                            initFromFile(lv,content);
-
-                            Utils.showShortSnackbar(lv, getString(R.string.toast_successfully_delete_chat));
-                        } else {
-                            Utils.showShortSnackbar(lv, getString(R.string.toast_not_found_target_chat));
+                        }else{
+                            Utils.showShortSnackbar(lv,getString(R.string.toast_not_found_target_chat));
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Utils.showShortSnackbar(lv,getString(R.string.toast_failed_delete_chat));
-                        Utils.exceptionDialog(context,e,getString(R.string.toast_failed_delete_chat));
                     }
-                }else{
-                    Utils.showShortSnackbar(lv,getString(R.string.toast_not_found_target_chat));
-                }
+                }).show();
                 return true;
             default:
                 return super.onContextItemSelected(item);

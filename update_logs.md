@@ -1,5 +1,11 @@
 # Update Logs
-Currently, the latest version is beta-1, which was updated on January 21, 2021.
+Currently, the latest version is beta-2, which was updated on January 26, 2021.
+
+## beta-2 (Jan. 26, 2021)
+- Added the chat interface.
+- Added dialog to decide whether to delete chat
+- You can delete the chat files when deleting account.
+- Fixed some problems.
 
 ## beta-1 (Jan. 21, 2021)
 - (Some models may be invalid) Added the function of clearing cache and clearing application data, you can see them on the Settings interface.

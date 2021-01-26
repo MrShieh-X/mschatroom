@@ -108,6 +108,9 @@
     <string name="preference_database_table_name_summary">Please set the database table name</string>
     <string name="preference_show_logs_in_loading_interface_title">Show Logs In Loading Interface</string>
     <string name="preference_show_logs_in_loading_interface_summary">Show the loading log in loading interface</string>
+    <string name="preference_settings_category_chat_title">Chat</string>
+    <string name="preference_show_avatars_when_chatting_title">Show Avatars When Chatting</string>
+    <string name="preference_show_avatars_when_chatting_summary">Show each other\'s avatars on the chat interface</string>
 
     <string name="dialog_exception_parsing_json_failed">JSON file parsing failed</string>
     <string name="dialog_exception_parsing_xml_failed">XML file parsing failed</string>
@@ -134,7 +137,7 @@
     <string name="dialog_resetting_message">Resetting Password... (If it takes too long to reset the password, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
     <string name="dialog_exception_failed_download_data">Data download failed</string>
     <string name="dialog_exception_failed_get_user_information">Failed to get user information</string>
-    <string name="dialog_relogin_message">Are you sure you want to login again and replace the previous login data?</string>
+    <string name="dialog_relogin_message">Do you want to login again and replace the previous login data?</string>
     <string name="dialog_failed_login_insettings_message">Login failed. Do you want to login again?</string>
     <string name="dialog_failed_login_insettings_button_gotologin_text">Go to login</string>
     <string name="dialog_logout_message">Are you sure want to logout?</string>
@@ -192,6 +195,9 @@
     <string name="dialog_downloading_file_message">Downloading file...</string>
     <string name="dialog_downloading_files_message">Downloading files...</string>
     <string name="dialog_connecting_message">Connecting to the server... (If it takes too long to check, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_delete_chat_message">Do you want to delete this chat?</string>
+    <string name="dialog_exception_failed_to_load_chat">Failed to load the chat</string>
+    <string name="dialog_user_information_message">Gender: %1$s\n\n%2$s</string>
 
     <string name="toast_captcha_incorrect">The CAPTCHA is incorrect</string>
     <string name="toast_registered_email">The email has been used, please change, after the change you must get CAPTCHA again</string>
@@ -297,4 +303,9 @@
     <string name="loadinglog_failed_load_chats">Failed to load chats</string>
     <string name="loadinglog_failed_get_user_avatar">Failed to get the avatar of user \"<xliff:g id="0">%s</xliff:g>\"</string>
     <string name="loadinglog_failed_get_user_name">Failed to get the nickname of user \"<xliff:g id="0">%s</xliff:g>\"</string>
+
+    <string name="chat_tip_failed_send">Failed to send the message \"<xliff:g id="0">%s</xliff:g>\"</string>
+    <string name="chat_tip_offline">Please connect to the network and resend</string>
+    <string name="chat_tip_not_loggined">Please login and resend</string>
+    <string name="chat_tip_failed_logined">Failed to send, failed to login the account</string>
 </resources>

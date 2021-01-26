@@ -245,6 +245,29 @@ public class AccountUtils {
         }
     }
 
+    public int tryLoginWithoutPasswordNoThreadAndDialogInt(Context context, String loginMethod, String accountOrEmail) {
+        if (conn == null) {
+            Log.i(Variables.TAG, "tryLoginWithoutPassword:conn is null");
+            Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
+            return 0;
+
+        } else {
+            String sql = "select * from " + dbTableName + " where " + loginMethod + "=?";
+            try {
+                PreparedStatement pres = conn.prepareStatement(sql);
+                pres.setString(1, accountOrEmail);
+                ResultSet res = pres.executeQuery();
+                boolean t = res.next();
+                return t?1:0;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                return 2;
+            }
+
+        }
+    }
+
     public int resetPassword(Context context,ProgressDialog ingDialog,String email,String newPassword){
         int s=resetPasswordNoThreadAndDialog(context,email,newPassword);
         ingDialog.dismiss();

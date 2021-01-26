@@ -924,42 +924,29 @@ public class LoadingScreen extends Activity {
         ChatItem item = null;
         try {
             //AccountUtils au = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-            boolean status = false;
-            try {
-                status = au.tryLoginWithoutPasswordNoThreadAndDialog(context, by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-            } catch (InvalidKeySpecException e) {
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                e.printStackTrace();
-            }
-            if (status) {
+            int status = au.tryLoginWithoutPasswordNoThreadAndDialogInt(context, by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+            if (status==1) {
                 /**
                  * 如果账号存在
                  */
-                InputStream avatar = null;
-                InputStream info = null;
-                try {
-                    avatar = au.getInputStreamNoThread(context, "avatar", by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-                    info = au.getUserInformationWithoutPasswordNoThread(context, by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-                } catch (InvalidKeySpecException e) {
-                    e.printStackTrace();
-                } catch (InvalidKeyException e) {
-                    e.printStackTrace();
-                } catch (NoSuchPaddingException e) {
-                    e.printStackTrace();
-                } catch (IllegalBlockSizeException e) {
-                    e.printStackTrace();
-                } catch (BadPaddingException e) {
-                    e.printStackTrace();
-                }
+                InputStream avatar = au.getInputStreamNoThread(context, "avatar", by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+                InputStream info = au.getUserInformationWithoutPasswordNoThread(context, by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
                 File cafile=new File(Utils.getDataFilesPath(context),"chat_avatars");
                 File avatarFile = new File(Utils.getDataFilesPath(context),"chat_avatars"+File.separator+EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+                File infoFile=new File(Utils.getDataFilesPath(context),"information"+File.separator+EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY)+".xml");
+                File infoFolder=new File(Utils.getDataFilesPath(context),"information");
+
+                if(infoFile.exists()){
+                    infoFile.delete();
+                }else{
+                    if(!infoFolder.exists()){
+                        infoFolder.mkdirs();
+                    }
+                }
+
+                infoFile.createNewFile();
+                Utils.inputStream2File(info,infoFile);
+
                 if (avatar != null) {
                     /**
                      * 保存头像
@@ -1050,6 +1037,14 @@ public class LoadingScreen extends Activity {
                     String latestMsgDateS = jsonObject.getString("latestMsgDate");
                     item = new ChatItem(emailOrAccountS, avatarS, EnDeCryptTextUtils.encrypt(accountName, Variables.TEXT_ENCRYPTION_KEY), latestMsgS, latestMsgDateS);
                 }
+            }else if(status==2){
+                JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
+                String name = jsonObject.getString("name");
+                String emailOrAccountS = jsonObject.getString("emailOrAccount");
+                String avatarS = jsonObject.getString("avatarFilePAN");
+                String latestMsgS = jsonObject.getString("latestMsg");
+                String latestMsgDateS = jsonObject.getString("latestMsgDate");
+                item = new ChatItem(emailOrAccountS, avatarS, name, latestMsgS, latestMsgDateS);
             }
         } catch (Exception e) {
             JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);

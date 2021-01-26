@@ -32,6 +32,8 @@ public class StartScreen extends Activity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Utils.startActivity(StartScreen.this,LoadingScreen.class);
+        finish();
         MSCRApplication.getInstance().addActivity(this);
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         // 检查该权限是否已经获取

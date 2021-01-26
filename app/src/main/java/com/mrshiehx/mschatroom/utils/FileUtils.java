@@ -103,7 +103,7 @@ public class FileUtils {
      * @param content 覆盖内容
      * @param append  指定了写入的方式，是覆盖写还是追加写(true=追加)(false=覆盖)
      */
-    public static void modifyFile(File file, String content, boolean append) throws IOException {
+    public static void  modifyFile(File file, String content, boolean append) throws IOException {
         FileWriter fileWriter = new FileWriter(file, append);
         BufferedWriter writer = new BufferedWriter(fileWriter);
         writer.append(content);

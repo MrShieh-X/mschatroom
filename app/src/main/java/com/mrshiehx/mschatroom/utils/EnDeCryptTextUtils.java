@@ -1,5 +1,7 @@
 package com.mrshiehx.mschatroom.utils;
 
+import com.mrshiehx.mschatroom.Variables;
+
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -92,5 +94,13 @@ public class EnDeCryptTextUtils {
             btxts[i / 2] = (byte) Integer.parseInt(txt.substring(i, i + 2), 16);
         }
         return (new String(cipher.doFinal(btxts)));
+    }
+
+    public static String encrypt(String content) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
+        return encrypt(content, Variables.TEXT_ENCRYPTION_KEY);
+    }
+
+    public static String decrypt(String content) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
+        return decrypt(content, Variables.TEXT_ENCRYPTION_KEY);
     }
 }

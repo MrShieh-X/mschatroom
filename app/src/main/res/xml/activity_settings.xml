@@ -31,6 +31,14 @@
             android:key="clear_application_data"
             android:widgetLayout="@layout/files_size"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/preference_settings_category_chat_title">
+        <CheckBoxPreference
+            android:key="show_avatar_when_chatting"
+            android:title="@string/preference_show_avatars_when_chatting_title"
+            android:summary="@string/preference_show_avatars_when_chatting_summary"
+            android:checked="true"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/preference_settings_category_account_title">
     <Preference
         android:key="logout"

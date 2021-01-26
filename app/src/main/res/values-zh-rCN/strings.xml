@@ -281,4 +281,14 @@
     <string name="dialog_connecting_message">连接服务器中...（如果连接时间过长，可能是网络问题、服务器问题或应用程序问题，您可以尝试重新启动该应用程序。）</string>
     <string name="activity_modify_user_information_screen_offline_mode_name">修改用户信息（离线模式）</string>
     <string name="activity_settings_screen_offline_mode_name">设置（离线模式）</string>
+    <string name="dialog_delete_chat_message">您要删除此聊天吗？</string>
+    <string name="dialog_exception_failed_to_load_chat">加载聊天失败</string>
+    <string name="dialog_user_information_message">性别：%1$s\n\n%2$s</string>
+    <string name="chat_tip_failed_send">消息“%s”发送失败</string>
+    <string name="preference_settings_category_chat_title">聊天</string>
+    <string name="preference_show_avatars_when_chatting_title">聊天时显示头像</string>
+    <string name="preference_show_avatars_when_chatting_summary">在聊天界面显示对方和自己的头像</string>
+    <string name="chat_tip_offline">请连接网络后重新发送</string>
+    <string name="chat_tip_not_loggined">请登录账户后重新发送</string>
+    <string name="chat_tip_failed_logined">发送失败，账户登录失败</string>
 </resources>

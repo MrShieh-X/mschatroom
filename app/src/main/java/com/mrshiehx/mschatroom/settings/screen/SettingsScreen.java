@@ -338,16 +338,21 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
             }).start();
             
         }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Looper.prepare();
-                if(Utils.checkLoginInformationAndNetwork(context)){
-                    initUserInformation();
-                }
-                Looper.loop();
+        if(Variables.ACCOUNT_UTILS!=null){
+            if(Variables.ACCOUNT_UTILS.getConnection()!=null){
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Looper.prepare();
+                        if(Utils.checkLoginInformationAndNetwork(context)){
+                            initUserInformation();
+                        }
+                        Looper.loop();
+                    }
+                }).start();
             }
-        }).start();
+        }
+
         /*if(getAccountInformation()!=null) {
             new Thread(new Runnable() {
                 @Override
@@ -380,6 +385,8 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                     public void onClick(DialogInterface dialog, int which) {
                         if(checkBox.isChecked()){
                             Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"chat_avatars"));
+                            Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"chats"));
+                            Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"information"));
                             File chatsFile=new File(Utils.getDataFilesPath(context),"chats.json");
                             chatsFile.delete();
                         }
@@ -403,8 +410,8 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        finish();
                         Utils.startActivity(context, StartScreen.class);
+                        finish();
                     }
                 });
                 dialog.show();
@@ -448,7 +455,16 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                     public void onClick(DialogInterface dialog, int which) {
                         try {
                             //getFilesDir().getParentFile().delete();
-                            Utils.deleteDirectoryContent(getFilesDir().getParentFile().getAbsolutePath());
+
+                            Utils.deleteDirectoryContent(Utils.getDataFilesPath(context)+File.separator+"chat_avatars");
+                            Utils.deleteDirectoryContent(Utils.getDataFilesPath(context)+File.separator+"chats");
+                            Utils.deleteDirectoryContent(Utils.getDataFilesPath(context)+File.separator+"information");
+                            Utils.deleteDirectoryContent(getFilesDir().getAbsolutePath());
+                            Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"chat_avatars"));
+                            Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"chats"));
+                            Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"information"));
+                            Utils.deleteDirectory(getFilesDir());
+
                             editor.clear().apply();
                             Toast.makeText(context, getString(R.string.toast_successfully_deleted_application_data), Toast.LENGTH_SHORT).show();
                             MSCRApplication.getInstance().exit();
@@ -756,21 +772,26 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                             }
                         });
                     }
-                    if (TextUtils.isEmpty(nickname)){
-                        if(!TextUtils.isEmpty(getAccountEncrypted())) {
-                            try {
-                                accountPreference.setTitle(String.format(getResources().getString(R.string.preference_account_title_no_name_set), EnDeCryptTextUtils.decrypt(getAccountEncrypted().toString(), Variables.TEXT_ENCRYPTION_KEY)));
-                            } catch (InvalidKeyException e) {
-                                e.printStackTrace();
-                            } catch (InvalidKeySpecException e) {
-                                e.printStackTrace();
-                            } catch (NoSuchPaddingException e) {
-                                e.printStackTrace();
-                            } catch (IllegalBlockSizeException e) {
-                                e.printStackTrace();
-                            } catch (BadPaddingException e) {
-                                e.printStackTrace();
-                            }
+                    if (TextUtils.isEmpty(nickname)) {
+                        if (!TextUtils.isEmpty(getAccountEncrypted())) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        accountPreference.setTitle(String.format(getResources().getString(R.string.preference_account_title_no_name_set), EnDeCryptTextUtils.decrypt(getAccountEncrypted().toString(), Variables.TEXT_ENCRYPTION_KEY)));
+                                    } catch (InvalidKeyException e) {
+                                        e.printStackTrace();
+                                    } catch (InvalidKeySpecException e) {
+                                        e.printStackTrace();
+                                    } catch (NoSuchPaddingException e) {
+                                        e.printStackTrace();
+                                    } catch (IllegalBlockSizeException e) {
+                                        e.printStackTrace();
+                                    } catch (BadPaddingException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
                         }
                     }else{
                         if(!TextUtils.isEmpty(nickname)) {
@@ -864,7 +885,7 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                     });
                 }
 
-                if (TextUtils.isEmpty(getNickname())){
+                if (TextUtils.isEmpty(getNickname())) {
                     /*if (sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) == 0) {
                         runOnUiThread(new Runnable() {
                             @Override
@@ -917,23 +938,28 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                             }
                         });
                     }*/
-                    try {
-                        accountPreference.setTitle(String.format(getResources().getString(R.string.preference_account_title_no_name_set), EnDeCryptTextUtils.decrypt(getAccountEncrypted().toString(),Variables.TEXT_ENCRYPTION_KEY)));
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                accountPreference.setTitle(String.format(getResources().getString(R.string.preference_account_title_no_name_set), EnDeCryptTextUtils.decrypt(getAccountEncrypted().toString(), Variables.TEXT_ENCRYPTION_KEY)));
+                            } catch (InvalidKeyException e) {
+                                e.printStackTrace();
+                            } catch (InvalidKeySpecException e) {
+                                e.printStackTrace();
+                            } catch (NoSuchPaddingException e) {
+                                e.printStackTrace();
+                            } catch (IllegalBlockSizeException e) {
+                                e.printStackTrace();
+                            } catch (BadPaddingException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
                     /*Looper.prepare();
                     Snackbar.make(context, getResources().getString(R.string.toast_tip_set_name), Snackbar.LENGTH_SHORT).show();
                     Looper.loop();*/
-                } else {
+                }else {
                     //Set Name
                     runOnUiThread(new Runnable() {
                         @Override

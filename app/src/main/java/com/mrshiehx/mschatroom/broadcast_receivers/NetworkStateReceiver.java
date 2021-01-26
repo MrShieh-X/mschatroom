@@ -7,16 +7,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.widget.Toast;
 
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.chat.screen.ChatScreen;
 import com.mrshiehx.mschatroom.main.screen.MainScreen;
 import com.mrshiehx.mschatroom.modify_user_information.screen.ModifyUserInformationScreen;
 import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.ConnectionUtils;
-import com.mrshiehx.mschatroom.utils.Utils;
 
 public class NetworkStateReceiver extends BroadcastReceiver {
     public static final int TYPE_NONE = -1;
@@ -25,30 +24,28 @@ public class NetworkStateReceiver extends BroadcastReceiver {
     int i=0;
     @Override
     public void onReceive(Context context, Intent intent) {
-        /*if(Utils.isNetworkConnected(context)){
-            final ProgressDialog dialog=ConnectionUtils.showConnectingDialog(context);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Variables.ACCOUNT_UTILS=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);
-                    dialog.dismiss();
-                }
-            });
-        }*/
-
-
         int netWorkStates = getNetWorkStates(context);
         if (netWorkStates==TYPE_MOBILE||netWorkStates==TYPE_WIFI) {
             if(context instanceof MainScreen){
                 ((Activity)context).setTitle(context.getString(R.string.app_name));
+                if(i!=0){
+                    reload(context);
+                }
             }else if(context instanceof SettingsScreen){
                 ((Activity)context).setTitle(context.getString(R.string.activity_settings_screen_name));
+                if(i!=0){
+                    reload(context);
+                }
             }else if(context instanceof ModifyUserInformationScreen){
                 ((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
                 ((ModifyUserInformationScreen)context).changeEnabledOfPreferencesOfEnabled(true);
-            }
-            if(i!=0){
-                reload(context);
+                if(i!=0){
+                    reload(context);
+                }
+            }else if(context instanceof ChatScreen){
+                //((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
+                if(i!=0)
+                    ((ChatScreen)context).whenNetworkConnected();
             }
         }else{
             if(context instanceof MainScreen){
@@ -58,6 +55,9 @@ public class NetworkStateReceiver extends BroadcastReceiver {
             }else if(context instanceof ModifyUserInformationScreen){
                 ((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_offline_mode_name));
                 ((ModifyUserInformationScreen)context).changeEnabledOfPreferencesOfEnabled(false);
+            }else if(context instanceof ChatScreen){
+                //((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
+                ((ChatScreen)context).whenNetworkUnconnected();
             }
         }
         i++;
