@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
@@ -27,13 +28,19 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.mrshiehx.mschatroom.chat.Communicator;
+import com.mrshiehx.mschatroom.chat.message.MessageItem;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 import com.mrshiehx.mschatroom.main.chats.ChatItem;
 import com.mrshiehx.mschatroom.main.screen.MainScreen;
@@ -44,6 +51,7 @@ import com.mrshiehx.mschatroom.utils.GetAccountUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
 import com.mrshiehx.mschatroom.utils.XMLUtils;
 
+import org.apache.mina.core.session.IoSession;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,12 +60,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -71,6 +81,7 @@ import javax.crypto.NoSuchPaddingException;
  * //@see_code CODE3
  * //@see_code CODE4
  * //@see_code CODE5
+ *
  * @see_codes CODE6
  */
 public class LoadingScreen extends Activity {
@@ -82,7 +93,7 @@ public class LoadingScreen extends Activity {
      * dp = Database User Password
      * dtn = Database Table Name
      */
-    Context context=LoadingScreen.this;
+    Context context = LoadingScreen.this;
     TextView appName;
     /*boolean isNetworkConnected;
     boolean canLogin;
@@ -97,51 +108,58 @@ public class LoadingScreen extends Activity {
     boolean ps;
     AlertDialog.Builder dialog_no_permissions;
     AlertDialog dialog2;
-    String tpSa,tpDn,tpDun,tpDp,tpDtn;
+    String tpSa, tpDn, tpDun, tpDp, tpDtn,tpSp;
     boolean isFirstRun;
     //AccountInformation Variables.ACCOUNT_INFORMATION;
-    public static final int OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK=0;
-    public static final int OFFLINE_MODE_CANNOT_CONNECT_TO_SERVER=1;
+    public static final int OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK = 0;
+    public static final int OFFLINE_MODE_CANNOT_CONNECT_TO_SERVER = 1;
     Thread loading;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Variables.ACCOUNT_INFORMATION=new AccountInformation();
+        Variables.ACCOUNT_INFORMATION = new AccountInformation();
         sharedPreferences = MSCRApplication.getSharedPreferences();
-        editor=sharedPreferences.edit();
-        isFirstRun=sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
+        editor = sharedPreferences.edit();
+        isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
         /**CODE6S*/
         if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true)
                 && TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, ""))
+                && (sharedPreferences.getInt(Variables.SHARED_PREFERENCE_SERVER_PORT, 0)==0)
                 && TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_NAME, ""))
                 && TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, ""))
                 && TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, ""))
                 && TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME, ""))) {
-            editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS,Variables.DEFAULT_SERVER_ADDRESS);
-            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME,Variables.DEFAULT_DATABASE_NAME);
-            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME,Variables.DEFAULT_DATABASE_USER_NAME);
-            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD,Variables.DEFAULT_DATABASE_USER_PASSWORD);
-            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME,Variables.DEFAULT_DATABASE_TABLE_NAME);
+            editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, Variables.DEFAULT_SERVER_ADDRESS);
+            editor.putInt(Variables.SHARED_PREFERENCE_SERVER_PORT, Variables.DEFAULT_SERVER_PORT);
+            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME, Variables.DEFAULT_DATABASE_NAME);
+            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, Variables.DEFAULT_DATABASE_USER_NAME);
+            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, Variables.DEFAULT_DATABASE_USER_PASSWORD);
+            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME, Variables.DEFAULT_DATABASE_TABLE_NAME);
             editor.apply();
         }
         /**CODE6E*/
         Utils.initialization(LoadingScreen.this, R.string.app_name, android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen, android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
         setContentView(R.layout.activity_loading);
-        appName=findViewById(R.id.loading_app_name);
-        log=findViewById(R.id.log);
-        log_layout=findViewById(R.id.log_layout);
-        log_sv=findViewById(R.id.log_sv);
+        appName = findViewById(R.id.loading_app_name);
+        log = findViewById(R.id.log);
+        log_layout = findViewById(R.id.log_layout);
+        log_sv = findViewById(R.id.log_sv);
+
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectDiskReads().detectDiskWrites().detectNetwork().penaltyLog().build());
+        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectLeakedSqlLiteObjects().detectLeakedClosableObjects().penaltyLog().penaltyDeath().build());
+
         boolean c = MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE);
         if (c) {
             appName.setText(Utils.getStringByLocale(context, R.string.app_name, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_")[0], sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_")[1]));
         }
-        if(sharedPreferences.getBoolean("show_logs_on_loading_interface",true)) {
+        if (sharedPreferences.getBoolean("show_logs_on_loading_interface", true)) {
             log_layout.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             log_layout.setVisibility(View.GONE);
         }
 
-        if(log_layout.getVisibility()==View.VISIBLE) {
+        if (log_layout.getVisibility() == View.VISIBLE) {
             log.setText(String.format(getString(R.string.loadinglog_main_information), Utils.getVersionName(context), String.valueOf(Utils.getVersionCode(context))));
             newLog(getString(R.string.loadinglog_start_loading));
         }
@@ -159,9 +177,9 @@ public class LoadingScreen extends Activity {
     }
 
 
-    void mainMethod(){
+    void mainMethod() {
         newLog(getString(R.string.loadinglog_checking_network));
-        if(Utils.isNetworkConnected(context)) {
+        if (Utils.isNetworkConnected(context)) {
 
             Variables.ACCOUNT_INFORMATION.setIsNetworkConnected(true);
             newLog(getString(R.string.loadinglog_network_connected));
@@ -171,6 +189,7 @@ public class LoadingScreen extends Activity {
             } else {
                 if (TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, ""))
                         || TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_NAME, ""))
+                        || (sharedPreferences.getInt(Variables.SHARED_PREFERENCE_SERVER_PORT, 0)==0)
                         || TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, ""))
                         || TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, ""))
                         || TextUtils.isEmpty(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME, ""))) {
@@ -179,7 +198,7 @@ public class LoadingScreen extends Activity {
                     startConn();
                 }
             }
-        }else{
+        } else {
             Variables.ACCOUNT_INFORMATION.setIsNetworkConnected(false);
             newLog(getString(R.string.loadinglog_network_not_connected));
             if (!Utils.isNetworkConnected(context)) {
@@ -212,11 +231,6 @@ public class LoadingScreen extends Activity {
         }
 
 
-
-
-
-
-
         //return isNetworkConnected(context);
 
 
@@ -247,7 +261,7 @@ public class LoadingScreen extends Activity {
         }*/
     }
 
-    void failedConnectSSI(){
+    void failedConnectSSI() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -259,6 +273,7 @@ public class LoadingScreen extends Activity {
                 TextView tip = dialogView.findViewById(R.id.dialog_set_server_information_tip);
                 tip.setText(getString(R.string.dialog_set_server_information_tip_failed_connect));
                 final EditText sa = dialogView.findViewById(R.id.dialog_set_server_information_server_address);
+                final EditText sp = dialogView.findViewById(R.id.dialog_set_server_information_server_port);
                 final EditText dn = dialogView.findViewById(R.id.dialog_set_server_information_database_name);
                 final EditText dun = dialogView.findViewById(R.id.dialog_set_server_information_database_user_name);
                 final EditText dp = dialogView.findViewById(R.id.dialog_set_server_information_database_user_password);
@@ -276,6 +291,7 @@ public class LoadingScreen extends Activity {
                     }
                 });
                 sa.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, ""));
+                sp.setText(String.valueOf(sharedPreferences.getInt(Variables.SHARED_PREFERENCE_SERVER_PORT,80)));
                 dn.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_NAME, ""));
                 dun.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, ""));
                 dp.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, ""));
@@ -290,133 +306,137 @@ public class LoadingScreen extends Activity {
                 dialog_set_server_information.setPositiveButton(getString(R.string.dialog_set_server_information_button_retry_text), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(TextUtils.isEmpty(sa.getText().toString())||
-                                TextUtils.isEmpty(dn.getText().toString())||
-                                TextUtils.isEmpty(dun.getText().toString())||
-                                TextUtils.isEmpty(dp.getText().toString())||
-                                TextUtils.isEmpty(dtn.getText().toString())){
+                        if (TextUtils.isEmpty(sa.getText().toString()) ||
+                                TextUtils.isEmpty(sa.getText().toString()) ||
+                                TextUtils.isEmpty(dn.getText().toString()) ||
+                                TextUtils.isEmpty(dun.getText().toString()) ||
+                                TextUtils.isEmpty(dp.getText().toString()) ||
+                                TextUtils.isEmpty(dtn.getText().toString())) {
                             newLog(getString(R.string.loadinglog_empty_content));
                             failedConnectSSI();
-                        }else {
+                        } else {
                     /*Variables.SERVER_ADDRESS = sa.getText().toString();
                     Variables.DATABASE_NAME = dn.getText().toString();
                     Variables.DATABASE_USER = dun.getText().toString();
                     Variables.DATABASE_PASSWORD = dp.getText().toString();
                     Variables.DATABASE_TABLE_NAME = dtn.getText().toString();*/
-                            tpSa=sa.getText().toString();
-                            tpDn=dn.getText().toString();
-                            tpDun=dun.getText().toString();
-                            tpDp=dp.getText().toString();
-                            tpDtn=dtn.getText().toString();
+                            tpSa = sa.getText().toString();
+                            tpSp = sp.getText().toString();
+                            tpDn = dn.getText().toString();
+                            tpDun = dun.getText().toString();
+                            tpDp = dp.getText().toString();
+                            tpDtn = dtn.getText().toString();
                             newLog(getString(R.string.loadinglog_setinfo_success));
-                            startConn(tpSa,tpDn,tpDun,tpDp,tpDtn,true);
+                            startConn(tpSa, tpDn, tpDun, tpDp, tpDtn, true,Integer.parseInt(tpSp));
                         }
                     }
                 });
                 dialog_set_server_information.setNeutralButton(getString(R.string.dialog_set_server_information_button_retry_operations), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        final String[] operations = {
+                                getString(R.string.dialog_button_offline_mode_text),
+                                getString(R.string.dialog_set_server_information_button_retry_save_text),
+                                getString(android.R.string.cancel)
+                        };
+                        AlertDialog.Builder so = new AlertDialog.Builder(context);
+                        so.setItems(operations, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
-                                final String[] operations = {
-                                        getString(R.string.dialog_button_offline_mode_text),
-                                        getString(R.string.dialog_set_server_information_button_retry_save_text),
-                                        getString(android.R.string.cancel)
-                                };
-                                AlertDialog.Builder so = new AlertDialog.Builder(context);
-                                so.setItems(operations, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        switch (which) {
-                                            case 0:
-                                                /**CODE5*/
-                                                offlineMode(OFFLINE_MODE_CANNOT_CONNECT_TO_SERVER);
-                                                break;
-                                            case 1:
-                                                if (TextUtils.isEmpty(sa.getText().toString()) ||
-                                                        TextUtils.isEmpty(dn.getText().toString()) ||
-                                                        TextUtils.isEmpty(dun.getText().toString()) ||
-                                                        TextUtils.isEmpty(dp.getText().toString()) ||
-                                                        TextUtils.isEmpty(dtn.getText().toString())) {
-                                                    newLog(getString(R.string.loadinglog_empty_content));
-                                                    failedConnectSSI();
-                                                } else {
+                                switch (which) {
+                                    case 0:
+                                        /**CODE5*/
+                                        offlineMode(OFFLINE_MODE_CANNOT_CONNECT_TO_SERVER);
+                                        break;
+                                    case 1:
+                                        if (TextUtils.isEmpty(sa.getText().toString()) ||
+                                                TextUtils.isEmpty(dn.getText().toString()) ||
+                                                TextUtils.isEmpty(dun.getText().toString()) ||
+                                                TextUtils.isEmpty(dp.getText().toString()) ||
+                                                TextUtils.isEmpty(dtn.getText().toString())) {
+                                            newLog(getString(R.string.loadinglog_empty_content));
+                                            failedConnectSSI();
+                                        } else {
                     /*Variables.SERVER_ADDRESS = sa.getText().toString();
                     Variables.DATABASE_NAME = dn.getText().toString();
                     Variables.DATABASE_USER = dun.getText().toString();
                     Variables.DATABASE_PASSWORD = dp.getText().toString();
                     Variables.DATABASE_TABLE_NAME = dtn.getText().toString();*/
-                                                    editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, sa.getText().toString());
-                                                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME, dn.getText().toString());
-                                                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, dun.getText().toString());
-                                                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, dp.getText().toString());
-                                                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME, dtn.getText().toString());
-                                                    editor.apply();
-                                                    newLog(getString(R.string.loadinglog_setinfo_success));
-                                                    startConn();
-                                                }
-
-                                                break;
-                                            case 2:
-                                                failedConnectSSI();
-                                                break;
+                                            editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, sa.getText().toString());
+                                            editor.putInt(Variables.SHARED_PREFERENCE_SERVER_PORT, Integer.parseInt(sp.getText().toString()));
+                                            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME, dn.getText().toString());
+                                            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, dun.getText().toString());
+                                            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, dp.getText().toString());
+                                            editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME, dtn.getText().toString());
+                                            editor.apply();
+                                            newLog(getString(R.string.loadinglog_setinfo_success));
+                                            startConn();
                                         }
-                                    }
-                                });
-                                so.show();
 
-
+                                        break;
+                                    case 2:
+                                        failedConnectSSI();
+                                        break;
+                                }
                             }
                         });
+                        so.show();
+
+
+                    }
+                });
                 dialog_set_server_information.show();
             }
         });
     }
 
-    void startConn(){
-        startConn(sharedPreferences.getString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS,""),
-                sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_NAME,""),
-                sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME,""),
-                sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD,""),
-                sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME,""),
-                false);
+    void startConn() {
+        startConn(sharedPreferences.getString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, ""),
+                sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_NAME, ""),
+                sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, ""),
+                sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, ""),
+                sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME, ""),
+                false,
+                sharedPreferences.getInt(Variables.SHARED_PREFERENCE_SERVER_PORT, 80));
     }
 
-    void startConn(final String sa,final String dn,final String dun,final String dp,final String dtn,final boolean showSaveDialog){
+    void startConn(final String sa, final String dn, final String dun, final String dp, final String dtn, final boolean showSaveDialog,final int sp) {
         /**
          *  连接，检测是否可行
          */
         newLog(getString(R.string.loadinglog_start_connecting));
-
-        loading=new Thread(new Runnable() {
+        loading = new Thread(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
                 //Connection connection=new ConnectionUtils(sa).getConnection(dn, dun, dp);
-                final AccountUtils accountUtils = new AccountUtils(dn,dun,dp,Variables.DATABASE_TABLE_NAME);
-                if(accountUtils.getConnection()!=null){
+                final AccountUtils accountUtils = new AccountUtils(dn, dun, dp, Variables.DATABASE_TABLE_NAME);
+                if (accountUtils.getConnection() != null) {
                     /**
                      * Non Null
                      */
-                    Variables.ACCOUNT_UTILS=accountUtils;
-                    Variables.SERVER_ADDRESS=sa;
-                    Variables.DATABASE_NAME=dn;
-                    Variables.DATABASE_USER=dun;
-                    Variables.DATABASE_PASSWORD=dp;
-                    Variables.DATABASE_TABLE_NAME=dtn;
+                    Variables.ACCOUNT_UTILS = accountUtils;
+                    Variables.SERVER_ADDRESS = sa;
+                    Variables.SERVER_PORT = sp;
+                    Variables.DATABASE_NAME = dn;
+                    Variables.DATABASE_USER = dun;
+                    Variables.DATABASE_PASSWORD = dp;
+                    Variables.DATABASE_TABLE_NAME = dtn;
 
                     newLog(getString(R.string.loadinglog_success_connect));
-                            newLog(getString(R.string.loadinglog_checking_login_status));
+                    newLog(getString(R.string.loadinglog_checking_login_status));
 
                     /**
                      * 检测能不能登录
                      */
-                    if(GetAccountUtils.isLogined()){
+                    if (GetAccountUtils.isLogined()) {
                         Variables.ACCOUNT_INFORMATION.setLogined(true);
-                                newLog(getString(R.string.loadinglog_logined));
-                                newLog(getString(R.string.loadinglog_checking_can_login));
+                        newLog(getString(R.string.loadinglog_logined));
+                        newLog(getString(R.string.loadinglog_checking_can_login));
 
                         try {
-                            if(GetAccountUtils.checkCanLogin(accountUtils,context)) {
+                            if (GetAccountUtils.checkCanLogin(accountUtils, context)) {
                                 Variables.ACCOUNT_INFORMATION.setCanLogin(true);
 
                                 newLog(getString(R.string.loadinglog_result_can_login));
@@ -517,9 +537,9 @@ public class LoadingScreen extends Activity {
                                 newLog(getString(R.string.loadinglog_getting_account_avatar));
                                 if (avatar != null) {
                                     try {
-                                        if(sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) == 0) {
+                                        if (sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) == 0) {
                                             Utils.inputStream2File(avatar, new File(Utils.getDataFilesPath(context), "avatar_" + Variables.ACCOUNT_INFORMATION.getAccountE()));
-                                        }else{
+                                        } else {
                                             Utils.inputStream2File(avatar, new File(Utils.getDataFilesPath(context), "avatar_" + Variables.ACCOUNT_INFORMATION.getEmailE()));
                                         }
                                         newLog(getString(R.string.loadinglog_success_get_account_avatar));
@@ -537,21 +557,117 @@ public class LoadingScreen extends Activity {
                                  */
                                 loadChats(accountUtils);
 
+                                newLog(getString(R.string.loadinglog_downloading_messages));
+                                try {
+                                    String messages;
+                                    if (sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) != 1) {
+                                        messages = accountUtils.getStringNoThread(context, "messages", AccountUtils.BY_ACCOUNT, Variables.ACCOUNT_INFORMATION.getAccountE().toString());
+                                        accountUtils.setString(context, "messages", "", AccountUtils.BY_ACCOUNT, Variables.ACCOUNT_INFORMATION.getAccountE().toString());
+                                    } else {
+                                        messages = accountUtils.getStringNoThread(context, "messages", AccountUtils.BY_EMAIL, Variables.ACCOUNT_INFORMATION.getEmailE().toString());
+                                        accountUtils.setString(context, "messages", "", AccountUtils.BY_EMAIL, Variables.ACCOUNT_INFORMATION.getEmailE().toString());
+                                    }
+
+                                    if (!TextUtils.isEmpty(messages)) {
+                                        JSONObject jsonObject = new JSONObject(messages);
+                                        List<ChatItem> chatItemList = new Gson().fromJson(FileUtils.getStringNoException(new File(Utils.getDataFilesPath(context), "chats.json")), new TypeToken<List<ChatItem>>() {
+                                        }.getType());
+
+                                        for (int in = 0; in < chatItemList.size(); in++) {
+
+                                            JSONArray resultArray = jsonObject.optJSONArray(chatItemList.get(in).getEmailOrAccount());
+
+                                            if (resultArray != null) {
+                                                ChatItem item = chatItemList.get(in);
+                                                String eoa = item.getEmailOrAccount();
+                                                File chatFile = new File(Utils.getDataFilesPath(context), "chats" + File.separator + eoa + ".json");
+                                                String chatFileContent = FileUtils.getStringNoException(chatFile);
+                                                List<MessageItem> messageItemListNew = new ArrayList<>();
+                                                List<MessageItem> messageItemList;
+                                                for (int i = 0; i < resultArray.length(); i++) {
+                                                    String message = resultArray.getString(i);
+                                                    if (!TextUtils.isEmpty(message)) {
+                                                        /**
+                                                         * 开始添加到<chat>.json
+                                                         */
+                                                        messageItemListNew.add(new MessageItem(message, MessageItem.TYPE_RECEIVER));
+                                                    }
+                                                }
+                                                messageItemList = new Gson().fromJson(chatFileContent, new TypeToken<List<MessageItem>>() {
+                                                }.getType());
+                                                messageItemList.addAll(messageItemListNew);
+
+
+                                                JSONArray messagesArray = new JSONArray();
+                                                for (int i = 0; i < messageItemList.size(); i++) {
+
+                                                    String chatStr = new Gson().toJson(messageItemList.get(i));
+
+                                                    JSONObject chatObject;
+                                                    try {
+                                                        chatObject = new JSONObject(chatStr);
+                                                        messagesArray.put(i, chatObject);
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                                if(chatFile.exists()){
+                                                    chatFile.delete();
+                                                }else{
+                                                    new File(Utils.getDataFilesPath(context),"chats").mkdirs();
+                                                }
+                                                chatFile.createNewFile();
+                                                FileUtils.modifyFile(chatFile, messagesArray.toString(), false);
+                                            }
+                                        }
+                                        newLog(getString(R.string.loadinglog_success_download_messages));
+                                    }else{
+                                        newLog(getString(R.string.loadinglog_messages_is_empty));
+                                    }
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    newLog(getString(R.string.loadinglog_failed_download_messages));
+                                }
+
+                                boolean showEditAddressAndPortDialog = false;
+                                newLog(R.string.loadinglog_connecting_communication_server);
+                                if(Variables.COMMUNICATOR==null) {
+                                    Variables.COMMUNICATOR=new Communicator(context,(sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD,-1)!=1)?accountEncrypted:emailEncrypted);
+                                    try {
+                                        if (Variables.COMMUNICATOR.connect()) {
+                                            newLog(R.string.loadinglog_success_connect_communication_server);
+                                        } else {
+                                            showEditAddressAndPortDialog = true;
+                                            newLog(R.string.loadinglog_failed_connect_communication_server);
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        showEditAddressAndPortDialog = true;
+                                        newLog(String.format(getString(R.string.loadinglog_failed_connect_communication_server_withcause), e + ""));
+                                    }
+                                }else{
+                                    newLog(R.string.loadinglog_success_connect_communication_server);
+                                }
+
                                 newLog(getString(R.string.loadinglog_finish_loading));
-                                Intent intent=new Intent(context,MainScreen.class);
+                                Intent intent = new Intent(context, MainScreen.class);
                                 if (showSaveDialog) {
                                     intent.putExtra("showSaveDialog", true);
-                                    intent.putExtra("infos", new String[]{sa,dn,dun,dp,dtn});
+                                    intent.putExtra("infos", new String[]{sa, dn, dun, dp, dtn});
+                                }
+                                if(showEditAddressAndPortDialog){
+                                    intent.putExtra("showEditAddressAndPortDialog", true);
                                 }
                                 startActivity(intent);
                                 finish();
-                            }else{
+                            } else {
                                 Variables.ACCOUNT_INFORMATION.setCanLogin(false);
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         newLog(getString(R.string.loadinglog_result_cannot_login));
-                                        AlertDialog.Builder dialog=new AlertDialog.Builder(context);
+                                        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
                                         dialog.setTitle(getResources().getString(R.string.dialog_title_notice))
                                                 .setMessage(context.getResources().getString(R.string.dialog_failed_login_insettings_message));
                                         dialog.setNeutralButton(getResources().getString(R.string.dialog_exit_button_exit), new DialogInterface.OnClickListener() {
@@ -563,10 +679,10 @@ public class LoadingScreen extends Activity {
                                         dialog.setPositiveButton(getResources().getString(R.string.dialog_no_login_button_gotologin_text), new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                Intent intent=new Intent(context,LoginScreen.class);
+                                                Intent intent = new Intent(context, LoginScreen.class);
                                                 if (showSaveDialog) {
                                                     intent.putExtra("showSaveDialog", true);
-                                                    intent.putExtra("infos", new String[]{sa,dn,dun,dp,dtn});
+                                                    intent.putExtra("infos", new String[]{sa, dn, dun, dp, dtn});
                                                 }
                                                 startActivity(intent);
                                                 finish();
@@ -576,11 +692,11 @@ public class LoadingScreen extends Activity {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 loadChats(accountUtils);
-                                                makeOfflineAccountInformation(false,true,true,true);
-                                                Intent intent=new Intent(context,MainScreen.class);
+                                                makeOfflineAccountInformation(false, true, true, true);
+                                                Intent intent = new Intent(context, MainScreen.class);
                                                 if (showSaveDialog) {
                                                     intent.putExtra("showSaveDialog", true);
-                                                    intent.putExtra("infos", new String[]{sa,dn,dun,dp,dtn});
+                                                    intent.putExtra("infos", new String[]{sa, dn, dun, dp, dtn});
                                                 }
                                                 startActivity(intent);
                                                 finish();
@@ -602,13 +718,13 @@ public class LoadingScreen extends Activity {
                         } catch (InvalidKeyException e) {
                             e.printStackTrace();
                         }
-                    }else{
+                    } else {
                         Variables.ACCOUNT_INFORMATION.setLogined(false);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 newLog(getString(R.string.loadinglog_not_login));
-                                AlertDialog.Builder dialog=new AlertDialog.Builder(context);
+                                AlertDialog.Builder dialog = new AlertDialog.Builder(context);
                                 dialog.setTitle(getResources().getString(R.string.dialog_title_notice))
                                         .setMessage(getResources().getString(R.string.dialog_no_login_message));
                                 dialog.setNeutralButton(getResources().getString(R.string.dialog_exit_button_exit), new DialogInterface.OnClickListener() {
@@ -620,10 +736,10 @@ public class LoadingScreen extends Activity {
                                 dialog.setPositiveButton(getResources().getString(R.string.dialog_no_login_button_gotologin_text), new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        Intent intent=new Intent(context,LoginScreen.class);
+                                        Intent intent = new Intent(context, LoginScreen.class);
                                         if (showSaveDialog) {
                                             intent.putExtra("showSaveDialog", true);
-                                            intent.putExtra("infos", new String[]{sa,dn,dun,dp,dtn});
+                                            intent.putExtra("infos", new String[]{sa, dn, dun, dp, dtn});
                                         }
                                         startActivity(intent);
                                         finish();
@@ -634,10 +750,10 @@ public class LoadingScreen extends Activity {
                                     public void onClick(DialogInterface dialog, int which) {
                                         loadChats(accountUtils);
                                         //makeOfflineAccountInformation(false,true,false,true);
-                                        Intent intent=new Intent(context,MainScreen.class);
+                                        Intent intent = new Intent(context, MainScreen.class);
                                         if (showSaveDialog) {
                                             intent.putExtra("showSaveDialog", true);
-                                            intent.putExtra("infos", new String[]{sa,dn,dun,dp,dtn});
+                                            intent.putExtra("infos", new String[]{sa, dn, dun, dp, dtn});
                                         }
                                         startActivity(intent);
                                         finish();
@@ -680,7 +796,7 @@ public class LoadingScreen extends Activity {
                             }
                         });
                     }*/
-                }else{
+                } else {
                     /**
                      * Null
                      */
@@ -693,7 +809,7 @@ public class LoadingScreen extends Activity {
     }
 
 
-    void firstUseSSI(){
+    void firstUseSSI() {
         newLog(getString(R.string.loadinglog_firstuse_setinfo));
                 /*startDialog(getString(R.string.dialog_set_server_information_tip_firstuse), getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
@@ -709,6 +825,7 @@ public class LoadingScreen extends Activity {
         TextView tip = dialogView.findViewById(R.id.dialog_set_server_information_tip);
         tip.setText(getString(R.string.dialog_set_server_information_tip_firstuse));
         final EditText sa = dialogView.findViewById(R.id.dialog_set_server_information_server_address);
+        final EditText sp = dialogView.findViewById(R.id.dialog_set_server_information_server_port);
         final EditText dn = dialogView.findViewById(R.id.dialog_set_server_information_database_name);
         final EditText dun = dialogView.findViewById(R.id.dialog_set_server_information_database_user_name);
         final EditText dp = dialogView.findViewById(R.id.dialog_set_server_information_database_user_password);
@@ -726,6 +843,7 @@ public class LoadingScreen extends Activity {
             }
         });
         sa.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, ""));
+        sp.setText(String.valueOf(sharedPreferences.getInt(Variables.SHARED_PREFERENCE_SERVER_PORT,80)));
         dn.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_NAME, ""));
         dun.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, ""));
         dp.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, ""));
@@ -742,30 +860,30 @@ public class LoadingScreen extends Activity {
             public void onClick(DialogInterface dialog, int which) {
                 //newLog(getString(R.string.loadinglog_firstuse_setinfo_success));
 
-                if(TextUtils.isEmpty(sa.getText().toString())||
-                        TextUtils.isEmpty(dn.getText().toString())||
-                        TextUtils.isEmpty(dun.getText().toString())||
-                        TextUtils.isEmpty(dp.getText().toString())||
-                        TextUtils.isEmpty(dtn.getText().toString())){
+                if (TextUtils.isEmpty(sa.getText().toString()) ||
+                        TextUtils.isEmpty(sp.getText().toString()) ||
+                        TextUtils.isEmpty(dn.getText().toString()) ||
+                        TextUtils.isEmpty(dun.getText().toString()) ||
+                        TextUtils.isEmpty(dp.getText().toString()) ||
+                        TextUtils.isEmpty(dtn.getText().toString())) {
                     newLog(getString(R.string.loadinglog_empty_content));
                     firstUseSSI();
-                }else {
+                } else {
                     /*Variables.SERVER_ADDRESS = sa.getText().toString();
                     Variables.DATABASE_NAME = dn.getText().toString();
                     Variables.DATABASE_USER = dun.getText().toString();
                     Variables.DATABASE_PASSWORD = dp.getText().toString();
                     Variables.DATABASE_TABLE_NAME = dtn.getText().toString();*/
-                    editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS,sa.getText().toString());
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME,dn.getText().toString());
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME,dun.getText().toString());
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD,dp.getText().toString());
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME,dtn.getText().toString());
+                    editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, sa.getText().toString());
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME, dn.getText().toString());
+                    editor.putInt(Variables.SHARED_PREFERENCE_SERVER_PORT, Integer.parseInt(sp.getText().toString()));
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, dun.getText().toString());
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, dp.getText().toString());
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME, dtn.getText().toString());
                     editor.apply();
                     newLog(getString(R.string.loadinglog_setinfo_success));
                     startConn();
                 }
-
-
 
 
             }
@@ -781,7 +899,7 @@ public class LoadingScreen extends Activity {
     }
 
 
-    void missingSSI(){
+    void missingSSI() {
         newLog(getString(R.string.loadinglog_missing_information));
         AlertDialog.Builder dialog_set_server_information = new AlertDialog.Builder(context);
         dialog_set_server_information.setTitle(getString(R.string.dialog_set_server_information_title));
@@ -790,6 +908,7 @@ public class LoadingScreen extends Activity {
         TextView tip = dialogView.findViewById(R.id.dialog_set_server_information_tip);
         tip.setText(getString(R.string.dialog_set_server_information_tip_missing));
         final EditText sa = dialogView.findViewById(R.id.dialog_set_server_information_server_address);
+        final EditText sp = dialogView.findViewById(R.id.dialog_set_server_information_server_port);
         final EditText dn = dialogView.findViewById(R.id.dialog_set_server_information_database_name);
         final EditText dun = dialogView.findViewById(R.id.dialog_set_server_information_database_user_name);
         final EditText dp = dialogView.findViewById(R.id.dialog_set_server_information_database_user_password);
@@ -807,6 +926,7 @@ public class LoadingScreen extends Activity {
             }
         });
         sa.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, ""));
+        sp.setText(String.valueOf(sharedPreferences.getInt(Variables.SHARED_PREFERENCE_SERVER_PORT,80)));
         dn.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_NAME, ""));
         dun.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, ""));
         dp.setText(sharedPreferences.getString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, ""));
@@ -821,24 +941,26 @@ public class LoadingScreen extends Activity {
         dialog_set_server_information.setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if(TextUtils.isEmpty(sa.getText().toString())||
-                        TextUtils.isEmpty(dn.getText().toString())||
-                        TextUtils.isEmpty(dun.getText().toString())||
-                        TextUtils.isEmpty(dp.getText().toString())||
-                        TextUtils.isEmpty(dtn.getText().toString())){
+                if (TextUtils.isEmpty(sa.getText().toString()) ||
+                        TextUtils.isEmpty(sp.getText().toString()) ||
+                        TextUtils.isEmpty(dn.getText().toString()) ||
+                        TextUtils.isEmpty(dun.getText().toString()) ||
+                        TextUtils.isEmpty(dp.getText().toString()) ||
+                        TextUtils.isEmpty(dtn.getText().toString())) {
                     newLog(getString(R.string.loadinglog_empty_content));
                     missingSSI();
-                }else {
+                } else {
                     /*Variables.SERVER_ADDRESS = sa.getText().toString();
                     Variables.DATABASE_NAME = dn.getText().toString();
                     Variables.DATABASE_USER = dun.getText().toString();
                     Variables.DATABASE_PASSWORD = dp.getText().toString();
                     Variables.DATABASE_TABLE_NAME = dtn.getText().toString();*/
-                    editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS,sa.getText().toString());
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME,dn.getText().toString());
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME,dun.getText().toString());
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD,dp.getText().toString());
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME,dtn.getText().toString());
+                    editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, sa.getText().toString());
+                    editor.putInt(Variables.SHARED_PREFERENCE_SERVER_PORT, Integer.parseInt(sp.getText().toString()));
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME, dn.getText().toString());
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, dun.getText().toString());
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, dp.getText().toString());
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME, dtn.getText().toString());
                     editor.apply();
                     newLog(getString(R.string.loadinglog_setinfo_success));
                     startConn();
@@ -855,18 +977,18 @@ public class LoadingScreen extends Activity {
         dialog_set_server_information.show();
     }
 
-    void offlineMode(int mode){
-        Intent intent=new Intent(context,MainScreen.class);
-        switch (mode){
+    void offlineMode(int mode) {
+        Intent intent = new Intent(context, MainScreen.class);
+        switch (mode) {
             case OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK:
-                intent.putExtra("offlineMode",OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK);
-                if(sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED,false)) {
+                intent.putExtra("offlineMode", OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK);
+                if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false)) {
                     makeOfflineAccountInformation(false, false, false, false);
                 }
                 break;
             case OFFLINE_MODE_CANNOT_CONNECT_TO_SERVER:
-                intent.putExtra("offlineMode",OFFLINE_MODE_CANNOT_CONNECT_TO_SERVER);
-                if(sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED,false)) {
+                intent.putExtra("offlineMode", OFFLINE_MODE_CANNOT_CONNECT_TO_SERVER);
+                if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false)) {
                     makeOfflineAccountInformation(false, false, false, true);
                 }
                 break;
@@ -892,9 +1014,9 @@ public class LoadingScreen extends Activity {
                 for (int a = 0; a < eoas.size(); a++) {
                     final String eoa = eoas.get(a);
                     if (Utils.isEmail(eoa)) {
-                        addForStart(au,eoa, chatsFile, a, items, AccountUtils.BY_EMAIL);
+                        addForStart(au, eoa, chatsFile, a, items, AccountUtils.BY_EMAIL);
                     } else {
-                        addForStart(au,eoa, chatsFile, a, items, AccountUtils.BY_ACCOUNT);
+                        addForStart(au, eoa, chatsFile, a, items, AccountUtils.BY_ACCOUNT);
                     }
                 }
                 Gson gson1 = new Gson();
@@ -920,40 +1042,40 @@ public class LoadingScreen extends Activity {
         }
     }
 
-    void addForStart(final AccountUtils au,final String eoa, final File chatsFile, final int a, final List<ChatItem> items, final String by) throws JSONException {
+    void addForStart(final AccountUtils au, final String eoa, final File chatsFile, final int a, final List<ChatItem> items, final String by) throws Exception {
         ChatItem item = null;
         try {
             //AccountUtils au = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
             int status = au.tryLoginWithoutPasswordNoThreadAndDialogInt(context, by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-            if (status==1) {
+            if (status == 1) {
                 /**
                  * 如果账号存在
                  */
                 InputStream avatar = au.getInputStreamNoThread(context, "avatar", by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
                 InputStream info = au.getUserInformationWithoutPasswordNoThread(context, by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-                File cafile=new File(Utils.getDataFilesPath(context),"chat_avatars");
-                File avatarFile = new File(Utils.getDataFilesPath(context),"chat_avatars"+File.separator+EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-                File infoFile=new File(Utils.getDataFilesPath(context),"information"+File.separator+EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY)+".xml");
-                File infoFolder=new File(Utils.getDataFilesPath(context),"information");
+                File cafile = new File(Utils.getDataFilesPath(context), "chat_avatars");
+                File avatarFile = new File(Utils.getDataFilesPath(context), "chat_avatars" + File.separator + EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+                File infoFile = new File(Utils.getDataFilesPath(context), "information" + File.separator + EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY) + ".xml");
+                File infoFolder = new File(Utils.getDataFilesPath(context), "information");
 
-                if(infoFile.exists()){
+                if (infoFile.exists()) {
                     infoFile.delete();
-                }else{
-                    if(!infoFolder.exists()){
+                } else {
+                    if (!infoFolder.exists()) {
                         infoFolder.mkdirs();
                     }
                 }
 
                 infoFile.createNewFile();
-                Utils.inputStream2File(info,infoFile);
+                Utils.inputStream2File(info, infoFile);
 
                 if (avatar != null) {
                     /**
                      * 保存头像
                      */
-                    if(!cafile.exists()){
+                    if (!cafile.exists()) {
                         cafile.mkdirs();
-                    }else{
+                    } else {
                         if (avatarFile.exists()) {
                             avatarFile.delete();
                         }
@@ -968,11 +1090,12 @@ public class LoadingScreen extends Activity {
                             downloadFile.flush();
                         }
                         downloadFile.close();
-                        avatar.close();;
+                        avatar.close();
+                        ;
                     } catch (IOException e) {
                         e.printStackTrace();
                         //获得用户“%s”的头像失败
-                        newLog(String.format(getString(R.string.loadinglog_failed_get_user_avatar),eoa));
+                        newLog(String.format(getString(R.string.loadinglog_failed_get_user_avatar), eoa));
                     }
                 } else {
                     //File avatarFile = new File(Utils.getDataFilesPath(context), "chat_avatars"+File.separator+EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
@@ -987,7 +1110,7 @@ public class LoadingScreen extends Activity {
                 } catch (Exception e) {
                     e.printStackTrace();
                     //获得用户“%s”的昵称失败
-                    newLog(String.format(getString(R.string.loadinglog_failed_get_user_name),eoa));
+                    newLog(String.format(getString(R.string.loadinglog_failed_get_user_name), eoa));
                 }
                 if (TextUtils.isEmpty(accountName)) {
                     /**
@@ -1015,60 +1138,60 @@ public class LoadingScreen extends Activity {
                     jsonObject.put("name", "");
                     String emailOrAccountS = jsonObject.getString("emailOrAccount");
 
-                    jsonObject.put("avatarFilePAN", Utils.getDataFilesPath(context)+File.separator+"chat_avatars"+File.separator+ EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+                    /*jsonObject.put("avatarFilePAN", Utils.getDataFilesPath(context)+File.separator+"chat_avatars"+File.separator+ EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
                     String avatarS = "";
                     if (new File(Utils.getDataFilesPath(context),"chat_avatars"+File.separator+ EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY)).exists()) {
                         avatarS = jsonObject.getString("avatarFilePAN");
-                    }
+                    }*/
 
-                    String latestMsgS = jsonObject.getString("latestMsg");
-                    String latestMsgDateS = jsonObject.getString("latestMsgDate");
-                    item = new ChatItem(emailOrAccountS, avatarS,"", latestMsgS, latestMsgDateS);
+                    //String latestMsgS = jsonObject.getString("latestMsg");
+                    //String latestMsgDateS = jsonObject.getString("latestMsgDate");
+                    item = new ChatItem(emailOrAccountS, "");
                 } else {
                     //昵称不空，set it！
                     JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
                     jsonObject.put("name", EnDeCryptTextUtils.encrypt(accountName, Variables.TEXT_ENCRYPTION_KEY));
                     String emailOrAccountS = jsonObject.getString("emailOrAccount");
-                    String avatarS = "";
+                    /*String avatarS = "";
                     if (new File(Utils.getDataFilesPath(context),"chat_avatars"+File.separator+ EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY)).exists()) {
                         avatarS = jsonObject.getString("avatarFilePAN");
                     }
                     String latestMsgS = jsonObject.getString("latestMsg");
-                    String latestMsgDateS = jsonObject.getString("latestMsgDate");
-                    item = new ChatItem(emailOrAccountS, avatarS, EnDeCryptTextUtils.encrypt(accountName, Variables.TEXT_ENCRYPTION_KEY), latestMsgS, latestMsgDateS);
+                    String latestMsgDateS = jsonObject.getString("latestMsgDate");*/
+                    item = new ChatItem(emailOrAccountS, EnDeCryptTextUtils.encrypt(accountName, Variables.TEXT_ENCRYPTION_KEY));
                 }
-            }else if(status==2){
+            } else if (status == 2) {
                 JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
                 String name = jsonObject.getString("name");
                 String emailOrAccountS = jsonObject.getString("emailOrAccount");
-                String avatarS = jsonObject.getString("avatarFilePAN");
+                /*String avatarS = jsonObject.getString("avatarFilePAN");
                 String latestMsgS = jsonObject.getString("latestMsg");
-                String latestMsgDateS = jsonObject.getString("latestMsgDate");
-                item = new ChatItem(emailOrAccountS, avatarS, name, latestMsgS, latestMsgDateS);
+                String latestMsgDateS = jsonObject.getString("latestMsgDate");*/
+                item = new ChatItem(emailOrAccountS, name);
             }
         } catch (Exception e) {
             JSONObject jsonObject = new JSONArray(FileUtils.getString(chatsFile)).getJSONObject(a);
             String name = jsonObject.getString("name");
-            String emailOrAccountS = jsonObject.getString("emailOrAccount");
+            String emailOrAccountS = jsonObject.getString("emailOrAccount");/*
             String avatarS = jsonObject.getString("avatarFilePAN");
             String latestMsgS = jsonObject.getString("latestMsg");
-            String latestMsgDateS = jsonObject.getString("latestMsgDate");
-            item = new ChatItem(emailOrAccountS, avatarS, name, latestMsgS, latestMsgDateS);
+            String latestMsgDateS = jsonObject.getString("latestMsgDate");*/
+            item = new ChatItem(emailOrAccountS, name);
         }
         items.add(item);
         //content.clear();
         //content.add(item);
     }
 
-    void makeOfflineAccountInformation(boolean canLogin,boolean canConnectToServer,boolean logined,boolean isNetworkConnected){
-        String informationByText="";
-        String accountE="";
-        String emailE="";
-        if(sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD,-1)!=1){
+    void makeOfflineAccountInformation(boolean canLogin, boolean canConnectToServer, boolean logined, boolean isNetworkConnected) {
+        String informationByText = "";
+        String accountE = "";
+        String emailE = "";
+        if (sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) != 1) {
             //account
             String accountEncrypted = "";
             try {
-                accountEncrypted=
+                accountEncrypted =
                         EnDeCryptTextUtils.encrypt(
                                 EnDeCryptTextUtils.decrypt(
                                         sharedPreferences.getString(
@@ -1077,7 +1200,7 @@ public class LoadingScreen extends Activity {
                                         Variables.TEXT_ENCRYPTION_KEY)
                                         .split(Variables.SPLIT_SYMBOL)[0],
                                 Variables.TEXT_ENCRYPTION_KEY);
-                informationByText=EnDeCryptTextUtils.decrypt(sharedPreferences.getString(String.format(Variables.SHARED_PREFERENCE_ACCOUNT_INFORMATION_NAME,accountEncrypted),""),Variables.TEXT_ENCRYPTION_KEY);
+                informationByText = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(String.format(Variables.SHARED_PREFERENCE_ACCOUNT_INFORMATION_NAME, accountEncrypted), ""), Variables.TEXT_ENCRYPTION_KEY);
             } catch (InvalidKeySpecException e) {
                 e.printStackTrace();
             } catch (InvalidKeyException e) {
@@ -1089,12 +1212,12 @@ public class LoadingScreen extends Activity {
             } catch (BadPaddingException e) {
                 e.printStackTrace();
             }
-            accountE=accountEncrypted;
-        }else{
+            accountE = accountEncrypted;
+        } else {
             //email
             String emailEncrypted = "";
             try {
-                emailEncrypted=
+                emailEncrypted =
                         EnDeCryptTextUtils.encrypt(
                                 EnDeCryptTextUtils.decrypt(
                                         sharedPreferences.getString(
@@ -1103,7 +1226,7 @@ public class LoadingScreen extends Activity {
                                         Variables.TEXT_ENCRYPTION_KEY)
                                         .split(Variables.SPLIT_SYMBOL)[0],
                                 Variables.TEXT_ENCRYPTION_KEY);
-                informationByText=EnDeCryptTextUtils.decrypt(sharedPreferences.getString(String.format(Variables.SHARED_PREFERENCE_ACCOUNT_INFORMATION_NAME,emailEncrypted),""),Variables.TEXT_ENCRYPTION_KEY);
+                informationByText = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(String.format(Variables.SHARED_PREFERENCE_ACCOUNT_INFORMATION_NAME, emailEncrypted), ""), Variables.TEXT_ENCRYPTION_KEY);
             } catch (InvalidKeySpecException e) {
                 e.printStackTrace();
             } catch (InvalidKeyException e) {
@@ -1115,21 +1238,21 @@ public class LoadingScreen extends Activity {
             } catch (BadPaddingException e) {
                 e.printStackTrace();
             }
-            emailE=emailEncrypted;
+            emailE = emailEncrypted;
         }
-        String[] infos=informationByText.split(";");
-        if(sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD,-1)!=1) {
-            emailE=infos[0].split("=")[1];
-        }else{
-            accountE=infos[0].split("=")[1];
+        String[] infos = informationByText.split(";");
+        if (sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) != 1) {
+            emailE = infos[0].split("=")[1];
+        } else {
+            accountE = infos[0].split("=")[1];
         }
-        String abstractNickname=infos[1];
-        String abstractGender=infos[2];
-        String abstractWhatsup=infos[3];
-        String nickname=abstractNickname.endsWith("=")?"":abstractNickname.split("=")[1];
-        String gender=abstractGender.endsWith("=")?"":abstractGender.split("=")[1];
-        String whatsup=abstractWhatsup.endsWith("=")?"":abstractWhatsup.split("=")[1];
-        AccountInformation accountInformation=new AccountInformation();
+        String abstractNickname = infos[1];
+        String abstractGender = infos[2];
+        String abstractWhatsup = infos[3];
+        String nickname = abstractNickname.endsWith("=") ? "" : abstractNickname.split("=")[1];
+        String gender = abstractGender.endsWith("=") ? "" : abstractGender.split("=")[1];
+        String whatsup = abstractWhatsup.endsWith("=") ? "" : abstractWhatsup.split("=")[1];
+        AccountInformation accountInformation = new AccountInformation();
         accountInformation.setAccountE(accountE);
         accountInformation.setEmailE(emailE);
         accountInformation.setNickname(nickname);
@@ -1139,7 +1262,7 @@ public class LoadingScreen extends Activity {
         accountInformation.setCanConnectToServer(canConnectToServer);
         accountInformation.setLogined(logined);
         accountInformation.setIsNetworkConnected(isNetworkConnected);
-        Variables.ACCOUNT_INFORMATION=accountInformation;
+        Variables.ACCOUNT_INFORMATION = accountInformation;
     }
 
     @Override
@@ -1201,12 +1324,10 @@ public class LoadingScreen extends Activity {
     }*/
 
 
-
-
     private void startRequestPermission() {
-        if(!ps) {
+        if (!ps) {
             ActivityCompat.requestPermissions(this, Variables.PERMISSIONS, 321);
-        }else{
+        } else {
             showDialogTipUserGoToAppSettting();
         }
     }
@@ -1232,6 +1353,7 @@ public class LoadingScreen extends Activity {
 
 
     }
+
     private void showDialogTipUserGoToAppSettting() {
         dialog_no_permissions = new AlertDialog.Builder(context);
         dialog_no_permissions.setTitle(getString(R.string.dialog_no_permissions_title))
@@ -1247,7 +1369,7 @@ public class LoadingScreen extends Activity {
                 MSCRApplication.getInstance().exit();
             }
         }).setCancelable(false);
-        dialog2=dialog_no_permissions.show();
+        dialog2 = dialog_no_permissions.show();
     }
 
     @Override
@@ -1259,7 +1381,7 @@ public class LoadingScreen extends Activity {
                 if (i != PackageManager.PERMISSION_GRANTED) {
                     showDialogTipUserGoToAppSettting();
                 } else {
-                    if (dialog2 != null&&dialog2.isShowing()) {
+                    if (dialog2 != null && dialog2.isShowing()) {
                         dialog2.dismiss();
                     }
                     mainMethod();
@@ -1277,7 +1399,11 @@ public class LoadingScreen extends Activity {
         startActivityForResult(intent, 123);
     }
 
-    void newLog(final String content){
+    void newLog(@StringRes int resId) {
+        newLog(getString(resId));
+    }
+
+    void newLog(final String content) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("[HH:mm:ss]");
         final String time = simpleDateFormat.format(new Date());
         runOnUiThread(new Runnable() {
@@ -1289,6 +1415,24 @@ public class LoadingScreen extends Activity {
                 }
             }
         });
-        Log.i("MSCRLoadingScreen",time+content);
+        Log.i("MSCRLoadingScreen", time + content);
+    }
+
+    public void sessionCreated(IoSession session){
+
+    }
+    public void sessionOpened(IoSession session){
+
+    }
+    public void sessionClosed(IoSession session){
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(Variables.COMMUNICATOR!=null){
+            Variables.COMMUNICATOR.setContext(context);
+        }
     }
 }

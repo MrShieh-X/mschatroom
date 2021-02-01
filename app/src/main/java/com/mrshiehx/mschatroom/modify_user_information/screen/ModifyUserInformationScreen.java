@@ -1061,6 +1061,13 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                     if(file!=null&&file.exists()) {
                                         file.delete();
                                     }
+                                    if(Variables.COMMUNICATOR!=null){
+                                        try{
+                                            Variables.COMMUNICATOR.disConnect();
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                    }
                                     finish();
                                     Utils.startActivity(context, StartScreen.class);
                                 } else {
@@ -1605,5 +1612,11 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
             return getAccountInformation().getAvatar();
         return null;
     }*/
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(Variables.COMMUNICATOR!=null){
+            Variables.COMMUNICATOR.setContext(context);
+        }
+    }
 }

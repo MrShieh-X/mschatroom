@@ -1,5 +1,5 @@
 # MSChatRoom (MSCR)
-An Android ~~chat application~~ application with a login and registration function using MySQL database<br/>
+An Android chat application using MINA framework (communication) and MySQL database (account information storage)
 If you want to use the old version of this application, you need to [download the source code of the target version](https://github.com/MrShieh-X/mschatroom/releases), unzip it, and check its README file.
 
 [点我转到中文的README页面](https://github.com/MrShieh-X/mschatroom/blob/master/README-zh.md) <br/>
@@ -11,8 +11,9 @@ Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>beta-2 (Jan. 26, 2021)</b><br/>
+<b>1.0 (Jan. 31, 2021)</b><br/>
 Historical version: <br/>
+<b>1.0 (Jan. 31, 2021)</b><br/>
 <b>beta-2 (Jan. 26, 2021)</b><br/>
 <b>beta-1 (Jan. 21, 2021)</b><br/>
 <b>alpha-6 (Dec. 27, 2020)</b><br/>
@@ -31,6 +32,9 @@ You can set the language in the settings.
 - Simplified Chinese (China)
 
 ## Found BUGs
+- When chatting, you cannot send too much Chinese, otherwise, the other party will not receive it.
+- If the app is not running in the background, there will be not receive new message notifications.
+- If the app opens the Chat interface or the Main interface and then leaves the app (not exiting), you will not receive new messages notification.
 - (Fixed in alpha-6) Users can add chats without login.
 - (Fixed in beta-1) When adding a chat, if the current number of chats >= 2, it will replace the last one, but it has been added successfully. Restart the application to see the newly added chat.
 - (Fixed in beta-1) The application may crash after modifying the user information for unknown reasons.
@@ -75,10 +79,10 @@ Then we enter the database.
 use mscr;
 ```
 After entering, create a new table in the following format</br>
-![Table description](https://gitee.com/MrShiehX/Repository/raw/master/31.png "Table description")</br>
+![Table description](https://gitee.com/MrShiehX/Repository/raw/master/32.png "Table description")</br>
 You can enter the following command to create a new table, where "users" is the name of the table. </br>
 ```mysql
-create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not null,`password` varchar(1000) not null,`information` mediumblob not null,`avatar` mediumblob);
+create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not null,`password` varchar(1000) not null,`information` mediumblob not null,`avatar` mediumblob,`messages` text(4294967295));
 ```
 At this point, if everything goes well without errors, then you can proceed to the next step.
 
@@ -87,6 +91,7 @@ After setting up a server with MySQL, modify the variable content in the file `V
 | Variable name|Meaning|
 | --------|:----:|
 | DEFAULT_SERVER_ADDRESS|Default server (or local computer) address|
+| DEFAULT_SERVER_PORT|Default server (or local computer) port (used for communication)|
 | DEFAULT_DATABASE_NAME|Default MySQL database name|
 | DEFAULT_DATABASE_USER_NAME|Default MySQL database account|
 | DEFAULT_DATABASE_USER_PASSWORD|Default MySQL database password|
@@ -102,6 +107,8 @@ Regarding the e-mail address for sending the CAPTCHA, it is not provided here. Y
 |-------------| -------------|:---------------:|
 |47|setSubject|CAPTCHA email title|
 |51|setContent|CAPTCHA email content|
+
+For the application to use the chat communication function normally, you need to find the directory named `server` in the root directory of the source code, open it, find the server `MSCRServer_1.0.jar` file with the latest version 1.0, and use `java -jar MSCRServer_1.0.jar` command to run it, and then enter a port number you make sure that there is no occupied port number, press Enter, if there is no error, you have completed this step.
 
 #### After all these tasks are completed, you can compile the application and run it.
 

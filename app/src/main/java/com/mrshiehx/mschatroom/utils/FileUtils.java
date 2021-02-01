@@ -103,7 +103,7 @@ public class FileUtils {
      * @param content 覆盖内容
      * @param append  指定了写入的方式，是覆盖写还是追加写(true=追加)(false=覆盖)
      */
-    public static void  modifyFile(File file, String content, boolean append) throws IOException {
+    public static void modifyFile(File file, String content, boolean append) throws IOException {
         FileWriter fileWriter = new FileWriter(file, append);
         BufferedWriter writer = new BufferedWriter(fileWriter);
         writer.append(content);
@@ -116,8 +116,8 @@ public class FileUtils {
      * @return 返回文件内容
      *
      */
-    public static String getString(File target) {
-        FileInputStream inputStream = null;
+    public static String getString(File target) throws Exception {
+        /*FileInputStream inputStream = null;
         try {
             inputStream = new FileInputStream(target);
         } catch (FileNotFoundException e) {
@@ -140,6 +140,23 @@ public class FileUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return sb.toString();*/
+        return getStringNoException(target);
+    }
+
+    public static String getStringNoException(File target) throws IOException{
+        FileInputStream inputStream = new FileInputStream(target);
+        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
+        BufferedReader reader = new BufferedReader(inputStreamReader);
+        StringBuffer sb = new StringBuffer();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+            sb.append("\n");
+        }
+        inputStream.close();
+        inputStreamReader.close();
+        reader.close();
         return sb.toString();
     }
     /**

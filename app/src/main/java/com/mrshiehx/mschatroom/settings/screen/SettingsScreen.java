@@ -401,6 +401,13 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                         if(file!=null&&file.exists()) {
                             file.delete();
                         }
+                        if(Variables.COMMUNICATOR!=null){
+                            try{
+                                Variables.COMMUNICATOR.disConnect();
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
                         try {
                             editor.remove(Variables.SHARED_PREFERENCE_IS_LOGINED);
                             editor.remove(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD);
@@ -622,6 +629,10 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
         dynamicModifyListSummaryTheme();
         dynamicModifyListSummaryLanguage();
         getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        if (Variables.COMMUNICATOR != null) {
+            Variables.COMMUNICATOR.setContext(context);
+        }
+
     }
 
     @Override

@@ -59,53 +59,58 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         this.context=context;
         mMsgList = msgList;
         this.emailOrAccountOfChattingWithManEncrypted=emailOrAccountOfChattingWithManEncrypted;
-        try {
-            avatar=FormatTools.getInstance().InputStream2Drawable(new FileInputStream(new File(receiverAvatarPath)));
-            if (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) != 1) {
-                avatarR = FormatTools.getInstance().InputStream2Drawable(new FileInputStream(new File(Utils.getDataFilesPath(MSCRApplication.getContext()), "avatar_" + Variables.ACCOUNT_INFORMATION.getAccountE())));
-            } else {
-                avatarR = FormatTools.getInstance().InputStream2Drawable(new FileInputStream(new File(Utils.getDataFilesPath(MSCRApplication.getContext()), "avatar_" + Variables.ACCOUNT_INFORMATION.getEmailE())));
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        if(Utils.isNetworkConnected(context)&&Variables.ACCOUNT_UTILS!=null) {
-            if(Variables.ACCOUNT_UTILS.getConnection()!=null) {
-                try {
-                    final String eoaClean;
-                    eoaClean = EnDeCryptTextUtils.decrypt(emailOrAccountOfChattingWithManEncrypted);
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            String by = AccountUtils.BY_ACCOUNT;
-                            if (Utils.isEmail(eoaClean)) {
-                                by = AccountUtils.BY_EMAIL;
-                            }
-                            InputStream info = Variables.ACCOUNT_UTILS.getUserInformationWithoutPasswordNoThread(context, by, emailOrAccountOfChattingWithManEncrypted);
-                            List<UserInformation> information = XMLUtils.readXmlBySAX(info);
-                            nickname = information.get(accountNameIndex).getNameContent();
-                            gender = information.get(accountGenderIndex).getGenderContent();
-                            whatsup = information.get(accountWhatSUpIndex).getWhatsupContent();
-                        }
-                    }).start();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Utils.exceptionDialog(context, e, context.getString(R.string.dialog_exception_failed_get_user_information));
-                }
-            }
-        }else{
-            File file=new File(Utils.getDataFilesPath(context),"information"+File.separator+emailOrAccountOfChattingWithManEncrypted+".xml");
-            if(file.exists()){
-                try {
-                    List<UserInformation> list = XMLUtils.readXmlBySAX(new FileInputStream(file));
-                    nickname = list.get(accountNameIndex).getNameContent();
-                    gender = list.get(accountGenderIndex).getGenderContent();
-                    whatsup = list.get(accountWhatSUpIndex).getWhatsupContent();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
 
+
+        if(MSCRApplication.getSharedPreferences().getBoolean(Variables.SHARED_PREFERENCE_SHOW_AVATARS_WHEN_CHATTING,true)) {
+
+            try {
+                avatar = FormatTools.getInstance().InputStream2Drawable(new FileInputStream(new File(receiverAvatarPath)));
+                if (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) != 1) {
+                    avatarR = FormatTools.getInstance().InputStream2Drawable(new FileInputStream(new File(Utils.getDataFilesPath(MSCRApplication.getContext()), "avatar_" + Variables.ACCOUNT_INFORMATION.getAccountE())));
+                } else {
+                    avatarR = FormatTools.getInstance().InputStream2Drawable(new FileInputStream(new File(Utils.getDataFilesPath(MSCRApplication.getContext()), "avatar_" + Variables.ACCOUNT_INFORMATION.getEmailE())));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (Utils.isNetworkConnected(context) && Variables.ACCOUNT_UTILS != null) {
+                if (Variables.ACCOUNT_UTILS.getConnection() != null) {
+                    try {
+                        final String eoaClean;
+                        eoaClean = EnDeCryptTextUtils.decrypt(emailOrAccountOfChattingWithManEncrypted);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                String by = AccountUtils.BY_ACCOUNT;
+                                if (Utils.isEmail(eoaClean)) {
+                                    by = AccountUtils.BY_EMAIL;
+                                }
+                                InputStream info = Variables.ACCOUNT_UTILS.getUserInformationWithoutPasswordNoThread(context, by, emailOrAccountOfChattingWithManEncrypted);
+                                List<UserInformation> information = XMLUtils.readXmlBySAX(info);
+                                nickname = information.get(accountNameIndex).getNameContent();
+                                gender = information.get(accountGenderIndex).getGenderContent();
+                                whatsup = information.get(accountWhatSUpIndex).getWhatsupContent();
+                            }
+                        }).start();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Utils.exceptionDialog(context, e, context.getString(R.string.dialog_exception_failed_get_user_information));
+                    }
+                }
+            } else {
+                File file = new File(Utils.getDataFilesPath(context), "information" + File.separator + emailOrAccountOfChattingWithManEncrypted + ".xml");
+                if (file.exists()) {
+                    try {
+                        List<UserInformation> list = XMLUtils.readXmlBySAX(new FileInputStream(file));
+                        nickname = list.get(accountNameIndex).getNameContent();
+                        gender = list.get(accountGenderIndex).getGenderContent();
+                        whatsup = list.get(accountWhatSUpIndex).getWhatsupContent();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
         }
     }
 

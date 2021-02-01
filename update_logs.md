@@ -1,5 +1,11 @@
 # Update Logs
-Currently, the latest version is beta-2, which was updated on January 26, 2021.
+Currently, the latest version is 1.0, which was updated on January 31, 2021.
+
+## 1.0 (Jan. 31, 2021)
+- Added the chat function, chat notification function, offline messages storage function.
+- In the main interface, the latest message of each chat and the sending time of the latest message will be displayed.
+- Added an option to visit the Gitee repository of this application on the About interface.
+- Fixed some problems.
 
 ## beta-2 (Jan. 26, 2021)
 - Added the chat interface.

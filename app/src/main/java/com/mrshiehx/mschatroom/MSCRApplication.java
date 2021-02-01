@@ -3,6 +3,7 @@ package com.mrshiehx.mschatroom;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
@@ -40,6 +41,9 @@ public class MSCRApplication extends Application {
 
     //遍历所有Activity并finish
     public void exit() {
+        if(Variables.COMMUNICATOR!=null){
+            Variables.COMMUNICATOR.disConnect();
+        }
         for (Activity activity : activityList) {
             activity.finish();
         }

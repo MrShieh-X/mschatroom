@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat;
 
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.StartScreen;
+import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.utils.FormatTools;
 import com.mrshiehx.mschatroom.utils.Utils;
 import com.mrshiehx.mschatroom.widget.PictureViewerImageView;
@@ -337,5 +338,13 @@ public class PictureViewerScreen extends Activity {
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(Variables.COMMUNICATOR!=null){
+            Variables.COMMUNICATOR.setContext(context);
+        }
     }
 }

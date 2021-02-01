@@ -1,8 +1,8 @@
 {
-	"latest_version_code": 8,
-	"latest_version_name": "beta-2",
-	"latest_version_download_url": "https://github.com/MrShieh-X/mschatroom/releases/download/beta-2/mscr_beta-2-release.apk",
-	"update_date": "2021-01-26",
-	"update_content_enUS": "- Added the chat interface.\n- Added dialog to decide whether to delete chat\n- You can delete the chat files when deleting account.\n- Fixed some problems.",
-	"update_content_zhCN": "- 加入了聊天界面。\n- 添加了是否删除聊天的对话框。\n- 删除账户可以决定是否删除聊天文件。\n- 修复了部分问题。"
+	"latest_version_code": 9,
+	"latest_version_name": "1.0",
+	"latest_version_download_url": "https://github.com/MrShieh-X/mschatroom/releases/download/1.0/mscr_1.0-release.apk",
+	"update_date": "2021-01-31",
+	"update_content_enUS": "- Added the chat function, chat notification function, offline messages storage function.\n- In the main interface, the latest message of each chat and the sending time of the latest message will be displayed.\n- Added an option to visit the Gitee repository of this application on the About interface.\n- Fixed some problems.",
+	"update_content_zhCN": "- 加入了聊天功能、聊天通知功能、离线消息存储功能。\n- 在主界面会显示每一项聊天的最后一条消息和最后一条消息的发送时间。\n- 关于页面添加了访问本应用程序的Gitee仓库的选项。\n- 修复了部分问题。"
 }

@@ -1,5 +1,5 @@
 # MS聊天室（MSCR）
-一个使用 MySQL 数据库的 Android 的~~聊天软件~~拥有登录注册功能的应用程序<br/>
+一个使用 MINA 框架（通讯）和 MySQL数据库（账户信息存储）的 Android 聊天软件<br/>
 如果您要使用本应用程序的旧版本，您需要[下载目标版本的源代码](https://github.com/MrShieh-X/mschatroom/releases)，并解压，查阅它的README文件。
 
 [Click me to go to the README in English](https://github.com/MrShieh-X/mschatroom/blob/master/README.md) <br/>
@@ -11,8 +11,9 @@ MrShiehX 拥有该应用程序的版权。<br/>
 
 ## 版本
 最新版本：<br/>
-<b>beta-2 (2021年1月26日)</b><br/>
+<b>1.0 (2021年1月31日)</b><br/>
 历史版本：<br/>
+<b>1.0 (2021年1月31日)</b><br/>
 <b>beta-2 (2021年1月26日)</b><br/>
 <b>beta-1 (2021年1月21日)</b><br/>
 <b>alpha-6 (2020年12月27日)</b><br/>
@@ -31,6 +32,9 @@ MrShiehX 拥有该应用程序的版权。<br/>
 - 简体中文（中国）
 
 ## 已发现的漏洞
+- 聊天时，不能发送过多的中文，否则，对方将无法收到。
+- 应用不在后台运行则不会有新消息通知提醒。
+- 如果应用打开了聊天界面或主界面后离开应用（非退出），将不会收到新消息通知。
 - （已在alpha-6中修复）用户可以用户无需登录即可添加聊天。
 - （已在beta-1中修复）添加聊天时，当前聊天数量>=2，就会替换最后一个，但是它已经添加成功，重启应用即可看到新添加的聊天。
 - （已在beta-1中修复）修改用户信息有几率会闪退，原因未知。
@@ -75,10 +79,10 @@ create database mscr;
 use mscr;
 ```
 进入后，新建一个格式如下图的表格</br>
-![表格描述](https://gitee.com/MrShiehX/Repository/raw/master/31.png "表格描述")</br>
+![表格描述](https://gitee.com/MrShiehX/Repository/raw/master/32.png "表格描述")</br>
 您可以输入以下命令来新建表格，其中“users”是表格名。</br>
 ```mysql
-create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not null,`password` varchar(1000) not null,`information` mediumblob not null,`avatar` mediumblob);
+create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not null,`password` varchar(1000) not null,`information` mediumblob not null,`avatar` mediumblob,`messages` text(4294967295));
 ```
 至此，如果一切顺利无错误，那么，您就可以进行下一步了。
 
@@ -87,6 +91,7 @@ create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not
 | 变量名|含义|
 | --------|:----:|
 | DEFAULT_SERVER_ADDRESS|默认服务器（或本地计算机）地址|
+| DEFAULT_SERVER_PORT|默认服务器（或本地计算机）端口（用于通讯）|
 | DEFAULT_DATABASE_NAME|默认MySQL数据库名称|
 | DEFAULT_DATABASE_USER_NAME|默认MySQL数据库账号|
 | DEFAULT_DATABASE_USER_PASSWORD|默认MySQL数据库密码|
@@ -102,6 +107,8 @@ create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not
 |-------------| -------------|:---------------:|
 |47|setSubject|验证码邮件标题|
 |51|setContent|验证码邮件内容|
+
+要想应用程序能够正常使用聊天通讯功能，您需要在源代码的根目录找到名为`server`的目录，打开它，找到最新版本为1.0的服务端`MSCRServer_1.0.jar`文件，然后使用`java -jar MSCRServer_1.0.jar`命令运行它，之后输入一个您确保没有被占用端口号，按回车，如果没有错误，您就已经完成了这一步。
 
 #### 这些工作都做完后，您就可以编译该应用程序并运行了。
 

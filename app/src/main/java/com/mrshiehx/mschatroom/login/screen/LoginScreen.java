@@ -415,4 +415,12 @@ public class LoginScreen extends AppCompatActivity {
         }
         return super.onKeyUp(keyCode, event);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(Variables.COMMUNICATOR!=null){
+            Variables.COMMUNICATOR.setContext(context);
+        }
+    }
 }

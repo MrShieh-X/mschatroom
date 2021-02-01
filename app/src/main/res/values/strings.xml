@@ -29,6 +29,8 @@
     <string name="edittexthint_dialog_set_server_information_database_user_name">Database User Name</string>
     <string name="edittexthint_dialog_set_server_information_database_user_password">Database User Password</string>
     <string name="edittexthint_dialog_set_server_information_database_table_name">Database Table Name</string>
+    <string name="edittexthint_dialog_set_server_information_server_port">Server Port (used for communication)</string>
+    <string name="edittexthint_dialog_set_server_port_integer">Enter integer</string>
 
     <string name="button_register">Register</string>
     <string name="button_reinput_email">Re input email</string>
@@ -54,6 +56,7 @@
     <string name="textview_dialog_set_server_information_database_user_name_tip">Database User Name:</string>
     <string name="textview_dialog_set_server_information_database_user_password_tip">Database User Password:</string>
     <string name="textview_dialog_set_server_information_database_table_name_tip">Database Table Name:</string>
+    <string name="textview_dialog_set_server_information_server_port_tip">Server Port (used for communication)</string>
 
     <string name="checkbox_show_password">Show password</string>
     <string name="checkbox_remember_account_or_email_and_password">Remember the account or email and password</string>
@@ -111,6 +114,10 @@
     <string name="preference_settings_category_chat_title">Chat</string>
     <string name="preference_show_avatars_when_chatting_title">Show Avatars When Chatting</string>
     <string name="preference_show_avatars_when_chatting_summary">Show each other\'s avatars on the chat interface</string>
+    <string name="preference_settings_new_messages_notify_title">Notify when receive new messages</string>
+    <string name="preference_settings_new_messages_notify_summary">Notify when you receive new messages</string>
+    <string name="preference_server_port_title">Server Port</string>
+    <string name="preference_server_port_summary">Please set the server port (used for communication)</string>
 
     <string name="dialog_exception_parsing_json_failed">JSON file parsing failed</string>
     <string name="dialog_exception_parsing_xml_failed">XML file parsing failed</string>
@@ -198,6 +205,8 @@
     <string name="dialog_delete_chat_message">Do you want to delete this chat?</string>
     <string name="dialog_exception_failed_to_load_chat">Failed to load the chat</string>
     <string name="dialog_user_information_message">Gender: %1$s\n\n%2$s</string>
+    <string name="dialog_failed_connect_communication_server_message">Failed to connect to the communication server, please go to the Developer Options interface to modify the server address and port or try again</string>
+    <string name="dialog_failed_connect_communication_server_button_goto_developeroptions_text">Go to the Developer Options interface</string>
 
     <string name="toast_captcha_incorrect">The CAPTCHA is incorrect</string>
     <string name="toast_registered_email">The email has been used, please change, after the change you must get CAPTCHA again</string>
@@ -268,6 +277,7 @@
 
     <string name="listviewtext_about_users_can_do_item_contact">Contact MrShiehX</string>
     <string name="listviewtext_about_users_can_do_item_visit_github">Visit the GitHub repository of this application</string>
+    <string name="listviewtext_about_users_can_do_item_visit_gitee">Visit the Gitee repository of this application</string>
     <string name="listviewtext_about_users_can_do_item_visit_msxw">Visit MSXW (MrShiehX\'s website)</string>
     <string name="listviewtext_about_users_can_do_item_visit_author_github">Visit MrShiehX\'s GitHub repository</string>
     <string name="listviewtext_about_users_can_do_item_check">Check for updates</string>
@@ -303,9 +313,19 @@
     <string name="loadinglog_failed_load_chats">Failed to load chats</string>
     <string name="loadinglog_failed_get_user_avatar">Failed to get the avatar of user \"<xliff:g id="0">%s</xliff:g>\"</string>
     <string name="loadinglog_failed_get_user_name">Failed to get the nickname of user \"<xliff:g id="0">%s</xliff:g>\"</string>
+    <string name="loadinglog_downloading_messages">Downloading offline messages...</string>
+    <string name="loadinglog_success_download_messages">Successfully to download offline messages</string>
+    <string name="loadinglog_failed_download_messages">Failed to download offline messages</string>
+    <string name="loadinglog_messages_is_empty">Offline messages is empty</string>
+    <string name="loadinglog_connecting_communication_server">Connecting to the communication server...</string>
+    <string name="loadinglog_success_connect_communication_server">Successfully to connect to the communication server</string>
+    <string name="loadinglog_failed_connect_communication_server">Failed to connect to the communication server</string>
+    <string name="loadinglog_failed_connect_communication_server_withcause">Failed to connect to the communication server, the reason is: %s</string>
 
     <string name="chat_tip_failed_send">Failed to send the message \"<xliff:g id="0">%s</xliff:g>\"</string>
     <string name="chat_tip_offline">Please connect to the network and resend</string>
     <string name="chat_tip_not_loggined">Please login and resend</string>
     <string name="chat_tip_failed_logined">Failed to send, failed to login the account</string>
+
+    <string name="notification_channel_name">New messages notification</string>
 </resources>

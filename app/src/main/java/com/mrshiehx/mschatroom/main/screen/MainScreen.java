@@ -42,6 +42,8 @@ import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.about.screen.AboutScreen;
 import com.mrshiehx.mschatroom.broadcast_receivers.NetworkStateReceiver;
+import com.mrshiehx.mschatroom.chat.message.MessageItem;
+import com.mrshiehx.mschatroom.chat.screen.ChatScreen;
 import com.mrshiehx.mschatroom.chat.screen.ChatScreenLauncher;
 import com.mrshiehx.mschatroom.developer_options.screen.DeveloperOptions;
 import com.mrshiehx.mschatroom.main.chats.ChatsAdapter;
@@ -56,6 +58,7 @@ import com.mrshiehx.mschatroom.utils.Utils;
 import com.mrshiehx.mschatroom.utils.XMLUtils;
 import com.mrshiehx.mschatroom.xml.user_information.UserInformation;
 
+import org.apache.mina.core.session.IoSession;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -86,8 +89,8 @@ import javax.crypto.NoSuchPaddingException;
 public class MainScreen extends AppCompatActivity {
     Context context = MainScreen.this;
     long firstTime;
-    public static List<ChatItem> content = new ArrayList<>();
-    public static ChatsAdapter contentAdapter;
+    List<ChatItem> content = new ArrayList<>();
+    ChatsAdapter contentAdapter;
     ProgressDialog finding, adding, initializing;
     List<UserInformation> userInformationList;
     int accountNameIndex = 0;
@@ -97,13 +100,14 @@ public class MainScreen extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     NetworkStateReceiver myReceiver;
-    public static int anInt=0;
+    String whereGo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Utils.initialization(MainScreen.this, R.string.app_name);
         super.onCreate(savedInstanceState);
-        sharedPreferences=MSCRApplication.getSharedPreferences();
-        editor=sharedPreferences.edit();
+        sharedPreferences = MSCRApplication.getSharedPreferences();
+        editor = sharedPreferences.edit();
 
         myReceiver = new NetworkStateReceiver();
         IntentFilter itFilter = new IntentFilter();
@@ -144,20 +148,20 @@ public class MainScreen extends AppCompatActivity {
         if (!Utils.networkAvailableDialog(context)) {
             String[] languageAndCountry = PreferenceManager.getDefaultSharedPreferences(context).getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
             setTitle(Utils.getStringByLocale(context, R.string.activity_main_screen_offline_mode_name, languageAndCountry[0], languageAndCountry[1]));
-        }else{
+        } else {
             //Toast.makeText(context, String.valueOf(Variables.ACCOUNT_UTILS==null), Toast.LENGTH_SHORT).show();
-            if(Variables.ACCOUNT_UTILS==null){
-                final ProgressDialog dialog=ConnectionUtils.showConnectingDialog(context);
+            if (Variables.ACCOUNT_UTILS == null) {
+                final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         Looper.prepare();
-                        Connection connection=new ConnectionUtils(Variables.SERVER_ADDRESS).getConnection(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD);
-                        if(connection==null){
+                        Connection connection = new ConnectionUtils(Variables.SERVER_ADDRESS).getConnection(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD);
+                        if (connection == null) {
                             Toast.makeText(context, getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
-                        }else{
-                            AccountUtils accountUtils=new AccountUtils(connection,Variables.DATABASE_TABLE_NAME);
-                            Variables.ACCOUNT_UTILS=accountUtils;
+                        } else {
+                            AccountUtils accountUtils = new AccountUtils(connection, Variables.DATABASE_TABLE_NAME);
+                            Variables.ACCOUNT_UTILS = accountUtils;
                         }
                         dialog.dismiss();
                         Looper.loop();
@@ -165,20 +169,20 @@ public class MainScreen extends AppCompatActivity {
                 }).start();
             }
         }
-        final Intent intent=getIntent();
-        if(intent.getBooleanExtra("showSaveDialog",false)){
+        final Intent intent = getIntent();
+        if (intent.getBooleanExtra("showSaveDialog", false)) {
             AlertDialog.Builder dialog_retry_connect_success = new AlertDialog.Builder(context);
             dialog_retry_connect_success.setTitle(getString(R.string.dialog_title_notice));
             dialog_retry_connect_success.setMessage(getString(R.string.dialog_retry_connect_success_message));
             dialog_retry_connect_success.setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    String[] infos=intent.getStringArrayExtra("infos");
-                    editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS,infos[0]);
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME,infos[1]);
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME,infos[2]);
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD,infos[3]);
-                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME,infos[4]);
+                    String[] infos = intent.getStringArrayExtra("infos");
+                    editor.putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS, infos[0]);
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_NAME, infos[1]);
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME, infos[2]);
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD, infos[3]);
+                    editor.putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME, infos[4]);
                     editor.apply();
                 }
             });
@@ -186,9 +190,23 @@ public class MainScreen extends AppCompatActivity {
             dialog_retry_connect_success.show();
         }
 
-        if(intent.getIntExtra("offlineMode",-1)==LoadingScreen.OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK){
+        if (intent.getBooleanExtra("showEditAddressAndPortDialog", false)) {
+            AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+            dialog.setTitle(getString(R.string.dialog_title_notice));
+            dialog.setMessage(getString(R.string.dialog_failed_connect_communication_server_message));
+            dialog.setNegativeButton(getString(android.R.string.cancel), null);
+            dialog.setPositiveButton(getString(R.string.dialog_failed_connect_communication_server_button_goto_developeroptions_text), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Utils.startActivity(context, DeveloperOptions.class);
+                }
+            });
+            dialog.show();
+        }
 
-        }else if(intent.getIntExtra("offlineMode",-1)==LoadingScreen.OFFLINE_MODE_CANNOT_CONNECT_TO_SERVER){
+        if (intent.getIntExtra("offlineMode", -1) == LoadingScreen.OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK) {
+
+        } else if (intent.getIntExtra("offlineMode", -1) == LoadingScreen.OFFLINE_MODE_CANNOT_CONNECT_TO_SERVER) {
 
         }
         fab.setImageDrawable(getResources().getDrawable(R.drawable.add));
@@ -243,46 +261,27 @@ public class MainScreen extends AppCompatActivity {
                                                 File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
 
                                                 if (chatsFile.exists()) {
-                                                    String chatsFileContent = FileUtils.getString(chatsFile);
-                                                    Gson gson=new Gson();
-                                                    List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {}.getType());
-
-                                                    /**Encrypted*/
-                                                    List<String> eoas = new ArrayList<String>();
-                                                    /**Encrypted*/
-                                                    List<String> names = new ArrayList<String>();
-                                                    for (ChatItem item : list) {
-                                                        eoas.add(item.getEmailOrAccount());
-                                                        names.add(item.getName());
-                                                    }
-
-                                                    int indexOf= 0;
                                                     try {
-                                                        indexOf = eoas.indexOf(EnDeCryptTextUtils.encrypt(etT, Variables.TEXT_ENCRYPTION_KEY));
-                                                    } catch (InvalidKeySpecException e) {
-                                                        e.printStackTrace();
-                                                    } catch (InvalidKeyException e) {
-                                                        e.printStackTrace();
-                                                    } catch (NoSuchPaddingException e) {
-                                                        e.printStackTrace();
-                                                    } catch (IllegalBlockSizeException e) {
-                                                        e.printStackTrace();
-                                                    } catch (BadPaddingException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                    if (/*!chatsFileContent.contains("\"emailOrAccount\":\"" + account + "\"")*/indexOf==-1) {
-                                                        add(etT, AccountUtils.BY_EMAIL);
-                                                    } else {
-                                                        String accountOrNameClean = null;
+                                                        String chatsFileContent = FileUtils.getString(chatsFile);
+                                                        Gson gson = new Gson();
+                                                        List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {
+                                                        }.getType());
+
+                                                        /**Encrypted*/
+                                                        List<String> eoas = new ArrayList<String>();
+                                                        /**Encrypted*/
+                                                        List<String> names = new ArrayList<String>();
+                                                        for (ChatItem item : list) {
+                                                            eoas.add(item.getEmailOrAccount());
+                                                            names.add(item.getName());
+                                                        }
+
+                                                        int indexOf = 0;
                                                         try {
-                                                            if (!TextUtils.isEmpty(names.get(indexOf))) {
-                                                                accountOrNameClean = EnDeCryptTextUtils.decrypt(names.get(indexOf), Variables.TEXT_ENCRYPTION_KEY);
-                                                            } else {
-                                                                accountOrNameClean = EnDeCryptTextUtils.decrypt(eoas.get(indexOf), Variables.TEXT_ENCRYPTION_KEY);
-                                                            }
-                                                        } catch (InvalidKeyException e) {
-                                                            e.printStackTrace();
+                                                            indexOf = eoas.indexOf(EnDeCryptTextUtils.encrypt(etT, Variables.TEXT_ENCRYPTION_KEY));
                                                         } catch (InvalidKeySpecException e) {
+                                                            e.printStackTrace();
+                                                        } catch (InvalidKeyException e) {
                                                             e.printStackTrace();
                                                         } catch (NoSuchPaddingException e) {
                                                             e.printStackTrace();
@@ -291,7 +290,33 @@ public class MainScreen extends AppCompatActivity {
                                                         } catch (BadPaddingException e) {
                                                             e.printStackTrace();
                                                         }
-                                                        Snackbar.make(lv, String.format(getString(R.string.toast_add_chat_by_account_but_already_add), etT, accountOrNameClean), Snackbar.LENGTH_LONG).show();
+                                                        if (/*!chatsFileContent.contains("\"emailOrAccount\":\"" + account + "\"")*/indexOf == -1) {
+                                                            try {
+                                                                add(etT, AccountUtils.BY_EMAIL);
+                                                            } catch (Exception e) {
+                                                                e.printStackTrace();
+                                                                Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
+                                                            }
+                                                        } else {
+                                                            String accountOrNameClean = null;
+                                                            try {
+                                                                if (!TextUtils.isEmpty(names.get(indexOf))) {
+                                                                    accountOrNameClean = EnDeCryptTextUtils.decrypt(names.get(indexOf), Variables.TEXT_ENCRYPTION_KEY);
+                                                                } else {
+                                                                    accountOrNameClean = EnDeCryptTextUtils.decrypt(eoas.get(indexOf), Variables.TEXT_ENCRYPTION_KEY);
+                                                                }
+                                                            } catch (InvalidKeyException e) {
+                                                                e.printStackTrace();
+                                                            } catch (InvalidKeySpecException e) {
+                                                                e.printStackTrace();
+                                                            } catch (NoSuchPaddingException e) {
+                                                                e.printStackTrace();
+                                                            } catch (IllegalBlockSizeException e) {
+                                                                e.printStackTrace();
+                                                            } catch (BadPaddingException e) {
+                                                                e.printStackTrace();
+                                                            }
+                                                            Snackbar.make(lv, String.format(getString(R.string.toast_add_chat_by_account_but_already_add), etT, accountOrNameClean), Snackbar.LENGTH_LONG).show();
 
                                                         /*String jiamiaccount = null;
                                                         try {
@@ -340,11 +365,21 @@ public class MainScreen extends AppCompatActivity {
                                                         } else {
                                                             Snackbar.make(lv, String.format(getString(R.string.toast_add_chat_by_email_but_already_add_with_account), etT, name), Snackbar.LENGTH_LONG).show();
                                                         }*/
-                                                        //JsonObject returnObj = new JsonParser().parse(account).getAsJsonObject();
-                                                        //String name = returnObj.get("name").getAsString();
+                                                            //JsonObject returnObj = new JsonParser().parse(account).getAsJsonObject();
+                                                            //String name = returnObj.get("name").getAsString();
+                                                        }
+
+                                                    } catch (Exception e) {
+                                                        e.printStackTrace();
+                                                        Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
                                                     }
                                                 } else {
-                                                    add(etT, AccountUtils.BY_EMAIL);
+                                                    try {
+                                                        add(etT, AccountUtils.BY_EMAIL);
+                                                    } catch (Exception e) {
+                                                        e.printStackTrace();
+                                                        Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
+                                                    }
                                                 }
 
 
@@ -367,46 +402,27 @@ public class MainScreen extends AppCompatActivity {
                                                 File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
 
                                                 if (chatsFile.exists()) {
-                                                    String chatsFileContent = FileUtils.getString(chatsFile);
-                                                    Gson gson=new Gson();
-                                                    List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {}.getType());
-
-                                                    /**Encrypted*/
-                                                    List<String> eoas = new ArrayList<String>();
-                                                    /**Encrypted*/
-                                                    List<String> names = new ArrayList<String>();
-                                                    for (ChatItem item : list) {
-                                                        eoas.add(item.getEmailOrAccount());
-                                                        names.add(item.getName());
-                                                    }
-
-                                                    int indexOf= 0;
                                                     try {
-                                                        indexOf = eoas.indexOf(EnDeCryptTextUtils.encrypt(etT, Variables.TEXT_ENCRYPTION_KEY));
-                                                    } catch (InvalidKeySpecException e) {
-                                                        e.printStackTrace();
-                                                    } catch (InvalidKeyException e) {
-                                                        e.printStackTrace();
-                                                    } catch (NoSuchPaddingException e) {
-                                                        e.printStackTrace();
-                                                    } catch (IllegalBlockSizeException e) {
-                                                        e.printStackTrace();
-                                                    } catch (BadPaddingException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                    if (indexOf==-1) {
-                                                        add(etT, AccountUtils.BY_ACCOUNT);
-                                                    } else {
-                                                        String accountOrNameClean = null;
+                                                        String chatsFileContent = FileUtils.getString(chatsFile);
+                                                        Gson gson = new Gson();
+                                                        List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {
+                                                        }.getType());
+
+                                                        /**Encrypted*/
+                                                        List<String> eoas = new ArrayList<String>();
+                                                        /**Encrypted*/
+                                                        List<String> names = new ArrayList<String>();
+                                                        for (ChatItem item : list) {
+                                                            eoas.add(item.getEmailOrAccount());
+                                                            names.add(item.getName());
+                                                        }
+
+                                                        int indexOf = 0;
                                                         try {
-                                                            if (!TextUtils.isEmpty(names.get(indexOf))) {
-                                                                accountOrNameClean = EnDeCryptTextUtils.decrypt(names.get(indexOf), Variables.TEXT_ENCRYPTION_KEY);
-                                                            } else {
-                                                                accountOrNameClean = EnDeCryptTextUtils.decrypt(eoas.get(indexOf), Variables.TEXT_ENCRYPTION_KEY);
-                                                            }
-                                                        } catch (InvalidKeyException e) {
-                                                            e.printStackTrace();
+                                                            indexOf = eoas.indexOf(EnDeCryptTextUtils.encrypt(etT, Variables.TEXT_ENCRYPTION_KEY));
                                                         } catch (InvalidKeySpecException e) {
+                                                            e.printStackTrace();
+                                                        } catch (InvalidKeyException e) {
                                                             e.printStackTrace();
                                                         } catch (NoSuchPaddingException e) {
                                                             e.printStackTrace();
@@ -415,8 +431,34 @@ public class MainScreen extends AppCompatActivity {
                                                         } catch (BadPaddingException e) {
                                                             e.printStackTrace();
                                                         }
+                                                        if (indexOf == -1) {
+                                                            try {
+                                                                add(etT, AccountUtils.BY_ACCOUNT);
+                                                            } catch (Exception e) {
+                                                                e.printStackTrace();
+                                                                Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
+                                                            }
+                                                        } else {
+                                                            String accountOrNameClean = null;
+                                                            try {
+                                                                if (!TextUtils.isEmpty(names.get(indexOf))) {
+                                                                    accountOrNameClean = EnDeCryptTextUtils.decrypt(names.get(indexOf), Variables.TEXT_ENCRYPTION_KEY);
+                                                                } else {
+                                                                    accountOrNameClean = EnDeCryptTextUtils.decrypt(eoas.get(indexOf), Variables.TEXT_ENCRYPTION_KEY);
+                                                                }
+                                                            } catch (InvalidKeyException e) {
+                                                                e.printStackTrace();
+                                                            } catch (InvalidKeySpecException e) {
+                                                                e.printStackTrace();
+                                                            } catch (NoSuchPaddingException e) {
+                                                                e.printStackTrace();
+                                                            } catch (IllegalBlockSizeException e) {
+                                                                e.printStackTrace();
+                                                            } catch (BadPaddingException e) {
+                                                                e.printStackTrace();
+                                                            }
 
-                                                        Snackbar.make(lv, String.format(getString(R.string.toast_add_chat_by_account_but_already_add), etT, accountOrNameClean), Snackbar.LENGTH_LONG).show();
+                                                            Snackbar.make(lv, String.format(getString(R.string.toast_add_chat_by_account_but_already_add), etT, accountOrNameClean), Snackbar.LENGTH_LONG).show();
 
                                                         /*String jiamiaccount = null;
                                                         try {
@@ -465,16 +507,25 @@ public class MainScreen extends AppCompatActivity {
                                                         } else {
                                                             Snackbar.make(lv, String.format(getString(R.string.toast_add_chat_by_email_but_already_add_with_account), etT, name), Snackbar.LENGTH_LONG).show();
                                                         }*/
-                                                        //JsonObject returnObj = new JsonParser().parse(account).getAsJsonObject();
-                                                        //String name = returnObj.get("name").getAsString();
+                                                            //JsonObject returnObj = new JsonParser().parse(account).getAsJsonObject();
+                                                            //String name = returnObj.get("name").getAsString();
+                                                        }
+                                                    } catch (Exception e) {
+                                                        e.printStackTrace();
+                                                        Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
                                                     }
                                                 } else {
-                                                    add(etT, AccountUtils.BY_ACCOUNT);
+                                                    try {
+                                                        add(etT, AccountUtils.BY_ACCOUNT);
+                                                    } catch (Exception e) {
+                                                        e.printStackTrace();
+                                                        Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
+                                                    }
                                                 }
                                             }
-                                            contentAdapter=null;
+                                            contentAdapter = null;
                                             content.clear();
-                                            initFromFile(lv,content);
+                                            initFromFile(lv, content);
 
                                         }
                                         adding.dismiss();
@@ -528,15 +579,15 @@ public class MainScreen extends AppCompatActivity {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ChatItem item=(ChatItem)lv.getItemAtPosition(position);
-                String name=item.getName();
+                ChatItem item = (ChatItem) lv.getItemAtPosition(position);
+                String name = item.getName();
                 String nameDecrypted;
                 String eoaDecrypted;
                 String finalIntentString = null;
-                if(!TextUtils.isEmpty(name)){
+                if (!TextUtils.isEmpty(name)) {
                     try {
-                        nameDecrypted=EnDeCryptTextUtils.decrypt(name,Variables.TEXT_ENCRYPTION_KEY);
-                        finalIntentString=nameDecrypted;
+                        nameDecrypted = EnDeCryptTextUtils.decrypt(name, Variables.TEXT_ENCRYPTION_KEY);
+                        finalIntentString = nameDecrypted;
                     } catch (InvalidKeyException e) {
                         e.printStackTrace();
                     } catch (InvalidKeySpecException e) {
@@ -548,10 +599,10 @@ public class MainScreen extends AppCompatActivity {
                     } catch (BadPaddingException e) {
                         e.printStackTrace();
                     }
-                }else{
+                } else {
                     try {
-                        eoaDecrypted=EnDeCryptTextUtils.decrypt(item.getEmailOrAccount(),Variables.TEXT_ENCRYPTION_KEY);
-                        finalIntentString=eoaDecrypted;
+                        eoaDecrypted = EnDeCryptTextUtils.decrypt(item.getEmailOrAccount(), Variables.TEXT_ENCRYPTION_KEY);
+                        finalIntentString = eoaDecrypted;
                     } catch (InvalidKeyException e) {
                         e.printStackTrace();
                     } catch (InvalidKeySpecException e) {
@@ -565,15 +616,16 @@ public class MainScreen extends AppCompatActivity {
                     }
                 }
                 boolean canContinue = false;
-                if(Utils.isNetworkConnected(context)){
-                    if(Variables.ACCOUNT_UTILS!=null){
-                        if(sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED,false)){
+                if (Utils.isNetworkConnected(context)) {
+                    if (Variables.ACCOUNT_UTILS != null) {
+                        if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false)) {
                             /**检测是否能登录*/
-                            canContinue=true;
+                            canContinue = true;
                         }
                     }
                 }
-                new ChatScreenLauncher(context,item.getEmailOrAccount(),finalIntentString,canContinue).startChatScreen();
+                whereGo = ChatScreen.class.getName();
+                new ChatScreenLauncher(context, item.getEmailOrAccount(), finalIntentString, canContinue).startChatScreen();
             }
         });
         cl.addView(lv, 0);
@@ -585,23 +637,24 @@ public class MainScreen extends AppCompatActivity {
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         //info.id得到listview中选择的条目绑定的id
-        final long selectedId=info.id;
+        final long selectedId = info.id;
         switch (item.getItemId()) {
             case 0:
-                new AlertDialog.Builder(context).setTitle(getString(R.string.dialog_title_notice)).setMessage(getString(R.string.dialog_delete_chat_message)).setNegativeButton(getString(android.R.string.cancel),null).setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+                new AlertDialog.Builder(context).setTitle(getString(R.string.dialog_title_notice)).setMessage(getString(R.string.dialog_delete_chat_message)).setNegativeButton(getString(android.R.string.cancel), null).setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
-                        File chatFile=new File(Utils.getDataFilesPath(context),"chats"+File.separator+((ChatItem)lv.getItemAtPosition((int)selectedId)).getEmailOrAccount()+".json");
-                        if(chatFile.exists()){
+                        File chatFile = new File(Utils.getDataFilesPath(context), "chats" + File.separator + ((ChatItem) lv.getItemAtPosition((int) selectedId)).getEmailOrAccount() + ".json");
+                        if (chatFile.exists()) {
                             chatFile.delete();
                         }
                         //File chatsFile2 = new File(Utils.getDataFilesPath(context), "chats2.json");
-                        if(chatsFile.exists()) {
+                        if (chatsFile.exists()) {
                             try {
                                 String chatsFileContent = FileUtils.getString(chatsFile);
                                 Gson gson = new Gson();
-                                List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {}.getType());
+                                List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {
+                                }.getType());
 
                                 /**Encrypted*/
                                 List<String> eoas = new ArrayList<String>();
@@ -617,8 +670,8 @@ public class MainScreen extends AppCompatActivity {
                                     /**
                                      * 删除
                                      */
-                                    JSONArray array=new JSONArray(chatsFileContent);
-                                    String newArray=Utils.jsonArrayRemove(array,indexOf).toString();
+                                    JSONArray array = new JSONArray(chatsFileContent);
+                                    String newArray = Utils.jsonArrayRemove(array, indexOf).toString();
                             /*OutputStream outputStream=new FileOutputStream(chatsFile);
                             outputStream.write(array.toString().getBytes());
                             outputStream.flush();
@@ -627,13 +680,13 @@ public class MainScreen extends AppCompatActivity {
                                     chatsFile.createNewFile();
                                     FileUtils.writeToFile(newArray, chatsFile);
 
-                                    File avatar=new File(itemOnListView.getAvatarFilePAN());
-                                    if(avatar.exists()){
+                                    File avatar = new File(itemOnListView.getAvatarFilePAN());
+                                    if (avatar.exists()) {
                                         avatar.delete();
                                     }
-                                    contentAdapter=null;
+                                    contentAdapter = null;
                                     content.clear();
-                                    initFromFile(lv,content);
+                                    initFromFile(lv, content);
 
                                     Utils.showShortSnackbar(lv, getString(R.string.toast_successfully_delete_chat));
                                 } else {
@@ -641,11 +694,11 @@ public class MainScreen extends AppCompatActivity {
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                Utils.showShortSnackbar(lv,getString(R.string.toast_failed_delete_chat));
-                                Utils.exceptionDialog(context,e,getString(R.string.toast_failed_delete_chat));
+                                Utils.showShortSnackbar(lv, getString(R.string.toast_failed_delete_chat));
+                                Utils.exceptionDialog(context, e, getString(R.string.toast_failed_delete_chat));
                             }
-                        }else{
-                            Utils.showShortSnackbar(lv,getString(R.string.toast_not_found_target_chat));
+                        } else {
+                            Utils.showShortSnackbar(lv, getString(R.string.toast_not_found_target_chat));
                         }
                     }
                 }).show();
@@ -655,7 +708,7 @@ public class MainScreen extends AppCompatActivity {
         }
     }
 
-    void add(final String 懂的都懂, final String by) {
+    void add(final String 懂的都懂, final String by) throws Exception {
         String encrypted = "";
         try {
             encrypted = EnDeCryptTextUtils.encrypt(懂的都懂, Variables.TEXT_ENCRYPTION_KEY);
@@ -683,10 +736,10 @@ public class MainScreen extends AppCompatActivity {
             InputStream avatar = Variables.ACCOUNT_UTILS.getInputStreamNoThread(context, "avatar", by, encrypted);
             //String name = "";
             ChatItem item = null;
-            InputStream info=Variables.ACCOUNT_UTILS.getInputStreamNoThread(context, "information", by, encrypted);
-            String readName=XMLUtils.readXmlBySAX(info).get(accountNameIndex).getNameContent();
+            InputStream info = Variables.ACCOUNT_UTILS.getInputStreamNoThread(context, "information", by, encrypted);
+            String readName = XMLUtils.readXmlBySAX(info).get(accountNameIndex).getNameContent();
             /*if (!TextUtils.isEmpty(readName)) {
-                *//*try {
+             *//*try {
                     accountOrName = EnDeCryptTextUtils.decrypt(accountUtils.getStringNoThread(context, "account", by, encrypted), Variables.TEXT_ENCRYPTION_KEY);
                 } catch (InvalidKeyException e) {
                     e.printStackTrace();
@@ -708,11 +761,11 @@ public class MainScreen extends AppCompatActivity {
                 accountOrName=encrypted;
             }*/
             if (avatar != null) {
-                File cafile=new File(Utils.getDataFilesPath(context),"chat_avatars");
-                File file = new File(Utils.getDataFilesPath(context), "chat_avatars"+File.separator+encrypted);
-                if(!cafile.exists()){
+                File cafile = new File(Utils.getDataFilesPath(context), "chat_avatars");
+                File file = new File(Utils.getDataFilesPath(context), "chat_avatars" + File.separator + encrypted);
+                if (!cafile.exists()) {
                     cafile.mkdirs();
-                }else{
+                } else {
                     if (file.exists()) {
                         file.delete();
                     }
@@ -746,7 +799,7 @@ public class MainScreen extends AppCompatActivity {
                         }
                     }
                     try {
-                        item = new ChatItem(encrypted, Utils.getDataFilesPath(context) + File.separator +"chat_avatars"+File.separator+encrypted, TextUtils.isEmpty(readName)?readName:EnDeCryptTextUtils.encrypt(readName,Variables.TEXT_ENCRYPTION_KEY), "", "");
+                        item = new ChatItem(encrypted, /*Utils.getDataFilesPath(context) + File.separator +"chat_avatars"+File.separator+encrypted,*/ TextUtils.isEmpty(readName) ? readName : EnDeCryptTextUtils.encrypt(readName, Variables.TEXT_ENCRYPTION_KEY)/*, "", ""*/);
                     } catch (InvalidKeySpecException e) {
                         e.printStackTrace();
                     } catch (InvalidKeyException e) {
@@ -762,7 +815,7 @@ public class MainScreen extends AppCompatActivity {
             } else {
                 //avatar = FormatTools.getInstance().Drawable2InputStream(getResources().getDrawable(R.drawable.account));
                 try {
-                    item = new ChatItem(encrypted, "", TextUtils.isEmpty(readName)?readName:EnDeCryptTextUtils.encrypt(readName,Variables.TEXT_ENCRYPTION_KEY), "", "");
+                    item = new ChatItem(encrypted, /*"", */TextUtils.isEmpty(readName) ? readName : EnDeCryptTextUtils.encrypt(readName, Variables.TEXT_ENCRYPTION_KEY)/*, "", ""*/);
                 } catch (InvalidKeySpecException e) {
                     e.printStackTrace();
                 } catch (InvalidKeyException e) {
@@ -785,16 +838,17 @@ public class MainScreen extends AppCompatActivity {
                 /**
                  * 查找准备添加的聊天是否存在
                  */
-                Gson gson=new Gson();
-                List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {}.getType());
+                Gson gson = new Gson();
+                List<ChatItem> list = gson.fromJson(chatsFileContent, new TypeToken<List<ChatItem>>() {
+                }.getType());
 
                 /**Encrypted*/
                 List<String> eoas = new ArrayList<String>();
                 for (ChatItem itema : list) {
                     eoas.add(itema.getEmailOrAccount());
                 }
-                int indexOf=eoas.indexOf(encrypted);
-                if (/*!chatsFileContent.contains("\"emailOrAccount\":\"" + encrypted + "\"")*/indexOf==-1) {
+                int indexOf = eoas.indexOf(encrypted);
+                if (/*!chatsFileContent.contains("\"emailOrAccount\":\"" + encrypted + "\"")*/indexOf == -1) {
                     //不存在，正常执行
                     /**
                      * 插入JSON项
@@ -909,6 +963,15 @@ public class MainScreen extends AppCompatActivity {
                 });*/
                 adding.dismiss();
             }
+            try {
+                if (!new File(Utils.getDataFilesPath(context), "chats").exists()) {
+                    new File(Utils.getDataFilesPath(context), "chats").mkdirs();
+                }
+                new File(Utils.getDataFilesPath(context), "chats" + File.separator + encrypted + ".json").createNewFile();
+                FileUtils.modifyFile(new File(Utils.getDataFilesPath(context), "chats" + File.separator + encrypted + ".json"), "[]", false);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else {
             finding.dismiss();
             Snackbar.make(lv, getString(R.string.toast_account_not_exist), Snackbar.LENGTH_SHORT).show();
@@ -924,7 +987,7 @@ public class MainScreen extends AppCompatActivity {
 
                 //String contentCon = Utils.getJsonByAssets(context, "chats.json");
 
-                FileInputStream inputStream = null;
+                /*
                 try {
                     inputStream = new FileInputStream(new File(Utils.getDataFilesPath(context), "chats.json"));
                 } catch (FileNotFoundException e) {
@@ -950,16 +1013,30 @@ public class MainScreen extends AppCompatActivity {
                     e.printStackTrace();
                     Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_read_file));
                 }
-
-                JSONArray jsonArray = new JSONArray(sb.toString());
+*/
+                JSONArray jsonArray = new JSONArray(FileUtils.getStringNoException(new File(Utils.getDataFilesPath(context), "chats.json")));
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
                     String emailOrAccount = jsonObject.getString("emailOrAccount");
-                    String avatar = jsonObject.getString("avatarFilePAN");
                     String name = jsonObject.getString("name");
-                    String latestMsg = jsonObject.getString("latestMsg");
-                    String latestMsgDate = jsonObject.getString("latestMsgDate");
-                    ChatItem item = new ChatItem(emailOrAccount, avatar, name, latestMsg, latestMsgDate);
+                    String latestMsg = "";
+                    String latestMsgDate = "";
+
+                    File chatFile = new File(Utils.getDataFilesPath(context), "chats" + File.separator + emailOrAccount + ".json");
+                    if (chatFile.exists()) {
+                        try {
+                            List<MessageItem> list = new Gson().fromJson(FileUtils.getString(chatFile), new TypeToken<List<MessageItem>>() {
+                            }.getType());
+                            latestMsgDate = Utils.formatTime(list.get(list.size() - 1).getTime());
+                            if (list.get(list.size() - 1).getType() != MessageItem.TYPE_TIME) {
+                                latestMsg = list.get(list.size() - 1).getContent();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    ChatItem item = new ChatItem(emailOrAccount, name, latestMsg, latestMsgDate);
                     content.add(item);
                 }
 
@@ -975,11 +1052,14 @@ public class MainScreen extends AppCompatActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_parsing_json_failed));
+            } catch (IOException e) {
+                e.printStackTrace();
+                Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_read_file));
             }
         }
     }
 
-    void initForAdd(final ListView lv, List<ChatItem> content,ChatItem chatItem) {
+    void initForAdd(final ListView lv, List<ChatItem> content, ChatItem chatItem) {
         File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
         //Toast.makeText(context, ""+chatsFile.exists(), Toast.LENGTH_SHORT).show();
         if (chatsFile.exists()) {
@@ -989,7 +1069,7 @@ public class MainScreen extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {*/
-                    lv.setAdapter(contentAdapter);
+            lv.setAdapter(contentAdapter);
                 /*}
             });*/
         }
@@ -1048,5 +1128,64 @@ public class MainScreen extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(myReceiver);
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        if (whereGo != null) {
+            if (whereGo.equals(ChatScreen.class.getName())) {
+                updateLatests();
+            }
+        }
+    }
+
+    void updateLatests() {
+        for (int i = 0; i < content.size(); i++) {
+            int finalI = i;
+            new Thread(new Runnable() {
+                @Override
+                public synchronized void run() {
+                    try {
+                        ChatItem item = (ChatItem) lv.getItemAtPosition(finalI);
+                        File chatFile = new File(Utils.getDataFilesPath(context), "chats" + File.separator + item.getEmailOrAccount() + ".json");
+                        List<MessageItem> list = new Gson().fromJson(FileUtils.getString(chatFile), new TypeToken<List<MessageItem>>() {
+                        }.getType());
+                        String latestMsgDate = "";
+                        String latestMsg = "";
+
+                        if (chatFile.exists()) {
+                            latestMsgDate = Utils.formatTime(list.get(list.size() - 1).getTime());
+                            if (list.get(list.size() - 1).getType() != MessageItem.TYPE_TIME) {
+                                latestMsg = list.get(list.size() - 1).getContent();
+                            }
+                        }
+                        content.get(finalI).setLatestMsg(latestMsg);
+                        content.get(finalI).setLatestMsgDate(latestMsgDate);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                contentAdapter = new ChatsAdapter(context, R.layout.item_main_screen_chat, content);
+                                lv.setAdapter(contentAdapter);
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (Variables.COMMUNICATOR != null) {
+            Variables.COMMUNICATOR.setContext(context);
+        }
+    }
+
+    public void messageReceived(IoSession session, Object message) {
+        updateLatests();
     }
 }

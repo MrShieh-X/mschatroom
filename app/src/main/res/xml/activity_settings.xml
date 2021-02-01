@@ -38,6 +38,12 @@
             android:summary="@string/preference_show_avatars_when_chatting_summary"
             android:checked="true"
             android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:title="@string/preference_settings_new_messages_notify_title"
+            android:summary="@string/preference_settings_new_messages_notify_summary"
+            android:checked="true"
+            android:defaultValue="true"
+            android:key="new_messages_notify"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/preference_settings_category_account_title">
     <Preference

@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="MSCRServer.main:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/MSCRServer_main_jar</output-path>
+    <root id="archive" name="MSCRServer.main.jar">
+      <element id="module-output" name="MSCRServer.main" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/mina-core-2.1.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/slf4j-api-2.0.0-alpha1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

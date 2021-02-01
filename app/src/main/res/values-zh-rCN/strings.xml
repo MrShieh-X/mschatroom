@@ -291,4 +291,23 @@
     <string name="chat_tip_offline">请连接网络后重新发送</string>
     <string name="chat_tip_not_loggined">请登录账户后重新发送</string>
     <string name="chat_tip_failed_logined">发送失败，账户登录失败</string>
+    <string name="loadinglog_downloading_messages">下载离线消息中...</string>
+    <string name="loadinglog_success_download_messages">下载离线消息成功</string>
+    <string name="loadinglog_failed_download_messages">下载离线消息失败</string>
+    <string name="loadinglog_messages_is_empty">离线消息为空</string>
+    <string name="preference_settings_new_messages_notify_title">收到新消息时通知</string>
+    <string name="preference_settings_new_messages_notify_summary">收到新消息时进行通知</string>
+    <string name="preference_server_port_title">服务器端口</string>
+    <string name="preference_server_port_summary">请设置服务器端口（通讯时使用）</string>
+    <string name="notification_channel_name">新消息通知</string>
+    <string name="edittexthint_dialog_set_server_information_server_port">服务器端口（通讯时使用）</string>
+    <string name="edittexthint_dialog_set_server_port_integer">输入整数</string>
+    <string name="textview_dialog_set_server_information_server_port_tip">服务器端口（通讯时使用）</string>
+    <string name="loadinglog_connecting_communication_server">连接通讯服务器中...</string>
+    <string name="loadinglog_success_connect_communication_server">连接通讯服务器成功</string>
+    <string name="loadinglog_failed_connect_communication_server">连接通讯服务器失败</string>
+    <string name="loadinglog_failed_connect_communication_server_withcause">连接通讯服务器失败，原因是：%s</string>
+    <string name="dialog_failed_connect_communication_server_message">连接通讯服务器失败，请前往开发者选项页面修改服务器地址和端口或重试</string>
+    <string name="dialog_failed_connect_communication_server_button_goto_developeroptions_text">前往开发者选项页面</string>
+    <string name="listviewtext_about_users_can_do_item_visit_gitee">访问该应用的 Gitee 库</string>
 </resources>

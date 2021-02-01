@@ -172,7 +172,7 @@ public class AccountUtils {
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
             return 0;
         } else {
-            String sql = "insert into " + dbTableName + " values(?,?,?,?,?);";
+            String sql = "insert into " + dbTableName + " values(?,?,?,?,?,?);";
             try {
                 PreparedStatement pre = conn.prepareStatement(sql);
                 pre.setString(1, email);
@@ -181,6 +181,7 @@ public class AccountUtils {
                 InputStream in = context.getResources().getAssets().open("userInformation.xml");
                 pre.setBinaryStream(4, Utils.replaceUserInformationContents(in, "", "", ""));
                 pre.setBinaryStream(5, null);
+                pre.setBinaryStream(6, null);
                 return pre.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -440,6 +441,46 @@ public class AccountUtils {
 
     public Connection getConnection(){
         return conn;
+    }
+
+    public int updateMessagesNoThreadAndDialog(Context context, String by, String byContent, String newMessages) {
+        if (conn == null) {
+            Log.i(Variables.TAG, "uploadAvatar:conn is null");
+            Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
+            return 0;
+        } else {
+            try {
+                String sql = "update " + dbTableName + " set messages=? where "+by+"='"+byContent+"'";
+                PreparedStatement pre = conn.prepareStatement(sql);
+                pre.setString(1, newMessages);
+                return pre.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_upload_data));
+                return 0;
+            }
+
+        }
+    }
+
+
+    public int setString(Context context, String needToSet, String needToSetContent, String by, String byContent) {
+        if (conn == null) {
+            Log.i(Variables.TAG, "setString:conn is null");
+            Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
+            return 0;
+        } else {
+            try {
+                Statement stmt = conn.createStatement();
+                String sql = "update " + dbTableName + " set "+needToSet+"='" + needToSetContent + "' where "+by+"='" + byContent + "'";
+                return stmt.executeUpdate(sql);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_upload_data));
+                return 0;
+            }
+
+        }
     }
 }
 

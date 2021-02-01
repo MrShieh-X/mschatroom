@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.text.Editable;
@@ -44,14 +45,20 @@ import com.mrshiehx.mschatroom.utils.ConnectionUtils;
 import com.mrshiehx.mschatroom.utils.FileUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
 
+import org.apache.mina.core.session.IoSession;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -77,6 +84,173 @@ public class ChatScreen extends AppCompatActivity {
     boolean canContinueFromIntent;
     boolean canSend;
     boolean canLogin;
+
+    void send(String content) {
+        if (!"".equals(content)) {
+            if (Utils.isNetworkConnected(context)) {
+                //String content = input_chat_content.getText().toString();
+                if (MSCRApplication.getSharedPreferences().getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false)) {
+                    if (canLogin) {
+                        Time Time = new Time();
+                        Time.setToNow();
+                        int year = Time.year;
+                        /**START FROM 1*/
+                        int month = Time.month + 1;
+                        int day = Time.monthDay;
+                        int hour = Time.hour;
+                        int minute = Time.minute;
+                        //int hour = String.valueOf(Time.hour).length()!=2?Integer.parseInt("0"+Time.hour):Time.hour;
+                        //int minute = String.valueOf(Time.minute).length()!=2?Integer.parseInt("0"+Time.minute):Time.minute;
+
+                        final MessageItem msg = new MessageItem(content, MessageItem.TYPE_SELF);
+                        MessageItem msg2;
+                        /*if (content.startsWith("r")) {
+                            msg = new MessageItem(content, MessageItem.TYPE_RECEIVER);
+                        } else if (content.startsWith("t")) {
+                            msg = new MessageItem(content.substring(1), MessageItem.TYPE_TIME);
+                        } else if (content.startsWith("f")) {
+                            msg = new MessageItem(content.substring(1), MessageItem.TYPE_FAILED_SEND);
+                        } else {
+                            msg = new MessageItem(content, MessageItem.TYPE_SELF);
+                        }*/
+                        msg2 = new MessageItem(year + "-" + month + "-" + day + ";" + (String.valueOf(hour).length() != 2 ? "0" + hour : hour) + ":" + (String.valueOf(minute).length() != 2 ? "0" + minute : minute), MessageItem.TYPE_TIME);
+
+
+                        if (!chatFile.exists()) {
+                            final MessageItem finalMsg2 = msg2;
+                            new Thread(new Runnable() {
+                                @Override
+                                public synchronized void run() {
+                                    writeToFileInThread(finalMsg2);
+                                    writeToFileInThread(msg);
+                                }
+                            }).start();
+                            //writeToFile(msg2);
+                            messageItemList.add(msg2);
+                            //writeToFile(msg);
+                            messageItemList.add(msg);
+                            freshRV();
+                        } else {
+                            try {
+                                List<Integer> types = new ArrayList<Integer>();
+                                Gson gson = new Gson();
+                                List<MessageItem> list = gson.fromJson(FileUtils.getString(chatFile), new TypeToken<List<MessageItem>>() {
+                                }.getType());
+                                for (MessageItem item : list) {
+                                    types.add(item.getType());
+                                }
+                                int indexOf = types.lastIndexOf(MessageItem.TYPE_TIME);
+                                MessageItem timeItem = list.get(indexOf);
+                                String time = timeItem.getContent();
+                                String[] timeYMDAndHM = time.split(";");
+                                String[] ymd = timeYMDAndHM[0].split("-");
+                                String[] hm = timeYMDAndHM[1].split(":");
+                                int yearF = Integer.parseInt(ymd[0]);
+                                int monthF = Integer.parseInt(ymd[1]);
+                                int dayF = Integer.parseInt(ymd[2]);
+                                int hourF = Integer.parseInt(hm[0]);
+                                int minuteF = Integer.parseInt(hm[1]);
+                                //int xiangcha=minute-minuteF;
+                                //Toast.makeText(context, String.valueOf(yearF==year&&monthF==month&&dayF==day&&hourF==hour), Toast.LENGTH_SHORT).show();
+                                if (yearF == year && monthF == month && dayF == day && hourF == hour) {
+                                    int xiangcha = minute -/*minuteF*/Integer.parseInt(list.get(list.size() - 1).getTime().split(";")[1].split(":")[1]);
+                                    if (xiangcha >= 5) {
+                                        //YES
+                                        final MessageItem finalMsg = msg2;
+                                        new Thread(new Runnable() {
+                                            @Override
+                                            public synchronized void run() {
+                                                writeToFileInThread(finalMsg);
+                                                writeToFileInThread(msg);
+                                            }
+                                        }).start();
+                                        messageItemList.add(msg2);
+                                        messageItemList.add(msg);
+                                    } else {
+                                        //NO
+                                        writeToFile(msg);
+                                        messageItemList.add(msg);
+                                    }
+
+                                } else {
+                                    //YES
+                                    final MessageItem finalMsg1 = msg2;
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public synchronized void run() {
+                                            writeToFileInThread(finalMsg1);
+                                            writeToFileInThread(msg);
+                                        }
+                                    }).start();
+                                    //writeToFile(msg2);
+                                    messageItemList.add(msg2);
+                                    //writeToFile(msg);
+                                    messageItemList.add(msg);
+                                }
+
+                                freshRV();
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        if (Variables.SESSION == null || Variables.COMMUNICATOR == null) {
+                            final MessageItem failed = new MessageItem(content, MessageItem.TYPE_FAILED_SEND);
+                            messageItemList.add(failed);
+                            writeToFile(failed);
+                            freshRV();
+                        } else {
+                            Variables.COMMUNICATOR.send(eoaEncrypted, content);
+                            input_chat_content.setText("");
+                            final MessageItem messageItem = new MessageItem(content, MessageItem.TYPE_SELF);
+                            messageItemList.add(messageItem);
+                            writeToFile(messageItem);
+                            freshRV();
+                        }
+                    } else {
+                        final MessageItem msg = new MessageItem(content, MessageItem.TYPE_SELF);
+                        final MessageItem msg2 = new MessageItem(null, MessageItem.TYPE_FAILED_SEND_LOGIN_FAILED);
+                        messageItemList.add(msg);
+                        messageItemList.add(msg2);
+                        new Thread(new Runnable() {
+                            @Override
+                            public synchronized void run() {
+                                writeToFileInThread(msg);
+                                writeToFileInThread(msg2);
+                            }
+                        }).start();
+                        freshRV();
+                    }
+                } else {
+                    final MessageItem msg = new MessageItem(content, MessageItem.TYPE_SELF);
+                    final MessageItem msg2 = new MessageItem(null, MessageItem.TYPE_FAILED_SEND_NOT_LOGGINED);
+                    messageItemList.add(msg);
+                    messageItemList.add(msg2);
+                    new Thread(new Runnable() {
+                        @Override
+                        public synchronized void run() {
+                            writeToFileInThread(msg);
+                            writeToFileInThread(msg2);
+                        }
+                    }).start();
+                    freshRV();
+                }
+            } else {
+                final MessageItem msg = new MessageItem(content, MessageItem.TYPE_SELF);
+                final MessageItem msg2 = new MessageItem(null, MessageItem.TYPE_FAILED_SEND_OFFLINE);
+                messageItemList.add(msg);
+                messageItemList.add(msg2);
+                new Thread(new Runnable() {
+                    @Override
+                    public synchronized void run() {
+                        writeToFileInThread(msg);
+                        writeToFileInThread(msg2);
+                    }
+                }).start();
+                freshRV();
+            }
+        }
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -199,157 +373,7 @@ public class ChatScreen extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String content = input_chat_content.getText().toString();
-                if (!"".equals(content)) {
-                    if (Utils.isNetworkConnected(context)) {
-                        //String content = input_chat_content.getText().toString();
-                        if (MSCRApplication.getSharedPreferences().getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false)) {
-                            if (canLogin) {
-                                Time Time = new Time();
-                                Time.setToNow();
-                                int year = Time.year;
-                                /**START FROM 1*/
-                                int month = Time.month + 1;
-                                int day = Time.monthDay;
-                                int hour = Time.hour;
-                                int minute = Time.minute;
-
-                                final MessageItem msg;
-                                MessageItem msg2 = null;
-                                if (content.startsWith("r")) {
-                                    msg = new MessageItem(content, MessageItem.TYPE_RECEIVER);
-                                } else if (content.startsWith("t")) {
-                                    msg = new MessageItem(content.substring(1), MessageItem.TYPE_TIME);
-                                } else if (content.startsWith("f")) {
-                                    msg = new MessageItem(content.substring(1), MessageItem.TYPE_FAILED_SEND);
-                                } else {
-                                    msg = new MessageItem(content, MessageItem.TYPE_SELF);
-                                }
-                                msg2 = new MessageItem(year + "-" + month + "-" + day + ";" + hour + ":" + minute, MessageItem.TYPE_TIME);
-
-
-                                if (!chatFile.exists()) {
-                                    final MessageItem finalMsg2 = msg2;
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public synchronized void run() {
-                                            writeToFileInThread(finalMsg2);
-                                            writeToFileInThread(msg);
-                                        }
-                                    }).start();
-                                    //writeToFile(msg2);
-                                    messageItemList.add(msg2);
-                                    //writeToFile(msg);
-                                    messageItemList.add(msg);
-                                    freshRV();
-                                } else {
-                                    try {
-                                        List<Integer> types = new ArrayList<Integer>();
-                                        Gson gson = new Gson();
-                                        List<MessageItem> list = gson.fromJson(FileUtils.getString(chatFile), new TypeToken<List<MessageItem>>() {
-                                        }.getType());
-                                        for (MessageItem item:list) {
-                                            types.add(item.getType());
-                                        }
-                                        int indexOf = types.lastIndexOf(MessageItem.TYPE_TIME);
-                                        MessageItem timeItem = list.get(indexOf);
-                                        String time = timeItem.getContent();
-                                        String[] timeYMDAndHM = time.split(";");
-                                        String[] ymd = timeYMDAndHM[0].split("-");
-                                        String[] hm = timeYMDAndHM[1].split(":");
-                                        int yearF = Integer.parseInt(ymd[0]);
-                                        int monthF = Integer.parseInt(ymd[1]);
-                                        int dayF = Integer.parseInt(ymd[2]);
-                                        int hourF = Integer.parseInt(hm[0]);
-                                        int minuteF = Integer.parseInt(hm[1]);
-                                        //int xiangcha=minute-minuteF;
-                                        //Toast.makeText(context, String.valueOf(yearF==year&&monthF==month&&dayF==day&&hourF==hour), Toast.LENGTH_SHORT).show();
-                                        if (yearF==year&&monthF==month&&dayF==day&&hourF==hour) {
-                                            int xiangcha=minute-minuteF;
-                                            if(xiangcha<5||xiangcha>0){
-                                                //NO
-                                                writeToFile(msg);
-                                                messageItemList.add(msg);
-                                            }else{
-                                                //YES
-                                                final MessageItem finalMsg = msg2;
-                                                new Thread(new Runnable() {
-                                                    @Override
-                                                    public synchronized void run() {
-                                                        writeToFileInThread(finalMsg);
-                                                        writeToFileInThread(msg);
-                                                    }
-                                                }).start();
-                                                //writeToFile(msg2);
-                                                messageItemList.add(msg2);
-                                                //writeToFile(msg);
-                                                messageItemList.add(msg);
-                                            }
-
-                                        } else {
-                                            //YES
-                                            final MessageItem finalMsg1 = msg2;
-                                            new Thread(new Runnable() {
-                                                @Override
-                                                public synchronized void run() {
-                                                    writeToFileInThread(finalMsg1);
-                                                    writeToFileInThread(msg);
-                                                }
-                                            }).start();
-                                            //writeToFile(msg2);
-                                            messageItemList.add(msg2);
-                                            //writeToFile(msg);
-                                            messageItemList.add(msg);
-                                        }
-
-                                         freshRV();
-
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            } else {
-                                final MessageItem msg = new MessageItem(content, MessageItem.TYPE_SELF);
-                                final MessageItem msg2 = new MessageItem(null, MessageItem.TYPE_FAILED_SEND_LOGIN_FAILED);
-                                messageItemList.add(msg);
-                                messageItemList.add(msg2);
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public synchronized void run() {
-                                        writeToFileInThread(msg);
-                                        writeToFileInThread(msg2);
-                                    }
-                                }).start();
-                                freshRV();
-                            }
-                        } else {
-                            final MessageItem msg = new MessageItem(content, MessageItem.TYPE_SELF);
-                            final MessageItem msg2 = new MessageItem(null, MessageItem.TYPE_FAILED_SEND_NOT_LOGGINED);
-                            messageItemList.add(msg);
-                            messageItemList.add(msg2);
-                            new Thread(new Runnable() {
-                                @Override
-                                public synchronized void run() {
-                                    writeToFileInThread(msg);
-                                    writeToFileInThread(msg2);
-                                }
-                            }).start();
-                            freshRV();
-                        }
-                    } else {
-                        final MessageItem msg = new MessageItem(content, MessageItem.TYPE_SELF);
-                        final MessageItem msg2 = new MessageItem(null, MessageItem.TYPE_FAILED_SEND_OFFLINE);
-                        messageItemList.add(msg);
-                        messageItemList.add(msg2);
-                        new Thread(new Runnable() {
-                            @Override
-                            public synchronized void run() {
-                                writeToFileInThread(msg);
-                                writeToFileInThread(msg2);
-                            }
-                        }).start();
-                        freshRV();
-                    }
-                }
+                send(content);
             }
         });
     }
@@ -396,6 +420,7 @@ public class ChatScreen extends AppCompatActivity {
                 JSONObject object = new JSONObject();
                 object.put("t", msg.getType());
                 object.put("c", msg.getContent());
+                object.put("s", msg.getTime());
                 JSONArray jsonArray = new JSONArray();
                 jsonArray.put(object);
                 FileUtils.modifyFile(chatFile, jsonArray.toString(), false);
@@ -462,5 +487,53 @@ public class ChatScreen extends AppCompatActivity {
                 finish();
         }
         return super.onKeyUp(keyCode, event);
+    }
+
+    /**
+     * LM: latestMsg
+     * LMD: latestMsgDate
+     */
+    /*void modifyLMLMD(){
+        File chatsFile=new File(Utils.getDataFilesPath(context),"chats.json");
+        if(chatsFile.exists()) {
+            try {
+                FileInputStream inputStream = new FileInputStream(chatsFile);
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
+                BufferedReader reader = new BufferedReader(inputStreamReader);
+                StringBuffer sb = new StringBuffer("");
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                    sb.append("\n");
+                }
+                String content = sb.toString();
+                List<ChatItem> list = new Gson().fromJson(content, new TypeToken<List<ChatItem>>() {}.getType());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }else{
+
+        }
+    }*/
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (Variables.COMMUNICATOR != null) {
+            Variables.COMMUNICATOR.setContext(context);
+        }
+    }
+
+    public void messageReceived(IoSession session, Object message) {
+        try {
+            JSONObject jsonObject = new JSONObject(message.toString());
+            String fromEncrypted = jsonObject.optString("f");
+            if (fromEncrypted.equals(eoaEncrypted)) {
+                messageItemList.add(new MessageItem(jsonObject.optString("c"), MessageItem.TYPE_RECEIVER));
+                adapter.notifyItemInserted(messageItemList.size());
+                recycler_view.scrollToPosition(messageItemList.size());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

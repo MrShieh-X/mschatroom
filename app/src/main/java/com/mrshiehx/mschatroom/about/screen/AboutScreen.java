@@ -70,6 +70,7 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
                 getResources().getString(R.string.listviewtext_about_users_can_do_item_visit_msxw),
                 getResources().getString(R.string.listviewtext_about_users_can_do_item_visit_author_github),
                 getResources().getString(R.string.listviewtext_about_users_can_do_item_visit_github),
+                getResources().getString(R.string.listviewtext_about_users_can_do_item_visit_gitee),
                 getString(R.string.listviewtext_about_users_can_do_item_check)};
         listViewAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, arr_data);
         listView.setAdapter(listViewAdapter);
@@ -115,6 +116,9 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
                 Utils.goToWebsite(this, Variables.APP_GITHUB_REPOSITORY_URL);
                 break;
             case 4:
+                Utils.goToWebsite(this, Variables.APP_GITEE_REPOSITORY_URL);
+                break;
+            case 5:
                 if (Utils.isNetworkConnected(context)) {
                     final ProgressDialog progressDialog = new ProgressDialog(context);
                     progressDialog.setTitle(getString(R.string.dialog_title_wait));
@@ -288,4 +292,13 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
         }
 
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(Variables.COMMUNICATOR!=null){
+            Variables.COMMUNICATOR.setContext(context);
+        }
+    }
+
 }
