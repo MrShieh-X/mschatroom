@@ -498,10 +498,9 @@ public class StartActivity extends Activity {
                             }
 
                             newLog(getString(R.string.loadinglog_finish_loading));
-                            /**code*/
                             Intent intent = new Intent(context, MainScreen.class);
-                            //startActivity(intent);
-                            //finish();
+                            startActivity(intent);
+                            finish();
                         } else {
                             Variables.ACCOUNT_INFORMATION.setCanLogin(false);
                             runOnUiThread(new Runnable() {
@@ -869,10 +868,6 @@ public class StartActivity extends Activity {
                 MSCRApplication.getInstance().exit();
             }
             //super.onBackPressed();
-        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-/**CODE*/
-            Intent intent = new Intent(context, MainScreen.class);
-            startActivity(intent);
         }
         return super.onKeyUp(keyCode, event);
     }
