@@ -18,12 +18,15 @@ package com.mrshiehx.mschatroom.preference;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.ActionBar;
+
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.LayoutRes;
 
 /**

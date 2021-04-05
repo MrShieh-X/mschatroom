@@ -162,14 +162,13 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
                             public void run() {
                                 Looper.prepare();
                                 if (input_captcha.getText().toString().equals(captcha)) {
-                                    AccountUtils mysqlUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                                    ;
+                                    AccountUtils mysqlUtils = Utils.getAccountUtils();
                                     try {
                                         if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY))) {
                                             //ResetPasswordScreen2.email = email;
                                             //Utils.startActivity(context, ResetPasswordScreen2.class);
-                                            Intent intent=new Intent(context,ResetPasswordScreen2.class);
-                                            intent.putExtra("email",email);
+                                            Intent intent = new Intent(context, ResetPasswordScreen2.class);
+                                            intent.putExtra("email", email);
                                             startActivity(intent);
                                         } else {
                                             Snackbar.make(get_captcha, getResources().getString(R.string.toast_account_not_exist), Snackbar.LENGTH_SHORT).show();
@@ -191,7 +190,6 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
                                 Looper.loop();
                             }
                         }).start();
-
 
 
                     }
@@ -227,7 +225,7 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(Variables.COMMUNICATOR!=null){
+        if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
     }

@@ -41,13 +41,14 @@ public class MSCRApplication extends Application {
 
     //遍历所有Activity并finish
     public void exit() {
-        if(Variables.COMMUNICATOR!=null){
+        if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.disConnect();
         }
         for (Activity activity : activityList) {
             activity.finish();
         }
         activityList.clear();
+        System.exit(0);
     }
 
     public static SharedPreferences getSharedPreferences() {

@@ -11,8 +11,9 @@ Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>1.0 (Jan. 31, 2021)</b><br/>
+<b>1.1 (Apr. 5, 2021)</b><br/>
 Historical version: <br/>
+<b>1.1 (Apr. 5, 2021)</b><br/>
 <b>1.0 (Jan. 31, 2021)</b><br/>
 <b>beta-2 (Jan. 26, 2021)</b><br/>
 <b>beta-1 (Jan. 21, 2021)</b><br/>
@@ -105,10 +106,10 @@ Regarding the e-mail address for sending the CAPTCHA, it is not provided here. Y
 
 |The number of rows|Method name|Meaning|
 |-------------| -------------|:---------------:|
-|47|setSubject|CAPTCHA email title|
-|51|setContent|CAPTCHA email content|
+|44|setSubject|CAPTCHA email title|
+|48|setContent|CAPTCHA email content|
 
-For the application to use the chat communication function normally, you need to find the directory named `server` in the root directory of the source code, open it, find the server `MSCRServer_1.0.jar` file with the latest version 1.0, and use `java -jar MSCRServer_1.0.jar` command to run it, and then enter a port number you make sure that there is no occupied port number, press Enter, if there is no error, you have completed this step.
+For the application to use the chat communication function normally, you need to [go to the repository of MSChatRoom Server](https://github.com/MrShieh-X/mscrserver) and read its README file carefully.
 
 #### After all these tasks are completed, you can compile the application and run it.
 

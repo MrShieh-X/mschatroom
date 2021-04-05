@@ -16,13 +16,12 @@ import javax.mail.internet.MimeMessage;
 
 //发送邮件（验证码）工具类
 public class SendEmailUtils {
-
     private String PROTOCOL = "smtp";
     private String PORT = "25";
     private String IS_AUTH = "true";
     private String IS_ENABLED_DEBUG_MOD = "true";
     private String to;
-    private Properties props = null;
+    private final Properties props;
 
     public SendEmailUtils(String toEmail) {
         to = toEmail;
@@ -36,10 +35,8 @@ public class SendEmailUtils {
 
     public void sendCaptcha(String captcha) throws Exception {
 
-        if (android.os.Build.VERSION.SDK_INT > 9) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         Session session = Session.getInstance(props, new MyAuthenticator());
 
         MimeMessage message = new MimeMessage(session);
@@ -54,9 +51,6 @@ public class SendEmailUtils {
     }
 
     static class MyAuthenticator extends Authenticator {
-
-
-
         public MyAuthenticator() {
             super();
         }

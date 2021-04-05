@@ -98,9 +98,8 @@ public class RegisterScreen extends AppCompatActivity {
                                             @Override
                                             public void run() {
                                                 Looper.prepare();
-                                                String account = reg_input_account.getText().toString();
-                                                String password = reg_input_password.getText().toString();
-                                                AccountUtils mysqlUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                                                String account = reg_input_account.getText().toString().toLowerCase();
+                                                AccountUtils mysqlUtils = Utils.getAccountUtils();
                                                 //Boolean resultAccount = registerAndLogin.loginByEmail(context, account, password);
                                                 //Boolean resultEmail = registerAndLogin.loginByEmail(context, email, password);
                                                 //String emaila=reg_input_email.getText().toString();
@@ -114,9 +113,9 @@ public class RegisterScreen extends AppCompatActivity {
                                                             Snackbar.make(register, getResources().getString(R.string.toast_registered_account), Snackbar.LENGTH_SHORT).show();
                                                         } else if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == false) {
                                                             //Real register
-                                                            String accountR = reg_input_account.getText().toString();
+                                                            String accountR = reg_input_account.getText().toString().toLowerCase();
                                                             String passwordR = reg_input_password.getText().toString();
-                                                            AccountUtils mysqlUtils2 = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                                                            AccountUtils mysqlUtils2 = Utils.getAccountUtils();
                                                             int result = 0;
                                                             try {
                                                                 result = mysqlUtils2.register(context, registering, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(accountR, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(passwordR, Variables.TEXT_ENCRYPTION_KEY));
@@ -241,10 +240,10 @@ public class RegisterScreen extends AppCompatActivity {
                     try {
                         //gettingCaptcha=true;
                         button_get_captcha.setEnabled(false);
-                        SendEmailUtils sendEmail = new SendEmailUtils(reg_input_email.getText().toString());
+                        SendEmailUtils sendEmail = new SendEmailUtils(reg_input_email.getText().toString().toLowerCase());
                         sendEmail.sendCaptcha(captcha);
                         Snackbar.make(register, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show();
-                        email = reg_input_email.getText().toString();
+                        email = reg_input_email.getText().toString().toLowerCase();
                         reg_input_email.setEnabled(false);
                         reinput_email.setEnabled(true);
                         //timer.schedule(captchaTimeDynamic, 0, 1000);
@@ -339,11 +338,7 @@ public class RegisterScreen extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (Utils.isEmail(reg_input_email.getText().toString()) && charSequence.length() > 0 == true) {
                     if (Utils.isNetworkConnected(context)) {
-                        if (mCountDownTimerUtils.isRunning() == true) {
-                            button_get_captcha.setEnabled(false);
-                        } else {
-                            button_get_captcha.setEnabled(true);
-                        }
+                        button_get_captcha.setEnabled(!mCountDownTimerUtils.isRunning());
                     } else {
                         button_get_captcha.setEnabled(false);
                     }
@@ -489,7 +484,7 @@ public class RegisterScreen extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(Variables.COMMUNICATOR!=null){
+        if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
     }

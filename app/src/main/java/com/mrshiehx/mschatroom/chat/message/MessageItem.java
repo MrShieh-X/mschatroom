@@ -17,7 +17,7 @@ public class MessageItem {
     public MessageItem(String c, int t) {
         this.c = c;
         this.t = t;
-        if(t==TYPE_RECEIVER||t==TYPE_SELF) {
+        if (t == TYPE_RECEIVER || t == TYPE_SELF) {
             Time time = new Time();
             time.setToNow();
             this.s = time.year + "-" + (time.month + 1) + "-" + time.monthDay + ";" + time.hour + ":" + time.minute;
@@ -32,8 +32,8 @@ public class MessageItem {
         this.t = t;
     }
 
-    public void setTime(String s){
-        this.s=s;
+    public void setTime(String s) {
+        this.s = s;
     }
 
     public String getContent() {
@@ -50,7 +50,7 @@ public class MessageItem {
                 if (c.split(";")[1].split(":")[1].length() == 2) {
                     return c;
                 } else {
-                    c=c.split(";")[0]+";"+c.split(";")[1].split(":")[0]+":"+"0"+c.split(";")[1].split(":")[1];
+                    c = c.split(";")[0] + ";" + c.split(";")[1].split(":")[0] + ":" + "0" + c.split(";")[1].split(":")[1];
                     return c;
                 }
             } catch (Exception e) {
@@ -62,7 +62,7 @@ public class MessageItem {
                 if (s.split(";")[1].split(":")[1].length() == 2) {
                     return s;
                 } else {
-                    s=s.split(";")[0]+";"+s.split(";")[1].split(":")[0]+":"+"0"+s.split(";")[1].split(":")[1];
+                    s = s.split(";")[0] + ";" + s.split(";")[1].split(":")[0] + ":" + "0" + s.split(";")[1].split(":")[1];
                     return s;
                 }
             } catch (Exception e) {

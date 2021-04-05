@@ -125,7 +125,7 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
                     progressDialog.setMessage(getString(R.string.dialog_checking_updates_message));
 
                     progressDialog.show();
-                    Thread thread=new Thread(new Runnable() {
+                    Thread thread = new Thread(new Runnable() {
                         @Override
                         public void run() {
                             Looper.prepare();
@@ -232,7 +232,6 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
                                                                         }
 
 
-
                                                                         //Toast.makeText(AboutScreen.this, Utils.inputStream2String(is,true), Toast.LENGTH_SHORT).show();
                                                                     } else {
                                                                         Toast.makeText(context, getString(R.string.dialog_exception_failed_download_file), Toast.LENGTH_SHORT).show();
@@ -281,7 +280,7 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
                             Looper.loop();
                         }
                     });
-                    if(!thread.isAlive()) {
+                    if (!thread.isAlive()) {
                         thread.start();
                     }
 
@@ -296,7 +295,7 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
     @Override
     protected void onResume() {
         super.onResume();
-        if(Variables.COMMUNICATOR!=null){
+        if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
     }

@@ -21,6 +21,7 @@ import java.util.List;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
+import com.mrshiehx.mschatroom.utils.FileUtils;
 import com.mrshiehx.mschatroom.utils.FormatTools;
 
 import javax.crypto.BadPaddingException;
@@ -47,17 +48,16 @@ public class ChatsAdapter extends ArrayAdapter {
 
         File avatarFile = new File(chatItem.getAvatarFilePAN());
 
-        if(avatarFile.exists()){
+        if (avatarFile.exists()) {
             try {
-                InputStream avatarIS = new FileInputStream(avatarFile);
-                avatar.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(avatarIS));
-            }catch (IOException e){
+                //InputStream avatarIS = new FileInputStream(avatarFile);
+                avatar.setImageDrawable(FormatTools.getInstance().Bytes2Drawable(FileUtils.toByteArray(avatarFile)));
+            } catch (Exception e) {
                 e.printStackTrace();
-                Log.e(Variables.TAG,"getChatsAvatars:file not found");
             }
         }
 
-        if(!TextUtils.isEmpty(chatItem.getName())) {
+        if (!TextUtils.isEmpty(chatItem.getName())) {
             try {
                 name.setText(EnDeCryptTextUtils.decrypt(chatItem.getName(), Variables.TEXT_ENCRYPTION_KEY));
             } catch (InvalidKeyException e) {
@@ -71,7 +71,7 @@ public class ChatsAdapter extends ArrayAdapter {
             } catch (BadPaddingException e) {
                 e.printStackTrace();
             }
-        }else {
+        } else {
             try {
                 name.setText(EnDeCryptTextUtils.decrypt(chatItem.getEmailOrAccount(), Variables.TEXT_ENCRYPTION_KEY));
             } catch (InvalidKeyException e) {
@@ -86,10 +86,10 @@ public class ChatsAdapter extends ArrayAdapter {
                 e.printStackTrace();
             }
         }
-        if(!TextUtils.isEmpty(chatItem.getLatestMsg())) {
+        if (!TextUtils.isEmpty(chatItem.getLatestMsg())) {
             latestMsg.setText(chatItem.getLatestMsg());
         }
-        if(!TextUtils.isEmpty(chatItem.getLatestMsgDate())) {
+        if (!TextUtils.isEmpty(chatItem.getLatestMsgDate())) {
             date.setText(chatItem.getLatestMsgDate());
         }
 

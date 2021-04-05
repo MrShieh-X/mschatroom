@@ -4,6 +4,6 @@
     <files-path name="files" path="" />
     <cache-path name="cache" path="" />
     <external-path name="external" path="" />
-    <external-files-path name="name" path="path" />
-    <external-cache-path name="name" path="path" />
+    <external-files-path name="name" path="" />
+    <external-cache-path name="name" path="" />
 </paths>

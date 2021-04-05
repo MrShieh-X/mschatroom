@@ -35,7 +35,7 @@ public class HasFilesSizePreference extends Preference {
 
 
     public void setFilesSize(CharSequence filesSizeText) {
-        filesSize=filesSizeText;
+        filesSize = filesSizeText;
         notifyChanged();
     }
 
@@ -43,9 +43,9 @@ public class HasFilesSizePreference extends Preference {
     protected void onBindView(View view) {
         super.onBindView(view);
         filesSizeTV = view.findViewById(R.id.textview_files_size);
-        if(TextUtils.isEmpty(filesSize)){
+        if (TextUtils.isEmpty(filesSize)) {
             filesSizeTV.setVisibility(View.GONE);
-        }else{
+        } else {
             filesSizeTV.setText(filesSize);
         }
     }

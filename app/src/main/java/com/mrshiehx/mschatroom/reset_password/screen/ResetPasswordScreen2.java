@@ -62,7 +62,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
         input_confirm_password = findViewById(R.id.rp_input_confirm_password);
         show_password = findViewById(R.id.rp_show_password);
 
-        email=getIntent().getStringExtra("email");
+        email = getIntent().getStringExtra("email");
 
         input_new_password.setTransformationMethod(PasswordTransformationMethod.getInstance());
         input_confirm_password.setTransformationMethod(PasswordTransformationMethod.getInstance());
@@ -105,7 +105,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                                         Looper.prepare();
                                         try {
                                             String password = input_new_password.getText().toString();
-                                            AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                                            AccountUtils ud = Utils.getAccountUtils();
                                             int result = 0;
                                             try {
                                                 result = ud.resetPassword(context, resetting, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY));
@@ -207,10 +207,11 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
         }
         return super.onKeyUp(keyCode, event);
     }
+
     @Override
     protected void onResume() {
         super.onResume();
-        if(Variables.COMMUNICATOR!=null){
+        if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
     }

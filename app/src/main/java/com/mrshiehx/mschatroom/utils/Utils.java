@@ -1,7 +1,6 @@
 package com.mrshiehx.mschatroom.utils;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -14,7 +13,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
@@ -50,25 +48,21 @@ import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -370,7 +364,6 @@ public class Utils {
     }
 
     public static int getVersionCode(Context context) {
-
         PackageManager pm = context.getPackageManager();
         try {
             PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
@@ -378,7 +371,6 @@ public class Utils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return 0;
 
     }
@@ -402,7 +394,7 @@ public class Utils {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
         //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN,true);
-        if (isFirstRun == true) {
+        if (isFirstRun) {
             switch (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
                 case Configuration.UI_MODE_NIGHT_YES:
                     PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").apply();
@@ -640,11 +632,9 @@ public class Utils {
     }
 
     public static boolean isEmail(String string) {
+        if (string == null) return false;
+        if (string.length() == 0) return false;
         return string.matches("^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]{2,24}$");
-        //return string.matches("\\\\w+([-+.]\\\\w+)*@\\\\w+([-.]\\\\w+)*\\\\.\\\\w+([-.]\\\\w+)*");
-        //return string.matches("^([a-z0-9A-Z]+[-|\\\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\\\.)+[a-zA-Z]{2,}$");
-        //return string.matches("^(\\w+((-\\w+)|(\\.\\w+))*)\\+\\w+((-\\w+)|(\\.\\w+))*\\@[A-Za-z0-9]+((\\.|-)[A-Za-z0-9]+)*\\.[A-Za-z0-9]+$");
-        //return string.matches("[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+");
     }
 
     public static String newRandomNumber(int length) {
@@ -662,10 +652,10 @@ public class Utils {
     public static boolean checkLoginInformationAndNetwork(final Context context) {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         if (!Utils.isNetworkConnected(context)) {
-            Toast.makeText(context, context.getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, context.getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
             return false;
         } else {
-            if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false) == false) {
+            if (!MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)) {
                 Utils.showDialog(context,
                         context.getResources().getString(R.string.dialog_title_notice),
                         context.getResources().getString(R.string.dialog_no_login_message),
@@ -680,58 +670,58 @@ public class Utils {
                 return false;
             } else {
                 final ProgressDialog loggingIn = new ProgressDialog(context);
-                int loginMethod = sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1);
-                if (loginMethod == 0) {
-                    String account = "";
-                    try {
-                        account = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                        password = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1];
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
-                    AccountUtils ud = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
-                    String accountE = null;
-                    String passwordE = null;
-                    try {
-                        accountE = EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY);
-                        passwordE = EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY);
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
-                    Boolean result = ud.login(context, loggingIn, AccountUtils.BY_ACCOUNT, accountE, passwordE);
-                    if (!result) {
-                        Utils.showDialog(context,
-                                context.getResources().getString(R.string.dialog_title_notice),
-                                context.getResources().getString(R.string.dialog_failed_login_insettings_message),
-                                context.getResources().getString(R.string.dialog_failed_login_insettings_button_gotologin_text),
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        LoginScreen.can_i_back = true;
-                                        Utils.startActivity(context, LoginScreen.class);
-                                    }
-                                });
-                        return false;
-                    } else {
-                        return true;
-                    }
+                String account = "";
+                try {
+                    account = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                    password = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1];
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeySpecException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                } catch (BadPaddingException e) {
+                    e.printStackTrace();
+                }
+                AccountUtils ud = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Utils.getAccountUtils();
+                String accountE = "";
+                String passwordE = "";
+                try {
+                    accountE = EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY);
+                    passwordE = EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY);
+                } catch (InvalidKeySpecException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                } catch (BadPaddingException e) {
+                    e.printStackTrace();
+                }
+                Boolean result = ud.login(context, loggingIn, AccountUtils.BY_ACCOUNT, accountE, passwordE);
+                if (!result) {
+                    Utils.showDialog(context,
+                            context.getResources().getString(R.string.dialog_title_notice),
+                            context.getResources().getString(R.string.dialog_failed_login_insettings_message),
+                            context.getResources().getString(R.string.dialog_failed_login_insettings_button_gotologin_text),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    LoginScreen.can_i_back = true;
+                                    Intent intent = new Intent(context, LoginScreen.class);
+                                    intent.putExtra("account", password);
+                                    context.startActivity(intent);
+                                }
+                            });
+                    return false;
                 } else {
+                    return true;
+                }
+                 /*else {
                     String email = "";
                     try {
                         email = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
@@ -747,9 +737,9 @@ public class Utils {
                     } catch (BadPaddingException e) {
                         e.printStackTrace();
                     }
-                    AccountUtils ud = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
-                    String emailE = null;
-                    String passwordE = null;
+                    AccountUtils ud = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*Variables.ACCOUNT_UTILS;
+                    String emailE = "";
+                    String passwordE = "";
                     try {
                         emailE = EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY);
                         passwordE = EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY);
@@ -774,7 +764,9 @@ public class Utils {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         LoginScreen.can_i_back = true;
-                                        Utils.startActivity(context, LoginScreen.class);
+                                        Intent intent=new Intent(context, LoginScreen.class);
+                                        intent.putExtra("account",password);
+                                        context.startActivity(intent);
                                     }
                                 });
                         return false;
@@ -782,6 +774,7 @@ public class Utils {
                         return true;
                     }
                 }
+            }*/
             }
         }
     }
@@ -798,7 +791,7 @@ public class Utils {
      * RETURN_INT = 0;
      * Toast.makeText(context, context.getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
      * } else {
-     * if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false) == false) {
+     * if (MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD) == false) {
      * RETURN_INT = 0;
      * Utils.showDialog(context,
      * context.getResources().getString(R.string.dialog_title_notice),
@@ -924,40 +917,17 @@ public class Utils {
         }
     }
 
-    public static String inputStream2String(InputStream inputStream, boolean switchLine) {
-        InputStreamReader inputStreamReader = null;
+
+    public static InputStream createNewUserInformation(String accountName, String accountGender, String accountWhatSUp) throws IOException {
+        JSONObject jsonObject = new JSONObject();
         try {
-            inputStreamReader = new InputStreamReader(inputStream, "utf-8");
-        } catch (UnsupportedEncodingException e1) {
-            e1.printStackTrace();
-        }
-        BufferedReader reader = new BufferedReader(inputStreamReader);
-        StringBuilder sb = new StringBuilder("");
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-                if (switchLine) {
-                    sb.append("\n");
-                }
-            }
-        } catch (IOException e) {
+            jsonObject.put("name", accountName);
+            jsonObject.put("gender", accountGender);
+            jsonObject.put("whatIsUp", accountWhatSUp);
+        } catch (JSONException e) {
             e.printStackTrace();
         }
-        return sb.toString();
-    }
-
-    public static InputStream replaceUserInformationContents(InputStream file, String accountName, String accountGender, String accountWhatSUp) throws IOException {
-        String content = inputStream2String(file, true);
-        //InputStream in = con.getInputStream();
-        //String content = IOUtils.toString(file, "UTF-8");
-        Map<String, String> m = new HashMap<>();
-        m.put("${ACCOUNT_NAME}", accountName);
-        m.put("${ACCOUNT_GENDER}", accountGender);
-        m.put("${ACCOUNT_WHATSUP}", accountWhatSUp);
-        String str = parse(content, m);
-        InputStream lastFile = new ByteArrayInputStream(str.getBytes("UTF-8"));
-        return lastFile;
+        return new ByteArrayInputStream(jsonObject.toString().getBytes("UTF-8"));
     }
 
     private static String parse(String content, Map<String, String> kvs) {
@@ -1062,20 +1032,18 @@ public class Utils {
      * @return 目录删除成功返回true，否则返回false
      */
     public static void deleteDirectoryContent(String filePath) {
-        //如果filePath不以文件分隔符结尾，自动添加文件分隔符
-        if (!filePath.endsWith(File.separator)) {
-            filePath = filePath + File.separator;
-        }
         File dirFile = new File(filePath);
         File[] files = dirFile.listFiles();
         //遍历删除文件夹下的所有文件(包括子目录)
-        for (int i = 0; i < files.length; i++) {
-            if (files[i].isFile()) {
-                //删除子文件
-                deleteFile(files[i].getAbsolutePath());
-            } else {
-                //删除子目录
-                deleteDirectory(files[i]);
+        if (files != null && files.length > 0) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    //删除子文件
+                    deleteFile(file.getAbsolutePath());
+                } else {
+                    //删除子目录
+                    deleteDirectory(file);
+                }
             }
         }
         //if (!flag) return false;
@@ -1154,7 +1122,7 @@ public class Utils {
             integers.add(item.getType());
         }
         int indexOf = integers.lastIndexOf(MessageItem.TYPE_TIME);
-        if(indexOf!=-1)
+        if (indexOf != -1)
             return list.get(indexOf).getContent();
         else
             return "";
@@ -1162,8 +1130,9 @@ public class Utils {
 
     /**
      * 格式化时间
-     * @throws Exception 防止出错
+     *
      * @return 格式化后的时间
+     * @throws Exception 防止出错
      */
     public static String formatTime(String timeYMDHM) throws Exception {
         String[] time = timeYMDHM.split(";");
@@ -1198,5 +1167,70 @@ public class Utils {
         } else {
             return null;
         }
+    }
+
+    public static AccountUtils getAccountUtils() {
+        if (Variables.ACCOUNT_UTILS == null) {
+            Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+        }
+        return Variables.ACCOUNT_UTILS;
+    }
+
+    /**
+     * @return did not has problem
+     */
+    public static boolean checkLoginStatus(Context context) {
+        SharedPreferences sharedPreferences = MSCRApplication.getSharedPreferences();
+        if (sharedPreferences.contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)) {
+            String s = sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, "");
+            if (!TextUtils.isEmpty(s)) {
+                try {
+                    String[] ss = EnDeCryptTextUtils.decrypt(s).split(Variables.SPLIT_SYMBOL);
+                    if (ss != null) {
+                        if (ss.length != 2) {
+                            showLoginStatusHasProblemDialog(context);
+                            return false;
+                        }
+                    } else {
+                        showLoginStatusHasProblemDialog(context);
+                        return false;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    showLoginStatusHasProblemDialog(context);
+                    return false;
+                }
+            } else {
+                showLoginStatusHasProblemDialog(context);
+                return false;
+            }
+        } else {
+            showLoginStatusHasProblemDialog(context);
+            return false;
+        }
+
+        return true;
+    }
+
+    public static AlertDialog showLoginStatusHasProblemDialog(Context context) {
+        return showLoginStatusHasProblemDialog(context, "");
+    }
+
+    public static AlertDialog showLoginStatusHasProblemDialog(Context context, String eoa) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setTitle(R.string.dialog_title_notice);
+        dialog.setMessage(R.string.dialog_login_status_has_problem_message);
+        dialog.setCancelable(false);
+        dialog.setPositiveButton(R.string.dialog_no_login_button_gotologin_text, (dialog1, which) -> {
+            Intent intent = new Intent(context, LoginScreen.class);
+            if (!TextUtils.isEmpty(eoa)) {
+                intent.putExtra("account", eoa);
+            }
+            context.startActivity(intent);
+        });
+        dialog.setNegativeButton(R.string.menu_main_exit, (dialog1, which) -> {
+
+        });
+        return dialog.show();
     }
 }

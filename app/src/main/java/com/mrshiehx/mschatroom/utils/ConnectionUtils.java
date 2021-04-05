@@ -1,6 +1,5 @@
 package com.mrshiehx.mschatroom.utils;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.util.Log;
@@ -16,11 +15,6 @@ import java.util.Properties;
 
 //MySQL连接工具类
 public class ConnectionUtils {
-    static String serverAddress;
-
-    public ConnectionUtils(String serverAddress) {
-        this.serverAddress = serverAddress;
-    }
 
     /*public static JdbcUtils getInstance(){
         if (instance ==null){
@@ -28,7 +22,7 @@ public class ConnectionUtils {
         }
         return instance;
     }*/
-    public Connection getConnection(String dbName, String name, String password) {
+    public static Connection getConnection(String serverAddress, String dbName, String name, String password) {
         try {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
             return DriverManager.getConnection("jdbc:mysql://" + serverAddress + "/" + dbName,
@@ -36,8 +30,8 @@ public class ConnectionUtils {
         } catch (Exception e) {
             Log.e(Variables.TAG, "failed to connection server");
             e.printStackTrace();
-            return null;
         }
+        return null;
     }
 
     public Connection getConnection(String file) {
@@ -60,8 +54,8 @@ public class ConnectionUtils {
         }
     }
 
-    public static ProgressDialog showConnectingDialog(Context context){
-        ProgressDialog dialog=new ProgressDialog(context);
+    public static ProgressDialog showConnectingDialog(Context context) {
+        ProgressDialog dialog = new ProgressDialog(context);
         dialog.setTitle(context.getString(R.string.dialog_title_wait));
         dialog.setMessage(context.getString(R.string.dialog_connecting_message));
         dialog.setCancelable(false);

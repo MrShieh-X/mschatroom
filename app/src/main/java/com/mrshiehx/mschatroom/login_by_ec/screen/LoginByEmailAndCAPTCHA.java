@@ -20,13 +20,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.mrshiehx.mschatroom.StartActivity;
 import com.mrshiehx.mschatroom.MSCRApplication;
-import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.CountDownTimerUtils;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
+import com.mrshiehx.mschatroom.utils.GetAccountUtils;
 import com.mrshiehx.mschatroom.utils.SendEmailUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
 
@@ -39,14 +40,15 @@ import javax.crypto.NoSuchPaddingException;
 
 //使用邮箱验证码登录
 public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
-    Context context=LoginByEmailAndCAPTCHA.this;
+    Context context = LoginByEmailAndCAPTCHA.this;
     public static boolean can_i_back;
     private long firstTime = 0;
-    AppCompatEditText input_email,input_captcha;
-    Button get_captcha,login;
-    String email,captcha,clean_password;
+    AppCompatEditText input_email, input_captcha;
+    Button get_captcha, login;
+    String email, captcha, clean_password;
     public CountDownTimerUtils mCountDownTimerUtils;
     ProgressDialog loggingIn;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         Utils.initialization(LoginByEmailAndCAPTCHA.this, R.string.activity_login_by_ec_screen_name);
@@ -56,10 +58,10 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         setContentView(R.layout.activity_login_by_ec);
-        input_email=findViewById(R.id.lbec_input_email);
-        input_captcha=findViewById(R.id.lbec_input_captcha);
-        get_captcha=findViewById(R.id.lbec_get_captcha);
-        login=findViewById(R.id.lbec_login);
+        input_email = findViewById(R.id.lbec_input_email);
+        input_captcha = findViewById(R.id.lbec_input_captcha);
+        get_captcha = findViewById(R.id.lbec_get_captcha);
+        login = findViewById(R.id.lbec_login);
 
         mCountDownTimerUtils = new CountDownTimerUtils(context, get_captcha, Variables.GET_CAPTCHA_TIME, 1000);
         if (!Utils.networkAvailableDialog(context)) {
@@ -79,10 +81,10 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                     //Get captcha
                     try {
                         get_captcha.setEnabled(false);
-                        SendEmailUtils sendEmail = new SendEmailUtils(input_email.getText().toString());
+                        SendEmailUtils sendEmail = new SendEmailUtils(input_email.getText().toString().toLowerCase());
                         sendEmail.sendCaptcha(captcha);
                         Snackbar.make(get_captcha, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show();
-                        email = input_email.getText().toString();
+                        email = input_email.getText().toString().toLowerCase();
                         input_email.setEnabled(false);
                         mCountDownTimerUtils.start();
                     } catch (Exception e) {
@@ -159,7 +161,7 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                     if (TextUtils.isEmpty(input_email.getText().toString()) || TextUtils.isEmpty(input_captcha.getText().toString())) {
                         Snackbar.make(login, getResources().getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
                     } else {
-                        loggingIn=new ProgressDialog(context);
+                        loggingIn = new ProgressDialog(context);
                         loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
                         loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
                         loggingIn.setCancelable(false);
@@ -171,7 +173,7 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                                     Looper.prepare();
                                     try {
                                         if (input_captcha.getText().toString().equals(captcha)) {
-                                            AccountUtils mysqlUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                                            AccountUtils mysqlUtils = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Utils.getAccountUtils();
                                             try {
                                                 clean_password = EnDeCryptTextUtils.decrypt(mysqlUtils.getStringNoThread(context, "password", AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
                                             } catch (InvalidKeySpecException e) {
@@ -194,9 +196,20 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                                                     //after login
                                                     try {
                                                         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-                                                        editor.putBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, true);
-                                                        editor.putInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 1);
-                                                        editor.putString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, EnDeCryptTextUtils.encrypt(email + Variables.SPLIT_SYMBOL + clean_password, Variables.TEXT_ENCRYPTION_KEY));
+                                                        //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, true);
+                                                        //editor.putInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0);
+                                                        editor.putString(
+                                                                Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD,
+                                                                EnDeCryptTextUtils.encrypt(
+                                                                        EnDeCryptTextUtils.decrypt(
+                                                                                GetAccountUtils.getAccount(
+                                                                                        Utils.getAccountUtils(),
+                                                                                        context,
+                                                                                        EnDeCryptTextUtils.encrypt(email.toLowerCase())))
+                                                                                + Variables.SPLIT_SYMBOL
+                                                                                + clean_password,
+                                                                        Variables.TEXT_ENCRYPTION_KEY));
+                                                        //editor.putString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, EnDeCryptTextUtils.encrypt(email + Variables.SPLIT_SYMBOL + clean_password, Variables.TEXT_ENCRYPTION_KEY));
                                                         editor.apply();
                                                     } catch (Exception e) {
                                                         e.printStackTrace();
@@ -205,7 +218,7 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                                                         //Looper.loop();
                                                     }
                                                     finish();
-                                                    Utils.startActivity(context, StartScreen.class);
+                                                    Utils.startActivity(context, StartActivity.class);
 
                                                 } else {
                                                     Snackbar.make(login, getResources().getString(R.string.toast_failed_login), Snackbar.LENGTH_SHORT).show();
@@ -227,14 +240,14 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                                             loggingIn.dismiss();
                                             Snackbar.make(login, getResources().getString(R.string.toast_captcha_incorrect), Snackbar.LENGTH_SHORT).show();
                                         }
-                                    }catch (Exception e){
+                                    } catch (Exception e) {
                                         loggingIn.dismiss();
-                                        Utils.exceptionDialog(context,e,getResources().getString(R.string.toast_failed_login));
+                                        Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_login));
                                     }
                                     Looper.loop();
                                 }
                             }).start();
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             loggingIn.dismiss();
                             e.printStackTrace();
                             Snackbar.make(login, getResources().getString(R.string.toast_failed_login), Snackbar.LENGTH_SHORT).show();
@@ -247,11 +260,6 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                 }
             }
         });
-
-
-
-
-
 
 
     }
@@ -289,10 +297,11 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
         }
         return super.onKeyUp(keyCode, event);
     }
+
     @Override
     protected void onResume() {
         super.onResume();
-        if(Variables.COMMUNICATOR!=null){
+        if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
     }

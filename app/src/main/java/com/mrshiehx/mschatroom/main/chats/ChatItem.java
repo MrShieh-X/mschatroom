@@ -14,37 +14,37 @@ public class ChatItem {
     private String latestMsgDate;
 
     public ChatItem(@NonNull String emailOrAccount, String name) {
-        this(emailOrAccount,name,null,null);
+        this(emailOrAccount, name, null, null);
     }
 
     public ChatItem(@NonNull String emailOrAccount, String name, String latestMsg, String latestMsgDate) {
         this.emailOrAccount = emailOrAccount;
         this.name = name;
-        this.latestMsg=latestMsg;
-        this.latestMsgDate=latestMsgDate;
+        this.latestMsg = latestMsg;
+        this.latestMsgDate = latestMsgDate;
     }
 
-    public String getEmailOrAccount(){
+    public String getEmailOrAccount() {
         return emailOrAccount;
     }
 
     public String getAvatarFilePAN() {
-        return new File(Utils.getDataFilesPath(MSCRApplication.getContext()),"chat_avatars"+File.separator+emailOrAccount).getAbsolutePath();
+        return new File(Utils.getDataFilesPath(MSCRApplication.getContext()), "chat_avatars" + File.separator + emailOrAccount).getAbsolutePath();
     }
 
     public String getName() {
         return name;
     }
 
-    public void setEmailOrAccount(String emailOrAccount){
-        this.emailOrAccount=emailOrAccount;
+    public void setEmailOrAccount(String emailOrAccount) {
+        this.emailOrAccount = emailOrAccount;
     }
 
-    public void setName(String name){
-        this.name=name;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getLatestMsg(){
+    public String getLatestMsg() {
         return latestMsg;
     }
 

@@ -1,6 +1,5 @@
 package com.mrshiehx.mschatroom.login.screen;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -26,15 +25,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.mrshiehx.mschatroom.LoadingScreen;
+import com.mrshiehx.mschatroom.StartActivity;
 import com.mrshiehx.mschatroom.MSCRApplication;
-import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.login_by_ec.screen.LoginByEmailAndCAPTCHA;
 import com.mrshiehx.mschatroom.reset_password.screen.ResetPasswordScreen1;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
+import com.mrshiehx.mschatroom.utils.GetAccountUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
 import com.mrshiehx.mschatroom.register.screen.RegisterScreen;
 
@@ -50,7 +49,7 @@ public class LoginScreen extends AppCompatActivity {
     //public TextInputLayout til_input_account,til_input_password;
     public AppCompatEditText input_account_or_email, input_password;
     public CheckBox remember_account_and_password, show_password;
-    public Button go_to_register, reset_password, login/*switch_login_mode*/,login_by_ec;
+    public Button go_to_register, reset_password, login/*switch_login_mode*/, login_by_ec;
     public static boolean can_i_back;
     public TextView input_content_empty;
     int loginMode;//0 is account, 1 is email
@@ -68,18 +67,16 @@ public class LoginScreen extends AppCompatActivity {
             } else {
                 //Login
                 input_content_empty.setVisibility(View.GONE);
-                if (Utils.isEmail(input_account_or_email.getText().toString())) {
+                if (Utils.isEmail(input_account_or_email.getText().toString().toLowerCase())) {
                     if (Utils.isNetworkConnected(context)) {
                         //if(sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED,false)==false) {
                         loggingIn = new ProgressDialog(context);
                         loginMode = 1;
                         //Login by email
-                        if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false) == true) {
+                        if (MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD) == true) {
                             Utils.showDialog(context, getResources().getString(R.string.dialog_title_notice), getResources().getString(R.string.dialog_relogin_message), getResources().getString(R.string.button_login), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    editor.remove(Variables.SHARED_PREFERENCE_LOGIN_METHOD);
-                                    editor.remove(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD);
                                     editor.remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD);
                                     editor.apply();
                                     loginByEmail();
@@ -100,12 +97,10 @@ public class LoginScreen extends AppCompatActivity {
                         loginMode = 0;
 
                         //Login by account
-                        if (sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false) == true) {
+                        if (MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD) == true) {
                             Utils.showDialog(context, getResources().getString(R.string.dialog_title_notice), getResources().getString(R.string.dialog_relogin_message), getResources().getString(R.string.button_login), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    editor.remove(Variables.SHARED_PREFERENCE_LOGIN_METHOD);
-                                    editor.remove(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD);
                                     editor.remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD);
                                     editor.apply();
                                     loginByAccount();
@@ -133,11 +128,11 @@ public class LoginScreen extends AppCompatActivity {
             public void run() {
                 Looper.prepare();
                 try {
-                    String email = input_account_or_email.getText().toString();
+                    String email = input_account_or_email.getText().toString().toLowerCase();
                     String password = input_password.getText().toString();
-                    AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                    String emailE = null;
-                    String passwordE = null;
+                    AccountUtils ud = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Utils.getAccountUtils();
+                    String emailE = "";
+                    String passwordE = "";
                     try {
                         emailE = EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY);
                         passwordE = EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY);
@@ -183,11 +178,11 @@ public class LoginScreen extends AppCompatActivity {
             public void run() {
                 Looper.prepare();
                 try {
-                    String account = input_account_or_email.getText().toString();
+                    String account = input_account_or_email.getText().toString().toLowerCase();
                     String password = input_password.getText().toString();
-                    AccountUtils ud = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                    String accountE = null;
-                    String passwordE = null;
+                    AccountUtils ud = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Utils.getAccountUtils();
+                    String accountE = "";
+                    String passwordE = "";
                     try {
                         accountE = EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY);
                         passwordE = EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY);
@@ -228,7 +223,7 @@ public class LoginScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_login);
-        if (can_i_back == true) {
+        if (can_i_back) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         //til_input_account=findViewById(R.id.til_input_account);
@@ -241,32 +236,12 @@ public class LoginScreen extends AppCompatActivity {
         reset_password = findViewById(R.id.go_to_reset_password);
         login = findViewById(R.id.login);
         input_content_empty = findViewById(R.id.input_content_empty);
-        login_by_ec=findViewById(R.id.login_by_emailandcaptcha);
+        login_by_ec = findViewById(R.id.login_by_emailandcaptcha);
         //switch_login_mode=findViewById(R.id.switch_login_mode);
         //loginMode=0;
         if (!Utils.networkAvailableDialog(context)) {
             login.setEnabled(false);
             login_by_ec.setEnabled(false);
-        }
-        final Intent intent=getIntent();
-        if(intent.getBooleanExtra("showSaveDialog",false)){
-            AlertDialog.Builder dialog_retry_connect_success = new AlertDialog.Builder(context);
-            dialog_retry_connect_success.setTitle(getString(R.string.dialog_title_notice));
-            dialog_retry_connect_success.setMessage(getString(R.string.dialog_retry_connect_success_message));
-            dialog_retry_connect_success.setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    String[] infos=intent.getStringArrayExtra("infos");
-                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_SERVER_ADDRESS,infos[0]);
-                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_DATABASE_NAME,infos[1]);
-                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_DATABASE_USER_NAME,infos[2]);
-                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_DATABASE_USER_PASSWORD,infos[3]);
-                    MSCRApplication.getSharedPreferences().edit().putString(Variables.SHARED_PREFERENCE_DATABASE_TABLE_NAME,infos[4]);
-                    MSCRApplication.getSharedPreferences().edit().apply();
-                }
-            });
-            dialog_retry_connect_success.setNegativeButton(getString(android.R.string.no), null);
-            dialog_retry_connect_success.show();
         }
 
         //input_password.setInputType(129);
@@ -343,31 +318,36 @@ public class LoginScreen extends AppCompatActivity {
         login_by_ec.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LoginByEmailAndCAPTCHA.can_i_back=true;
+                LoginByEmailAndCAPTCHA.can_i_back = true;
                 Utils.startActivity(context, LoginByEmailAndCAPTCHA.class);
             }
         });
+        Intent i = getIntent();
+        if (i != null) {
+            String a = i.getStringExtra("account");
+            if (!TextUtils.isEmpty(a)) {
+                input_account_or_email.setText(a);
+            }
+        }
     }
 
     void afterLogin() {
         try {
             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-            editor.putBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, true);
+            //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, true);
             editor.putBoolean(Variables.SHARED_PREFERENCE_IS_REMEMBER_EOA_AND_PASSWORD, remember_account_and_password.isChecked());
             /**
              * Login method
              * 0 is account
              * 1 is email
              */
-            if (Utils.isEmail(input_account_or_email.getText().toString()) == false) {
-                editor.putInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0);
-                editor.putString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, EnDeCryptTextUtils.encrypt(input_account_or_email.getText().toString() + Variables.SPLIT_SYMBOL + input_password.getText().toString(), Variables.TEXT_ENCRYPTION_KEY));
+            if (!Utils.isEmail(input_account_or_email.getText().toString().toLowerCase())) {
+                editor.putString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, EnDeCryptTextUtils.encrypt(input_account_or_email.getText().toString().toLowerCase() + Variables.SPLIT_SYMBOL + input_password.getText().toString(), Variables.TEXT_ENCRYPTION_KEY));
             } else {
-                editor.putInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 1);
-                editor.putString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, EnDeCryptTextUtils.encrypt(input_account_or_email.getText().toString() + Variables.SPLIT_SYMBOL + input_password.getText().toString(), Variables.TEXT_ENCRYPTION_KEY));
+                editor.putString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(GetAccountUtils.getAccount(Utils.getAccountUtils(), context, EnDeCryptTextUtils.encrypt(input_account_or_email.getText().toString().toLowerCase()))) + Variables.SPLIT_SYMBOL + input_password.getText().toString(), Variables.TEXT_ENCRYPTION_KEY));
             }
-            if (remember_account_and_password.isChecked() == true) {
-                editor.putString(Variables.SHARED_PREFERENCE_EMAIL_OR_ACCOUNT_AND_PASSWORD, EnDeCryptTextUtils.encrypt(input_account_or_email.getText().toString() + Variables.SPLIT_SYMBOL + input_password.getText().toString(), Variables.TEXT_ENCRYPTION_KEY));
+            if (remember_account_and_password.isChecked()) {
+                editor.putString(Variables.SHARED_PREFERENCE_EMAIL_OR_ACCOUNT_AND_PASSWORD, EnDeCryptTextUtils.encrypt(input_account_or_email.getText().toString().toLowerCase() + Variables.SPLIT_SYMBOL + input_password.getText().toString(), Variables.TEXT_ENCRYPTION_KEY));
             } else {
                 editor.remove(Variables.SHARED_PREFERENCE_IS_REMEMBER_EOA_AND_PASSWORD);
                 editor.remove(Variables.SHARED_PREFERENCE_EMAIL_OR_ACCOUNT_AND_PASSWORD);
@@ -378,7 +358,7 @@ public class LoginScreen extends AppCompatActivity {
             Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_to_save_data));
         }
         finish();
-        Utils.startActivity(context, LoadingScreen.class);
+        Utils.startActivity(context, StartActivity.class);
     }
 
 
@@ -419,7 +399,7 @@ public class LoginScreen extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(Variables.COMMUNICATOR!=null){
+        if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
     }

@@ -1,5 +1,11 @@
 # Update Logs
-Currently, the latest version is 1.0, which was updated on January 31, 2021.
+Currently, the latest version is 1.1, which was updated on April 5, 2021.
+
+## 1.1 (Apr. 5, 2021)
+- The dialog for setting server information has been deleted.
+- Removed Developer Options.
+- Solved the problem that the chat screen would not automatically slide down after receiving a message.
+- Fixed some issues.
 
 ## 1.0 (Jan. 31, 2021)
 - Added the chat function, chat notification function, offline messages storage function.

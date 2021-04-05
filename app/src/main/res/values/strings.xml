@@ -66,7 +66,7 @@
     <string name="aceterror_invalid_email">Invalid Email Address</string>
     <string name="aceterror_password_different">The two passwords entered are different.</string>
 
-    <string name="preference_settings_category_display_interface_title">Display Interface</string>
+    <string name="preference_settings_category_display_interface_title">Appearance</string>
     <string name="preference_settings_list_modify_theme_title">Theme</string>
     <string name="preference_settings_list_modify_theme_dialogtitle">Select a theme</string>
     <string name="preference_settings_list_modify_language_title">Language</string>
@@ -109,11 +109,11 @@
     <string name="preference_database_user_password_seted_summary">Password has been set</string>
     <string name="preference_database_table_name_title">Database Table Name</string>
     <string name="preference_database_table_name_summary">Please set the database table name</string>
-    <string name="preference_show_logs_in_loading_interface_title">Show Logs In Loading Interface</string>
-    <string name="preference_show_logs_in_loading_interface_summary">Show the loading log in loading interface</string>
+    <string name="preference_show_logs_in_loading_interface_title">Show Logs In Loading Screen</string>
+    <string name="preference_show_logs_in_loading_interface_summary">Show the loading log in loading screen</string>
     <string name="preference_settings_category_chat_title">Chat</string>
     <string name="preference_show_avatars_when_chatting_title">Show Avatars When Chatting</string>
-    <string name="preference_show_avatars_when_chatting_summary">Show each other\'s avatars on the chat interface</string>
+    <string name="preference_show_avatars_when_chatting_summary">Show each other\'s avatars on the chat screen</string>
     <string name="preference_settings_new_messages_notify_title">Notify when receive new messages</string>
     <string name="preference_settings_new_messages_notify_summary">Notify when you receive new messages</string>
     <string name="preference_server_port_title">Server Port</string>
@@ -192,7 +192,7 @@
     <string name="dialog_retry_connect_success_message">The re-entered server information is valid. Do you want to replace the original server information?</string>
     <string name="dialog_button_offline_mode_text">Offline Mode</string>
     <string name="dialog_set_server_information_button_retry_operations">More Operations</string>
-    <string name="dialog_loading_not_logged_in_button_gotomain_text">Go to main interface after loading chats</string>
+    <string name="dialog_loading_not_logged_in_button_gotomain_text">Go to main screen after loading chats</string>
     <string name="dialog_checking_updates_message">Checking for updates... (If it takes too long to check, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
     <string name="dialog_exception_failed_download_file">Failed to download file</string>
     <string name="dialog_exception_failed_download_files">Failed to download files</string>
@@ -204,9 +204,8 @@
     <string name="dialog_connecting_message">Connecting to the server... (If it takes too long to check, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
     <string name="dialog_delete_chat_message">Do you want to delete this chat?</string>
     <string name="dialog_exception_failed_to_load_chat">Failed to load the chat</string>
-    <string name="dialog_user_information_message">Gender: %1$s\n\n%2$s</string>
-    <string name="dialog_failed_connect_communication_server_message">Failed to connect to the communication server, please go to the Developer Options interface to modify the server address and port or try again</string>
-    <string name="dialog_failed_connect_communication_server_button_goto_developeroptions_text">Go to the Developer Options interface</string>
+    <string name="dialog_user_information_message">Account or Email Address: %1$s\n\nGender: %2$s\n\n%3$s</string>
+    <string name="dialog_login_status_has_problem_message">The login status is abnormal, please login again.</string>
 
     <string name="toast_captcha_incorrect">The CAPTCHA is incorrect</string>
     <string name="toast_registered_email">The email has been used, please change, after the change you must get CAPTCHA again</string>
@@ -259,11 +258,7 @@
     <string name="toast_successfully_delete_chat">Successfully to delete chat</string>
     <string name="toast_check_updates_isnew">The current version is the latest version</string>
     <string name="toast_failed_check_updates">Failed to check for updates</string>
-
-    <string name="toast_tip_set_name">Please set account nickname</string>
-    <string name="toast_tip_set_avatar">Please set account avatar</string>
-    <string name="toast_tip_set_gender">Please set gender</string>
-    <string name="toast_tip_set_whatsup">Please set what\'s up</string>
+    <string name="toast_add_chat_cannot_add_self">You cannot add yourself</string>
 
     <string name="input_information_tip">Please input server address, MySQL database name, user, password and table name(separate with &amp;)</string>
     <string name="input_information_login">Login</string>
@@ -289,7 +284,7 @@
     <string name="loadinglog_network_connected">Network is connected</string>
     <string name="loadinglog_preparing_server_information">Preparing server information</string>
     <string name="loadinglog_network_not_connected">Network not connected</string>
-    <string name="loadinglog_failed_connect_setinfo">Failed to connect to the server, please reset the server information</string>
+    <string name="loadinglog_failed_connect_setinfo">Failed to connect to the server</string>
     <string name="loadinglog_empty_content">The content cannot be empty, please re-enter</string>
     <string name="loadinglog_setinfo_success">Set server information successfully</string>
     <string name="loadinglog_start_connecting">Connecting to the server...</string>

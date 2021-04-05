@@ -4,9 +4,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.text.Editable;
@@ -18,31 +15,27 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ScrollView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
-import com.mrshiehx.mschatroom.LoadingScreen;
 import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.broadcast_receivers.NetworkStateReceiver;
+import com.mrshiehx.mschatroom.chat.Communicator;
 import com.mrshiehx.mschatroom.chat.message.MessageItem;
 import com.mrshiehx.mschatroom.chat.message.MessagesAdapter;
-import com.mrshiehx.mschatroom.main.chats.ChatItem;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.ConnectionUtils;
+import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.FileUtils;
+import com.mrshiehx.mschatroom.utils.GetAccountUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
 
 import org.apache.mina.core.session.IoSession;
@@ -50,24 +43,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLConnection;
-import java.text.SimpleDateFormat;
+import java.security.InvalidKeyException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 //聊天界面（临时）
 public class ChatScreen extends AppCompatActivity {
@@ -82,14 +67,13 @@ public class ChatScreen extends AppCompatActivity {
     File chatFile;
     List<MessageItem> messageItemList = new ArrayList<MessageItem>();
     boolean canContinueFromIntent;
-    boolean canSend;
     boolean canLogin;
 
     void send(String content) {
         if (!"".equals(content)) {
             if (Utils.isNetworkConnected(context)) {
                 //String content = input_chat_content.getText().toString();
-                if (MSCRApplication.getSharedPreferences().getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false)) {
+                if (MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)) {
                     if (canLogin) {
                         Time Time = new Time();
                         Time.setToNow();
@@ -281,15 +265,22 @@ public class ChatScreen extends AppCompatActivity {
         chatFile = new File(Utils.getDataFilesPath(context), "chats" + File.separator + eoaEncrypted + ".json");
         if (chatFile.exists()) {
             try {
-                messageItemList = new Gson().fromJson(FileUtils.getString(chatFile), new TypeToken<List<MessageItem>>() {
-                }.getType());
+                String content = FileUtils.getString(chatFile);
+                JSONArray messages = new JSONArray(content);
+                for (int i = 0; i < messages.length(); i++) {
+                    JSONObject object = messages.getJSONObject(i);
+                    MessageItem messageItem = new MessageItem(object.optString("c"), object.optInt("t"));
+                    messageItem.setTime(object.optString("s"));
+                    messageItemList.add(messageItem);
+                }
+
+                /*messageItemList = new Gson().fromJson(, new TypeToken<List<MessageItem>>() {
+                }.getType());*/
             } catch (Exception e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_load_chat));
             }
-        }/*else{
-            initMessages();
-        }*/
+        }
         adapter = new MessagesAdapter(context, messageItemList, new File(Utils.getDataFilesPath(context), "chat_avatars" + File.separator + eoaEncrypted).getAbsolutePath(), eoaEncrypted);
 
         recycler_view.setAdapter(adapter);
@@ -439,15 +430,14 @@ public class ChatScreen extends AppCompatActivity {
             public void run() {
                 Looper.prepare();
                 Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                canLogin = Utils.checkLoginInformationAndNetwork(context);
-                if (canLogin) {
-                    if (!TextUtils.isEmpty(input_chat_content.getText())) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                send.setEnabled(true);
-                            }
-                        });
+
+                if (Utils.checkLoginStatus(context)) {
+                    canLogin = Utils.checkLoginInformationAndNetwork(context);
+
+                    if (canLogin) {
+                        if (!TextUtils.isEmpty(input_chat_content.getText())) {
+                            runOnUiThread(() -> send.setEnabled(true));
+                        }
                     }
                 }
                 dialog.dismiss();
@@ -520,6 +510,34 @@ public class ChatScreen extends AppCompatActivity {
         super.onResume();
         if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
+        } else {
+            String c = "";
+            try {
+                c = EnDeCryptTextUtils.decrypt(eoaEncrypted);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (Utils.isEmail(c)) {
+                new Thread(() -> {
+                    String account = "";
+                    try {
+                        account = GetAccountUtils.getAccount(Utils.getAccountUtils(), context, eoaEncrypted);
+                        Variables.COMMUNICATOR = new Communicator(context, account, eoaEncrypted);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+            } else {
+                new Thread(() -> {
+                    String email = "";
+                    try {
+                        email = GetAccountUtils.getEmail(Utils.getAccountUtils(), context, eoaEncrypted);
+                        Variables.COMMUNICATOR = new Communicator(context, eoaEncrypted, email);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+            }
         }
     }
 
@@ -527,10 +545,13 @@ public class ChatScreen extends AppCompatActivity {
         try {
             JSONObject jsonObject = new JSONObject(message.toString());
             String fromEncrypted = jsonObject.optString("f");
-            if (fromEncrypted.equals(eoaEncrypted)) {
+            String[] array = GetAccountUtils.getAnotherIDAndSelf(Utils.getAccountUtils(), context, fromEncrypted);
+            if (fromEncrypted.equals(eoaEncrypted) || fromEncrypted.equals(array[0]) || fromEncrypted.equals(array[1])) {
                 messageItemList.add(new MessageItem(jsonObject.optString("c"), MessageItem.TYPE_RECEIVER));
-                adapter.notifyItemInserted(messageItemList.size());
-                recycler_view.scrollToPosition(messageItemList.size());
+                runOnUiThread(() -> {
+                    adapter.notifyItemInserted(messageItemList.size());
+                    recycler_view.scrollToPosition(messageItemList.size() - 1);
+                });
             }
         } catch (Exception e) {
             e.printStackTrace();

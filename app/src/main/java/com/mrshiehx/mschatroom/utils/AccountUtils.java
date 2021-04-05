@@ -23,37 +23,29 @@ import java.sql.Statement;
 
 //MySQL工具类
 public class AccountUtils {
-
-    ConnectionUtils jdbcUtil = new ConnectionUtils(Variables.SERVER_ADDRESS);
     Connection conn;
     public static final String BY_ACCOUNT = "account";
     public static final String BY_EMAIL = "email";
-    String dbName;
-    String dbUser;
-    String dbPassword;
     String dbTableName;
     String RETURN;
     InputStream inputStream = null;
     InputStream RETURN_INPUTSTREAM;
 
-    public AccountUtils(Connection connection, String dbTableName){
+    public AccountUtils(Connection connection, String dbTableName) {
         this.dbTableName = dbTableName;
-        conn=connection;
+        conn = connection;
     }
 
-    public AccountUtils(String dbName, String dbUser, String dbPassword, String dbTableName) {
-        this.dbName = dbName;
-        this.dbUser = dbUser;
-        this.dbPassword = dbPassword;
-        this.dbTableName = dbTableName;
-        conn = jdbcUtil.getConnection(dbName, dbUser, dbPassword);
+    public AccountUtils(String databaseName, String databaseUser, String databasePassword, String databaseTableName) {
+        this.dbTableName = databaseTableName;
+        conn = ConnectionUtils.getConnection(Variables.SERVER_ADDRESS, databaseName, databaseUser, databasePassword);
     }
 
     public String getEmailByAccountNoThread(Context context, String account) {
         if (conn == null) {
             Log.i(Variables.TAG, "getEmailByAccount:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
-            return null;
+            return "";
         } else {
             try {
                 ResultSet set = null;
@@ -66,7 +58,7 @@ public class AccountUtils {
             } catch (Exception e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
-                return null;
+                return "";
             }
         }
     }
@@ -76,7 +68,7 @@ public class AccountUtils {
         if (conn == null) {
             Log.i(Variables.TAG, "getAccountByEmail:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
-            return null;
+            return "";
         } else {
             try {
                 ResultSet set = null;
@@ -89,7 +81,7 @@ public class AccountUtils {
             } catch (Exception e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
-                return null;
+                return "";
             }
         }
     }
@@ -99,7 +91,7 @@ public class AccountUtils {
         if (conn == null) {
             Log.i(Variables.TAG, "getString:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
-            return null;
+            return "";
         } else {
             try {
                 ResultSet set = null;
@@ -112,7 +104,7 @@ public class AccountUtils {
             } catch (Exception e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
-                return null;
+                return "";
             }
         }
     }
@@ -139,6 +131,29 @@ public class AccountUtils {
         }
     }
 
+    public byte[] getBytesNoThread(Context context, String needToGet, String by, String byContent) {
+        if (conn == null) {
+            Log.i(Variables.TAG, "getBytes:conn is null");
+            Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
+            return null;
+        } else {
+            try {
+                ResultSet set = null;
+                PreparedStatement prepar = conn.prepareStatement("select * from " + dbTableName + " where " + by + "='" + byContent + "'");
+                set = prepar.executeQuery();
+                byte[] bytes = new byte[8192];
+                while (set.next()) {
+                    bytes = set.getBytes(needToGet);
+                }
+                return bytes;
+            } catch (Exception e) {
+                e.printStackTrace();
+                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                return null;
+            }
+        }
+    }
+
     public InputStream getAvatar(Context context, String by, String byContent, String password) {
         if (conn == null) {
             Log.i(Variables.TAG, "getInputStream:conn is null");
@@ -146,7 +161,7 @@ public class AccountUtils {
             return null;
         } else {
             try {
-                PreparedStatement prepar = conn.prepareStatement("select * from " + dbTableName + " where " + by + "='" + byContent + "' and password='"+password+"'");
+                PreparedStatement prepar = conn.prepareStatement("select * from " + dbTableName + " where " + by + "='" + byContent + "' and password='" + password + "'");
                 ResultSet set = prepar.executeQuery();
                 while (set.next()) {
                     RETURN_INPUTSTREAM = set.getBinaryStream("avatar");
@@ -161,7 +176,7 @@ public class AccountUtils {
     }
 
     public int register(Context context, ProgressDialog ingDialog, String email, String account, String password) throws IOException {
-        int s=registerNoThreadAndDialog(context,email,account,password);
+        int s = registerNoThreadAndDialog(context, email, account, password);
         ingDialog.dismiss();
         return s;
     }
@@ -178,8 +193,7 @@ public class AccountUtils {
                 pre.setString(1, email);
                 pre.setString(2, account);
                 pre.setString(3, password);
-                InputStream in = context.getResources().getAssets().open("userInformation.xml");
-                pre.setBinaryStream(4, Utils.replaceUserInformationContents(in, "", "", ""));
+                pre.setBinaryStream(4, Utils.createNewUserInformation("", "", ""));
                 pre.setBinaryStream(5, null);
                 pre.setBinaryStream(6, null);
                 return pre.executeUpdate();
@@ -192,7 +206,7 @@ public class AccountUtils {
     }
 
     public boolean login(Context context, ProgressDialog ingDialog, String loginMethod, String accountOrEmail, String password) {
-        boolean s=loginNoThreadAndDialog(context,loginMethod,accountOrEmail,password);
+        boolean s = loginNoThreadAndDialog(context, loginMethod, accountOrEmail, password);
         ingDialog.dismiss();
 
 
@@ -259,7 +273,7 @@ public class AccountUtils {
                 pres.setString(1, accountOrEmail);
                 ResultSet res = pres.executeQuery();
                 boolean t = res.next();
-                return t?1:0;
+                return t ? 1 : 0;
             } catch (SQLException e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
@@ -269,8 +283,8 @@ public class AccountUtils {
         }
     }
 
-    public int resetPassword(Context context,ProgressDialog ingDialog,String email,String newPassword){
-        int s=resetPasswordNoThreadAndDialog(context,email,newPassword);
+    public int resetPassword(Context context, ProgressDialog ingDialog, String email, String newPassword) {
+        int s = resetPasswordNoThreadAndDialog(context, email, newPassword);
         ingDialog.dismiss();
         return s;
     }
@@ -295,8 +309,8 @@ public class AccountUtils {
         }
     }
 
-    public InputStream getUserInformationNoThread(Context context, String email,String account, String password) {
-        PreparedStatement prepar = null;
+    public InputStream getUserInformationNoThread(Context context, String email, String account, String password) {
+        PreparedStatement prepar;
         if (conn == null) {
             Log.i(Variables.TAG, "getUserInformation:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -304,7 +318,7 @@ public class AccountUtils {
         } else {
             try {
                 ResultSet set;
-                prepar = conn.prepareStatement("select * from " + dbTableName + " where email='"+email+"' and account='"+account+"' and password='" + password + "'");
+                prepar = conn.prepareStatement("select * from " + dbTableName + " where email='" + email + "' and account='" + account + "' and password='" + password + "'");
                 set = prepar.executeQuery();
                 while (set.next()) {
                     inputStream = set.getBinaryStream("information");
@@ -319,8 +333,8 @@ public class AccountUtils {
         }
     }
 
-    public InputStream getUserInformationWithoutPasswordNoThread(Context context, String by,String byContent) {
-        PreparedStatement prepar = null;
+    public InputStream getUserInformationWithoutPasswordNoThread(Context context, String by, String byContent) {
+        PreparedStatement prepar;
         if (conn == null) {
             Log.i(Variables.TAG, "getUserInformationWithoutPassword:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -328,8 +342,9 @@ public class AccountUtils {
         } else {
             try {
                 ResultSet set;
-                prepar = conn.prepareStatement("select * from " + dbTableName + " where "+by+"='"+byContent+"'");
+                prepar = conn.prepareStatement("select * from " + dbTableName + " where " + by + "='" + byContent + "'");
                 set = prepar.executeQuery();
+                InputStream inputStream = null;
                 while (set.next()) {
                     inputStream = set.getBinaryStream("information");
                 }
@@ -343,20 +358,20 @@ public class AccountUtils {
         }
     }
 
-    public int uploadUserInformation(Context context, ProgressDialog ingDialog, String email, String account,String password, InputStream newUserInformation){
-        int s=uploadUserInformationNoThreadAndDialog(context,email,account,password,newUserInformation);
+    public int uploadUserInformation(Context context, ProgressDialog ingDialog, String email, String account, String password, InputStream newUserInformation) {
+        int s = uploadUserInformationNoThreadAndDialog(context, email, account, password, newUserInformation);
         ingDialog.dismiss();
         return s;
     }
 
-    public int uploadUserInformationNoThreadAndDialog(Context context, String email, String account,String password, InputStream newUserInformation) {
+    public int uploadUserInformationNoThreadAndDialog(Context context, String email, String account, String password, InputStream newUserInformation) {
         if (conn == null) {
             Log.i(Variables.TAG, "uploadUserInformation:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
             return 0;
         } else {
             try {
-                String sql = "update " + dbTableName + " set information=? where email='" +email+ "' and account='"+account+"' and password='"+password+"'";
+                String sql = "update " + dbTableName + " set information=? where email='" + email + "' and account='" + account + "' and password='" + password + "'";
                 PreparedStatement pre = conn.prepareStatement(sql);
                 pre.setBinaryStream(1, newUserInformation);
                 return pre.executeUpdate();
@@ -369,14 +384,14 @@ public class AccountUtils {
         }
     }
 
-    public int uploadAvatarNoThreadAndDialog(Context context , String email,String account,String password, InputStream newAvatar) {
+    public int uploadAvatarNoThreadAndDialog(Context context, String email, String account, String password, InputStream newAvatar) {
         if (conn == null) {
             Log.i(Variables.TAG, "uploadAvatar:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
             return 0;
         } else {
             try {
-                String sql = "update " + dbTableName + " set avatar=? where email='"+email+"' and account='"+account+"' and password='" + password + "'";
+                String sql = "update " + dbTableName + " set avatar=? where email='" + email + "' and account='" + account + "' and password='" + password + "'";
                 PreparedStatement pre = conn.prepareStatement(sql);
                 pre.setBinaryStream(1, newAvatar);
                 return pre.executeUpdate();
@@ -389,8 +404,8 @@ public class AccountUtils {
         }
     }
 
-    public int delectAccount(Context context, ProgressDialog ingDialog,String by, String byContent, String password){
-        int s=delectAccountNoThreadAndDialog(context,by,byContent,password);
+    public int delectAccount(Context context, ProgressDialog ingDialog, String by, String byContent, String password) {
+        int s = delectAccountNoThreadAndDialog(context, by, byContent, password);
         ingDialog.dismiss();
         return s;
     }
@@ -413,13 +428,13 @@ public class AccountUtils {
         }
     }
 
-    public boolean find(Context context,ProgressDialog ingDialog,String by,String byContent){
-        boolean s=findNoThreadAndDialog(context,by,byContent);
+    public boolean find(Context context, ProgressDialog ingDialog, String by, String byContent) {
+        boolean s = findNoThreadAndDialog(context, by, byContent);
         ingDialog.dismiss();
         return s;
     }
 
-    public boolean findNoThreadAndDialog(Context context, String by, String byContent){
+    public boolean findNoThreadAndDialog(Context context, String by, String byContent) {
         if (conn == null) {
             Log.i(Variables.TAG, "find:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -439,7 +454,7 @@ public class AccountUtils {
         }
     }
 
-    public Connection getConnection(){
+    public Connection getConnection() {
         return conn;
     }
 
@@ -450,7 +465,7 @@ public class AccountUtils {
             return 0;
         } else {
             try {
-                String sql = "update " + dbTableName + " set messages=? where "+by+"='"+byContent+"'";
+                String sql = "update " + dbTableName + " set messages=? where " + by + "='" + byContent + "'";
                 PreparedStatement pre = conn.prepareStatement(sql);
                 pre.setString(1, newMessages);
                 return pre.executeUpdate();
@@ -472,7 +487,7 @@ public class AccountUtils {
         } else {
             try {
                 Statement stmt = conn.createStatement();
-                String sql = "update " + dbTableName + " set "+needToSet+"='" + needToSetContent + "' where "+by+"='" + byContent + "'";
+                String sql = "update " + dbTableName + " set " + needToSet + "='" + needToSetContent + "' where " + by + "='" + byContent + "'";
                 return stmt.executeUpdate(sql);
             } catch (SQLException e) {
                 e.printStackTrace();

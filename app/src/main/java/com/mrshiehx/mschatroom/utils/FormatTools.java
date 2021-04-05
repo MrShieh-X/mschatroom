@@ -27,7 +27,6 @@ public class FormatTools {
     public static FormatTools getInstance() {
         if (tools == null) {
             tools = new FormatTools();
-            return tools;
         }
         return tools;
     }

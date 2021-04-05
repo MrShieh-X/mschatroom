@@ -21,54 +21,55 @@ public class NetworkStateReceiver extends BroadcastReceiver {
     public static final int TYPE_NONE = -1;
     public static final int TYPE_MOBILE = 0;
     public static final int TYPE_WIFI = 1;
-    int i=0;
+    int i = 0;
+
     @Override
     public void onReceive(Context context, Intent intent) {
         int netWorkStates = getNetWorkStates(context);
-        if (netWorkStates==TYPE_MOBILE||netWorkStates==TYPE_WIFI) {
-            if(context instanceof MainScreen){
-                ((Activity)context).setTitle(context.getString(R.string.app_name));
-                if(i!=0){
+        if (netWorkStates == TYPE_MOBILE || netWorkStates == TYPE_WIFI) {
+            if (context instanceof MainScreen) {
+                ((Activity) context).setTitle(context.getString(R.string.app_name));
+                if (i != 0) {
                     reload(context);
                 }
-            }else if(context instanceof SettingsScreen){
-                ((Activity)context).setTitle(context.getString(R.string.activity_settings_screen_name));
-                if(i!=0){
+            } else if (context instanceof SettingsScreen) {
+                ((Activity) context).setTitle(context.getString(R.string.activity_settings_screen_name));
+                if (i != 0) {
                     reload(context);
                 }
-            }else if(context instanceof ModifyUserInformationScreen){
-                ((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
-                ((ModifyUserInformationScreen)context).changeEnabledOfPreferencesOfEnabled(true);
-                if(i!=0){
+            } else if (context instanceof ModifyUserInformationScreen) {
+                ((Activity) context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
+                ((ModifyUserInformationScreen) context).changeEnabledOfPreferencesOfEnabled(true);
+                if (i != 0) {
                     reload(context);
                 }
-            }else if(context instanceof ChatScreen){
+            } else if (context instanceof ChatScreen) {
                 //((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
-                if(i!=0)
-                    ((ChatScreen)context).whenNetworkConnected();
+                if (i != 0)
+                    ((ChatScreen) context).whenNetworkConnected();
             }
-        }else{
-            if(context instanceof MainScreen){
-                ((Activity)context).setTitle(context.getString(R.string.activity_main_screen_offline_mode_name));
-            }else if(context instanceof SettingsScreen){
-                ((Activity)context).setTitle(context.getString(R.string.activity_settings_screen_offline_mode_name));
-            }else if(context instanceof ModifyUserInformationScreen){
-                ((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_offline_mode_name));
-                ((ModifyUserInformationScreen)context).changeEnabledOfPreferencesOfEnabled(false);
-            }else if(context instanceof ChatScreen){
+        } else {
+            if (context instanceof MainScreen) {
+                ((Activity) context).setTitle(context.getString(R.string.activity_main_screen_offline_mode_name));
+            } else if (context instanceof SettingsScreen) {
+                ((Activity) context).setTitle(context.getString(R.string.activity_settings_screen_offline_mode_name));
+            } else if (context instanceof ModifyUserInformationScreen) {
+                ((Activity) context).setTitle(context.getString(R.string.activity_modify_user_information_screen_offline_mode_name));
+                ((ModifyUserInformationScreen) context).changeEnabledOfPreferencesOfEnabled(false);
+            } else if (context instanceof ChatScreen) {
                 //((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
-                ((ChatScreen)context).whenNetworkUnconnected();
+                ((ChatScreen) context).whenNetworkUnconnected();
             }
         }
         i++;
     }
 
-    void reload(Context context){
-        final ProgressDialog dialog=ConnectionUtils.showConnectingDialog(context);
+    void reload(Context context) {
+        final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Variables.ACCOUNT_UTILS=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);
+                Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
                 dialog.dismiss();
             }
         }).start();

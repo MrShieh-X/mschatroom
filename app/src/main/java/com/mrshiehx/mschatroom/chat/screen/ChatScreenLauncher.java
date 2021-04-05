@@ -13,20 +13,21 @@ public class ChatScreenLauncher {
     String name;
     boolean canContinue;
     Intent intent;
-    public ChatScreenLauncher(Context context, @NonNull String targetUserAccountOrEmailEncrypted, @Nullable String name, boolean canContinue){
-        this.context=context;
-        this.targetUserAccountOrEmailEncrypted=targetUserAccountOrEmailEncrypted;
-        this.name=name;
-        this.canContinue=canContinue;
-        intent=new Intent(context,ChatScreen.class);
-        if(!TextUtils.isEmpty(name)) {
+
+    public ChatScreenLauncher(Context context, @NonNull String targetUserAccountOrEmailEncrypted, @Nullable String name, boolean canContinue) {
+        this.context = context;
+        this.targetUserAccountOrEmailEncrypted = targetUserAccountOrEmailEncrypted;
+        this.name = name;
+        this.canContinue = canContinue;
+        intent = new Intent(context, ChatScreen.class);
+        if (!TextUtils.isEmpty(name)) {
             intent.putExtra("name", name);
-            intent.putExtra("eoa",targetUserAccountOrEmailEncrypted);
-            intent.putExtra("canContinue",canContinue);
+            intent.putExtra("eoa", targetUserAccountOrEmailEncrypted);
+            intent.putExtra("canContinue", canContinue);
         }
     }
 
-    public void startChatScreen(){
+    public void startChatScreen() {
         context.startActivity(intent);
     }
 
@@ -38,7 +39,7 @@ public class ChatScreenLauncher {
         this.name = name;
     }
 
-    public Intent getIntent(){
+    public Intent getIntent() {
         return intent;
     }
 }

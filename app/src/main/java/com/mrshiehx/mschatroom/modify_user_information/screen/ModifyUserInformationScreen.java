@@ -4,26 +4,21 @@ import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Looper;
-import android.os.Message;
-import android.os.Parcelable;
 import android.preference.Preference;
-import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.text.InputFilter;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 import android.view.KeyEvent;
@@ -35,12 +30,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
 import com.mrshiehx.mschatroom.AccountInformation;
+import com.mrshiehx.mschatroom.StartActivity;
 import com.mrshiehx.mschatroom.MSCRApplication;
-import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.broadcast_receivers.NetworkStateReceiver;
@@ -49,9 +43,10 @@ import com.mrshiehx.mschatroom.preference.AppCompatPreferenceActivity;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.ConnectionUtils;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
+import com.mrshiehx.mschatroom.utils.FileUtils;
 import com.mrshiehx.mschatroom.utils.FormatTools;
 import com.mrshiehx.mschatroom.utils.Utils;
-import com.mrshiehx.mschatroom.utils.XMLUtils;
+import com.mrshiehx.mschatroom.utils.UserInformationUtils;
 import com.mrshiehx.mschatroom.xml.user_information.UserInformation;
 
 import java.io.ByteArrayInputStream;
@@ -64,9 +59,6 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -84,16 +76,13 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
     ProgressDialog uploading, gettingAvatar, loggingIn, verifying;
     public static String passwordEncrypted = null;
     String tempAvatarName = "temp_avatar.png";
-    InputStream avatarInputStream;
+    byte[] avatarBytes;
     boolean passwordCanUse;
-    InputStream informationFile;
+    byte[] informationFile;
     String accountNameContent;
     String accountGenderContent;
     String accountWhatSUpContent;
-    List<UserInformation> userInformationList = null;
-    int accountNameIndex = 0;
-    int accountGenderIndex = 1;
-    int accountWhatSUpIndex = 2;
+    UserInformation userInformationList = null;
     //boolean canLogin;
     int genderChoice;
     int nowGender = -1;
@@ -101,8 +90,8 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
     EditText nameET, whatsupET;
     String tNameET, tWhatsupET;
     String accountStringEncrypted, emailStringEncrypted;
-    public static int anInt=0;
     NetworkStateReceiver myReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Utils.initialization(this, R.string.activity_modify_user_information_screen_name);
@@ -124,7 +113,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
         itFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         registerReceiver(myReceiver, itFilter);
 
-        if (!Utils.networkAvailableDialog(context)) {
+        if (!Utils.isNetworkConnected(context)) {
             setTitle(getString(R.string.activity_modify_user_information_screen_offline_mode_name));
             //avatarP.setEnabled(false);
             //name.setEnabled(false);
@@ -133,14 +122,14 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
             delete_account.setEnabled(false);
             //account.setEnabled(false);
             //account_email.setEnabled(false);
-        }else{
+        } else {
             if (Variables.ACCOUNT_UTILS == null) {
                 final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         Looper.prepare();
-                        Connection connection = new ConnectionUtils(Variables.SERVER_ADDRESS).getConnection(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD);
+                        Connection connection = ConnectionUtils.getConnection(Variables.SERVER_ADDRESS, Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD);
                         if (connection == null) {
                             Toast.makeText(context, getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
                         } else {
@@ -194,68 +183,70 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
         loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
         loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
         loggingIn.setCancelable(false);
-        loggingIn.show();
         initAccountAndEmail();
         new Thread(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
-                if (Utils.checkLoginInformationAndNetwork(context)) {
-                    try {
-                        if (initPassword()) {
-                            initUserInformationFile();
-                            initUserInformationContents();
-                            initUserInformations();
-                        } else {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    delete_account.setEnabled(false);
-                                }
-                            });
-                        }
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    }
-
-                    initAvatar(true);
-                } else {
-                    initAvatar(false);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            delete_account.setEnabled(false);
-
-                            if (getGender().equals("male")) {
-                                nowGender = 0;
-                                genderChoice = 0;
-                                gender.setSummary(getString(R.string.preference_account_gender_male));
-                            } else if (getGender().equals("female")) {
-                                nowGender = 1;
-                                genderChoice = 1;
-                                gender.setSummary(getString(R.string.preference_account_gender_female));
+                if (Utils.checkLoginStatus(context)) {
+                    if (Utils.checkLoginInformationAndNetwork(context)) {
+                        runOnUiThread(() -> loggingIn.show());
+                        try {
+                            if (initPassword()) {
+                                initUserInformationFile();
+                                initUserInformationContents();
+                                initUserInformations();
                             } else {
-                                genderChoice = -1;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        delete_account.setEnabled(false);
+                                    }
+                                });
                             }
-                            if(!TextUtils.isEmpty(getNickname())){
-                                tNameET=getNickname().toString();
-                                name.setSummary(getNickname());
-                            }
-                            if(!TextUtils.isEmpty(getWhatsup())){
-                                tWhatsupET=getWhatsup().toString();
-                                whatsup.setSummary(getWhatsup());
-                            }
+                        } catch (IllegalBlockSizeException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchPaddingException e) {
+                            e.printStackTrace();
+                        } catch (BadPaddingException e) {
+                            e.printStackTrace();
+                        } catch (InvalidKeySpecException e) {
+                            e.printStackTrace();
+                        } catch (InvalidKeyException e) {
+                            e.printStackTrace();
                         }
-                    });
 
+                        initAvatar(true);
+                    } else {
+                        initAvatar(false);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                delete_account.setEnabled(false);
+
+                                if (getGender().equals("male")) {
+                                    nowGender = 0;
+                                    genderChoice = 0;
+                                    gender.setSummary(getString(R.string.preference_account_gender_male));
+                                } else if (getGender().equals("female")) {
+                                    nowGender = 1;
+                                    genderChoice = 1;
+                                    gender.setSummary(getString(R.string.preference_account_gender_female));
+                                } else {
+                                    genderChoice = -1;
+                                }
+                                if (!TextUtils.isEmpty(getNickname())) {
+                                    tNameET = getNickname().toString();
+                                    name.setSummary(getNickname());
+                                }
+                                if (!TextUtils.isEmpty(getWhatsup())) {
+                                    tWhatsupET = getWhatsup().toString();
+                                    whatsup.setSummary(getWhatsup());
+                                }
+                            }
+                        });
+
+                    }
                 }
                 loggingIn.dismiss();
                 Looper.loop();
@@ -294,45 +285,13 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                     public void onClick(DialogInterface dialogInterface, int which) {
                         switch (which) {
                             case 0:
-                                        if (avatarP.getIcon() != null) {
-                                            PictureViewerScreen.imageInputStream = /*avatarInputStream;*/FormatTools.getInstance().Drawable2InputStream(avatarP.getIcon());
-                                            startActivity(new Intent(context, PictureViewerScreen.class));
-
-                                            /*byte[] buffer = new byte[avatarInputStream.available()];
-                                            avatarInputStream.read(buffer);
-
-                                            File targetFile = new File(Utils.getDataCachePath(context),"avatar");
-                                            Utils.inputStream2File(avatarInputStream,targetFile);
-                                            Intent action = new Intent(Intent.ACTION_VIEW);
-                                            StringBuilder builder = new StringBuilder();
-                                            //Toast.makeText(context, targetFile.getPath(), Toast.LENGTH_SHORT).show();
-                                            builder.append("mscr://pv/view?localPath="+targetFile.getPath());
-                                            action.setData(Uri.parse(builder.toString()));
-                                            startActivity(action);*/
-
-
-                                            /*Intent intent = new Intent(context, PictureViewerScreen.class);
-
-                                            BytesItem bytesItem = new BytesItem();
-                                            bytesItem.setBytes(Utils.inputStream2ByteArray(avatarInputStream));
-                                            //inputStreamItem.setString("fuckfuckfuckfickficvkgucj");
-                                            Bundle mBundle = new Bundle();
-                                            mBundle.putSerializable("image", bytesItem);
-                                            intent.putExtras(mBundle);
-                                            startActivity(intent);
-*/
-                                            /*InputStreamItem inputStreamItem = new InputStreamItem();
-                                            inputStreamItem.setInputStream(avatarInputStream);
-                                            Intent intent = new Intent(context, PictureViewerScreen.class);
-                                            intent.putExtra("image", inputStreamItem);
-                                            startActivity(intent);
-                                            */
-                                        } else {
-                                            Toast.makeText(context, getString(R.string.toast_tip_set_avatar), Toast.LENGTH_SHORT).show();
-                                        }
+                                if (avatarP.getIcon() != null) {
+                                    PictureViewerScreen.imageInputStream = /*avatarBytes;*/FormatTools.getInstance().Drawable2InputStream(avatarP.getIcon());
+                                    startActivity(new Intent(context, PictureViewerScreen.class));
+                                }
                                 break;
                             case 1:
-                                if(Utils.isNetworkConnected(context)) {
+                                if (Utils.isNetworkConnected(context)) {
                                     AlertDialog.Builder dialog = new AlertDialog.Builder(context).setTitle(getResources().getString(R.string.dialog_choose_photo_title)).setMessage(getResources().getString(R.string.dialog_choose_photo_message)).setPositiveButton(getResources().getString(android.R.string.cancel), null).setNegativeButton(getResources().getString(R.string.dialog_choose_photo_button_select), new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
@@ -398,7 +357,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                         }
                                     });
                                     dialog.show();/*}*/
-                                }else{
+                                } else {
                                     Toast.makeText(context, getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
                                 }
                                 break;
@@ -421,7 +380,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, final int which) {
-                                if(Utils.isNetworkConnected(context)){
+                                if (Utils.isNetworkConnected(context)) {
 
                                     new Thread(new Runnable() {
                                         @Override
@@ -430,33 +389,46 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                             //int which2=which;
                                             if (genderChoice != -1) {
                                                 //Utils.dynamicModifyETSummary(whatsup,getResources().getString(R.string.preference_account_whatsup_summary));
-                                                if (Utils.checkLoginInformationAndNetwork(context)) {
-                                                    String gen = "male";
-                                                    if (which == 0) {
-                                                        gen = "male";
-                                                    } else if (which == 1) {
-                                                        gen = "female";
-                                                    }
-                                                    if (uploadInformation(accountNameContent, gen, accountWhatSUpContent) != 0) {
-                                                        if (which != -1) {
-                                                            accountGenderContent = gen;
-                                                            final int finalWhich = which;
-                                                            final String finalGen = gen;
-                                                            runOnUiThread(new Runnable() {
-                                                                @Override
-                                                                public void run() {
-                                                                    gender.setSummary(items[finalWhich]);
-                                                                    Variables.ACCOUNT_INFORMATION.setGender(finalGen);
-                                                                }
-                                                            });
+                                                if (Utils.checkLoginStatus(context)) {
+                                                    if (Utils.checkLoginInformationAndNetwork(context)) {
+                                                        String gen = "male";
+                                                        if (which == 0) {
+                                                            gen = "male";
+                                                        } else if (which == 1) {
+                                                            gen = "female";
+                                                        }
+                                                        if (uploadInformation(accountNameContent, gen, accountWhatSUpContent) != 0) {
+                                                            if (which != -1) {
+                                                                accountGenderContent = gen;
+                                                                final int finalWhich = which;
+                                                                final String finalGen = gen;
+                                                                runOnUiThread(new Runnable() {
+                                                                    @Override
+                                                                    public void run() {
+                                                                        gender.setSummary(items[finalWhich]);
+                                                                        Variables.ACCOUNT_INFORMATION.setGender(finalGen);
+                                                                    }
+                                                                });
+                                                            } else {
+                                                                runOnUiThread(new Runnable() {
+                                                                    @Override
+                                                                    public void run() {
+                                                                        gender.setSummary(getResources().getString(R.string.preference_account_gender_summary));
+                                                                    }
+                                                                });
+                                                            }
                                                         } else {
+                                                            //which = -1;
+                                                            nowGender = -1;
                                                             runOnUiThread(new Runnable() {
                                                                 @Override
                                                                 public void run() {
                                                                     gender.setSummary(getResources().getString(R.string.preference_account_gender_summary));
                                                                 }
                                                             });
+                                                            Toast.makeText(context, getResources().getString(R.string.toast_failed_to_modify_information), Toast.LENGTH_SHORT).show();
                                                         }
+
                                                     } else {
                                                         //which = -1;
                                                         nowGender = -1;
@@ -466,18 +438,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                                                 gender.setSummary(getResources().getString(R.string.preference_account_gender_summary));
                                                             }
                                                         });
-                                                        Toast.makeText(context, getResources().getString(R.string.toast_failed_to_modify_information), Toast.LENGTH_SHORT).show();
                                                     }
-
-                                                } else {
-                                                    //which = -1;
-                                                    nowGender = -1;
-                                                    runOnUiThread(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            gender.setSummary(getResources().getString(R.string.preference_account_gender_summary));
-                                                        }
-                                                    });
                                                 }
                                             }
                                             Looper.loop();
@@ -486,7 +447,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
 
                                     genderChoice = which;
                                     nowGender = which;
-                                }else{
+                                } else {
                                     Toast.makeText(context, getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
                                 }
 
@@ -500,52 +461,57 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 nameET = new EditText(context);
+                InputFilter[] filters = {new InputFilter.LengthFilter(32)};
+                nameET.setFilters(filters);
                 AlertDialog.Builder inputDialog = new AlertDialog.Builder(context).setTitle(getResources().getString(R.string.preference_account_name_title)).setView(nameET).setNegativeButton(context.getResources().getString(android.R.string.cancel), null).setPositiveButton(getResources().getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        if(Utils.isNetworkConnected(context)){
+                        if (Utils.isNetworkConnected(context)) {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
                                     Looper.prepare();
-                                    if (Utils.checkLoginInformationAndNetwork(context)) {
-                                        //if(!TextUtils.isEmpty(nameET.getText())&&!TextUtils.isEmpty(tNameET)) {
-                                        if (uploadInformation(nameET.getText().toString(), accountGenderContent, accountWhatSUpContent) != 0) {
-                                            accountNameContent = nameET.getText().toString();
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    name.setSummary(TextUtils.isEmpty(nameET.getText().toString())?getString(R.string.preference_account_name_summary):nameET.getText().toString());
-                                                }
-                                            });
-                                            tNameET = nameET.getText().toString();
-                                            Variables.ACCOUNT_INFORMATION.setNickname(tNameET);
+
+                                    if (Utils.checkLoginStatus(context)) {
+                                        if (Utils.checkLoginInformationAndNetwork(context)) {
+                                            //if(!TextUtils.isEmpty(nameET.getText())&&!TextUtils.isEmpty(tNameET)) {
+                                            if (uploadInformation(nameET.getText().toString(), accountGenderContent, accountWhatSUpContent) != 0) {
+                                                accountNameContent = nameET.getText().toString();
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        name.setSummary(TextUtils.isEmpty(nameET.getText().toString()) ? getString(R.string.preference_account_name_summary) : nameET.getText().toString());
+                                                    }
+                                                });
+                                                tNameET = nameET.getText().toString();
+                                                Variables.ACCOUNT_INFORMATION.setNickname(tNameET);
+                                            } else {
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        name.setSummary(getResources().getString(R.string.preference_account_name_summary));
+                                                    }
+                                                });
+                                                tNameET = "";
+                                                Toast.makeText(context, getResources().getString(R.string.toast_failed_to_modify_information), Toast.LENGTH_SHORT).show();
+                                            }
+                                            //}
                                         } else {
+                                            tNameET = "";
                                             runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
                                                     name.setSummary(getResources().getString(R.string.preference_account_name_summary));
                                                 }
                                             });
-                                            tNameET = null;
-                                            Toast.makeText(context, getResources().getString(R.string.toast_failed_to_modify_information), Toast.LENGTH_SHORT).show();
-                                        }
-                                        //}
-                                    } else {
-                                        tNameET = null;
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                name.setSummary(getResources().getString(R.string.preference_account_name_summary));
-                                            }
-                                        });
 
+                                        }
                                     }
                                     Looper.loop();
                                 }
                             }).start();
-                        }else{
+                        } else {
                             Toast.makeText(context, getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
                         }
 
@@ -562,54 +528,59 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 whatsupET = new EditText(context);
+                InputFilter[] filters = {new InputFilter.LengthFilter((int) Math.pow(2, 7))};
+                whatsupET.setFilters(filters);
                 AlertDialog.Builder inputDialog = new AlertDialog.Builder(context).setTitle(getResources().getString(R.string.preference_account_whatsup_title)).setView(whatsupET).setNegativeButton(context.getResources().getString(android.R.string.cancel), null).setPositiveButton(getResources().getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        if(Utils.isNetworkConnected(context)) {
+                        if (Utils.isNetworkConnected(context)) {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
                                     Looper.prepare();
-                                    if (Utils.checkLoginInformationAndNetwork(context)) {
 
-                                        //if(!TextUtils.isEmpty(whatsupET.getText())&&!TextUtils.isEmpty(tWhatsupET)) {
-                                        if (uploadInformation(accountNameContent, accountGenderContent, whatsupET.getText().toString()) != 0) {
-                                            accountWhatSUpContent = whatsupET.getText().toString();
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    whatsup.setSummary(TextUtils.isEmpty(whatsupET.getText().toString()) ? getString(R.string.preference_account_whatsup_summary) : whatsupET.getText().toString());
-                                                }
-                                            });
-                                            tWhatsupET = whatsupET.getText().toString();
-                                            Variables.ACCOUNT_INFORMATION.setWhatsup(tWhatsupET);
+                                    if (Utils.checkLoginStatus(context)) {
+                                        if (Utils.checkLoginInformationAndNetwork(context)) {
+
+                                            //if(!TextUtils.isEmpty(whatsupET.getText())&&!TextUtils.isEmpty(tWhatsupET)) {
+                                            if (uploadInformation(accountNameContent, accountGenderContent, whatsupET.getText().toString()) != 0) {
+                                                accountWhatSUpContent = whatsupET.getText().toString();
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        whatsup.setSummary(TextUtils.isEmpty(whatsupET.getText().toString()) ? getString(R.string.preference_account_whatsup_summary) : whatsupET.getText().toString());
+                                                    }
+                                                });
+                                                tWhatsupET = whatsupET.getText().toString();
+                                                Variables.ACCOUNT_INFORMATION.setWhatsup(tWhatsupET);
+                                            } else {
+                                                tWhatsupET = "";
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        whatsup.setSummary(getResources().getString(R.string.preference_account_whatsup_summary));
+                                                    }
+                                                });
+                                                Toast.makeText(context, getResources().getString(R.string.toast_failed_to_modify_information), Toast.LENGTH_SHORT).show();
+                                            }
+                                            // }
+
                                         } else {
-                                            tWhatsupET = null;
+                                            tWhatsupET = "";
                                             runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
                                                     whatsup.setSummary(getResources().getString(R.string.preference_account_whatsup_summary));
                                                 }
                                             });
-                                            Toast.makeText(context, getResources().getString(R.string.toast_failed_to_modify_information), Toast.LENGTH_SHORT).show();
+
                                         }
-                                        // }
-
-                                    } else {
-                                        tWhatsupET = null;
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                whatsup.setSummary(getResources().getString(R.string.preference_account_whatsup_summary));
-                                            }
-                                        });
-
                                     }
                                     Looper.loop();
                                 }
                             }).start();
-                        }else{
+                        } else {
                             Toast.makeText(context, getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -629,15 +600,16 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                     public void onClick(DialogInterface dialog, int which) {
 
                         final Thread thread;
-                        thread=new Thread(new Runnable() {
+                        thread = new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 Looper.prepare();
-                                if (Utils.checkLoginInformationAndNetwork(context)) {
-                                    //final AccountUtils au = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
-                                    final Boolean[] ok = new Boolean[1];
-                                    int loginMethod = MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1);
-                                    if (loginMethod == 0) {
+
+                                if (Utils.checkLoginStatus(context)) {
+                                    if (Utils.checkLoginInformationAndNetwork(context)) {
+                                        //final AccountUtils au = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
+
+                                        //if (loginMethod == 0) {
                                         String injmpw = "";
                                         try {
                                             injmpw = EnDeCryptTextUtils.encrypt(et.getText().toString(), Variables.TEXT_ENCRYPTION_KEY);
@@ -653,129 +625,127 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                                             e.printStackTrace();
                                         }
                                         String acoe = "";
-                                        if (loginMethod == 0) {
-                                            try {
-                                                acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                                            } catch (InvalidKeyException e) {
-                                                e.printStackTrace();
-                                            } catch (InvalidKeySpecException e) {
-                                                e.printStackTrace();
-                                            } catch (NoSuchPaddingException e) {
-                                                e.printStackTrace();
-                                            } catch (IllegalBlockSizeException e) {
-                                                e.printStackTrace();
-                                            } catch (BadPaddingException e) {
-                                                e.printStackTrace();
-                                            }
-                                        } else {
-                                            try {
-                                                acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                                            } catch (InvalidKeyException e) {
-                                                e.printStackTrace();
-                                            } catch (InvalidKeySpecException e) {
-                                                e.printStackTrace();
-                                            } catch (NoSuchPaddingException e) {
-                                                e.printStackTrace();
-                                            } catch (IllegalBlockSizeException e) {
-                                                e.printStackTrace();
-                                            } catch (BadPaddingException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
+                                        //if (loginMethod == 0) {
                                         try {
-                                            boolean var = Variables.ACCOUNT_UTILS.login(context, new ProgressDialog(context), AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(acoe, Variables.TEXT_ENCRYPTION_KEY), injmpw);
+                                            acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                                        } catch (InvalidKeyException e) {
+                                            e.printStackTrace();
+                                        } catch (InvalidKeySpecException e) {
+                                            e.printStackTrace();
+                                        } catch (NoSuchPaddingException e) {
+                                            e.printStackTrace();
+                                        } catch (IllegalBlockSizeException e) {
+                                            e.printStackTrace();
+                                        } catch (BadPaddingException e) {
+                                            e.printStackTrace();
+                                        }
+                                            /*} else {
+                                                try {
+                                                    acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                                                } catch (InvalidKeyException e) {
+                                                    e.printStackTrace();
+                                                } catch (InvalidKeySpecException e) {
+                                                    e.printStackTrace();
+                                                } catch (NoSuchPaddingException e) {
+                                                    e.printStackTrace();
+                                                } catch (IllegalBlockSizeException e) {
+                                                    e.printStackTrace();
+                                                } catch (BadPaddingException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }*/
+                                        try {
+                                            boolean var = Utils.getAccountUtils().login(context, new ProgressDialog(context), AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(acoe, Variables.TEXT_ENCRYPTION_KEY), injmpw);
                                             verifying.dismiss();
                                             if (var) {
                                                 showDeleteAccountDialog(et);
                                             } else {
-                                                if (loginMethod == 0) {
-                                                    Toast.makeText(context, getResources().getString(R.string.toast_account_or_password_incorrect), Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    Toast.makeText(context, getResources().getString(R.string.toast_email_or_password_incorrect), Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(context, getResources().getString(R.string.toast_account_or_password_incorrect), Toast.LENGTH_SHORT).show();
+                                            }
+                                        } catch (InvalidKeySpecException e) {
+                                            e.printStackTrace();
+                                        } catch (InvalidKeyException e) {
+                                            e.printStackTrace();
+                                        } catch (NoSuchPaddingException e) {
+                                            e.printStackTrace();
+                                        } catch (IllegalBlockSizeException e) {
+                                            e.printStackTrace();
+                                        } catch (BadPaddingException e) {
+                                            e.printStackTrace();
+                                        }
+
+
+                                        //}
+                                        /*else {
+                                            String injmpw = "";
+                                            try {
+                                                injmpw = EnDeCryptTextUtils.encrypt(et.getText().toString(), Variables.TEXT_ENCRYPTION_KEY);
+                                            } catch (InvalidKeySpecException e) {
+                                                e.printStackTrace();
+                                            } catch (InvalidKeyException e) {
+                                                e.printStackTrace();
+                                            } catch (NoSuchPaddingException e) {
+                                                e.printStackTrace();
+                                            } catch (IllegalBlockSizeException e) {
+                                                e.printStackTrace();
+                                            } catch (BadPaddingException e) {
+                                                e.printStackTrace();
+                                            }
+
+                                            String acoe = "";
+                                            if (loginMethod == 0) {
+                                                try {
+                                                    acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                                                } catch (InvalidKeyException e) {
+                                                    e.printStackTrace();
+                                                } catch (InvalidKeySpecException e) {
+                                                    e.printStackTrace();
+                                                } catch (NoSuchPaddingException e) {
+                                                    e.printStackTrace();
+                                                } catch (IllegalBlockSizeException e) {
+                                                    e.printStackTrace();
+                                                } catch (BadPaddingException e) {
+                                                    e.printStackTrace();
                                                 }
-                                            }
-                                        } catch (InvalidKeySpecException e) {
-                                            e.printStackTrace();
-                                        } catch (InvalidKeyException e) {
-                                            e.printStackTrace();
-                                        } catch (NoSuchPaddingException e) {
-                                            e.printStackTrace();
-                                        } catch (IllegalBlockSizeException e) {
-                                            e.printStackTrace();
-                                        } catch (BadPaddingException e) {
-                                            e.printStackTrace();
-                                        }
-
-
-                                    } else {
-                                        String injmpw = "";
-                                        try {
-                                            injmpw = EnDeCryptTextUtils.encrypt(et.getText().toString(), Variables.TEXT_ENCRYPTION_KEY);
-                                        } catch (InvalidKeySpecException e) {
-                                            e.printStackTrace();
-                                        } catch (InvalidKeyException e) {
-                                            e.printStackTrace();
-                                        } catch (NoSuchPaddingException e) {
-                                            e.printStackTrace();
-                                        } catch (IllegalBlockSizeException e) {
-                                            e.printStackTrace();
-                                        } catch (BadPaddingException e) {
-                                            e.printStackTrace();
-                                        }
-
-                                        String acoe = "";
-                                        if (loginMethod == 0) {
-                                            try {
-                                                acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                                            } catch (InvalidKeyException e) {
-                                                e.printStackTrace();
-                                            } catch (InvalidKeySpecException e) {
-                                                e.printStackTrace();
-                                            } catch (NoSuchPaddingException e) {
-                                                e.printStackTrace();
-                                            } catch (IllegalBlockSizeException e) {
-                                                e.printStackTrace();
-                                            } catch (BadPaddingException e) {
-                                                e.printStackTrace();
-                                            }
-                                        } else {
-                                            try {
-                                                acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                                            } catch (InvalidKeyException e) {
-                                                e.printStackTrace();
-                                            } catch (InvalidKeySpecException e) {
-                                                e.printStackTrace();
-                                            } catch (NoSuchPaddingException e) {
-                                                e.printStackTrace();
-                                            } catch (IllegalBlockSizeException e) {
-                                                e.printStackTrace();
-                                            } catch (BadPaddingException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                        try {
-                                            boolean var = Variables.ACCOUNT_UTILS.login(context, new ProgressDialog(context), AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(acoe, Variables.TEXT_ENCRYPTION_KEY), injmpw);
-                                            verifying.dismiss();
-                                            if (var) {
-                                                showDeleteAccountDialog(et);
                                             } else {
-                                                if (loginMethod == 0) {
-                                                    Toast.makeText(context, getResources().getString(R.string.toast_account_or_password_incorrect), Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    Toast.makeText(context, getResources().getString(R.string.toast_email_or_password_incorrect), Toast.LENGTH_SHORT).show();
+                                                try {
+                                                    acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                                                } catch (InvalidKeyException e) {
+                                                    e.printStackTrace();
+                                                } catch (InvalidKeySpecException e) {
+                                                    e.printStackTrace();
+                                                } catch (NoSuchPaddingException e) {
+                                                    e.printStackTrace();
+                                                } catch (IllegalBlockSizeException e) {
+                                                    e.printStackTrace();
+                                                } catch (BadPaddingException e) {
+                                                    e.printStackTrace();
                                                 }
                                             }
-                                        } catch (InvalidKeySpecException e) {
-                                            e.printStackTrace();
-                                        } catch (InvalidKeyException e) {
-                                            e.printStackTrace();
-                                        } catch (NoSuchPaddingException e) {
-                                            e.printStackTrace();
-                                        } catch (IllegalBlockSizeException e) {
-                                            e.printStackTrace();
-                                        } catch (BadPaddingException e) {
-                                            e.printStackTrace();
-                                        }
+                                            try {
+                                                boolean var = Variables.ACCOUNT_UTILS.login(context, new ProgressDialog(context), AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(acoe, Variables.TEXT_ENCRYPTION_KEY), injmpw);
+                                                verifying.dismiss();
+                                                if (var) {
+                                                    showDeleteAccountDialog(et);
+                                                } else {
+                                                    if (loginMethod == 0) {
+                                                        Toast.makeText(context, getResources().getString(R.string.toast_account_or_password_incorrect), Toast.LENGTH_SHORT).show();
+                                                    } else {
+                                                        Toast.makeText(context, getResources().getString(R.string.toast_email_or_password_incorrect), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            } catch (InvalidKeySpecException e) {
+                                                e.printStackTrace();
+                                            } catch (InvalidKeyException e) {
+                                                e.printStackTrace();
+                                            } catch (NoSuchPaddingException e) {
+                                                e.printStackTrace();
+                                            } catch (IllegalBlockSizeException e) {
+                                                e.printStackTrace();
+                                            } catch (BadPaddingException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }*/
                                     }
                                 }
                                 Looper.loop();
@@ -783,12 +753,6 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                         });
                         thread.start();
 
-                        /*verifying.setButton(getString(android.R.string.cancel),new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                thread.stop();
-                            }
-                        });*/
                         verifying.show();
 
                     }
@@ -803,9 +767,9 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
     }
 
     void initAccountAndEmail() {
-        accountStringEncrypted=getAccountEncrypted().toString();
-        emailStringEncrypted=getEmailEncrypted().toString();
-        if(!TextUtils.isEmpty(accountStringEncrypted)) {
+        accountStringEncrypted = getAccountEncrypted().toString();
+        emailStringEncrypted = getEmailEncrypted().toString();
+        if (!TextUtils.isEmpty(accountStringEncrypted)) {
             try {
                 account.setSummary(EnDeCryptTextUtils.decrypt(accountStringEncrypted, Variables.TEXT_ENCRYPTION_KEY));
             } catch (InvalidKeyException e) {
@@ -820,7 +784,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                 e.printStackTrace();
             }
         }
-        if(!TextUtils.isEmpty(emailStringEncrypted)) {
+        if (!TextUtils.isEmpty(emailStringEncrypted)) {
             try {
                 account_email.setSummary(EnDeCryptTextUtils.decrypt(emailStringEncrypted, Variables.TEXT_ENCRYPTION_KEY));
             } catch (InvalidKeyException e) {
@@ -837,248 +801,114 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
         }
 
 
-       /* int loginMethod = MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1);
-        if (loginMethod == 0) {
-            String accountClean = "";
-            try {
-                accountClean = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-            } catch (InvalidKeySpecException e) {
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                e.printStackTrace();
-            }
-            final String finalAccountClean = accountClean;
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    account.setSummary(finalAccountClean);
-                    accountString = finalAccountClean;
-                }
-            });
-            AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-            String emailClean = "";
-            try {
-                emailClean = EnDeCryptTextUtils.decrypt(accountUtils.getStringNoThread(context, "email", AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(accountClean, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            } catch (InvalidKeySpecException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                e.printStackTrace();
-            }
-            final String finalEmailClean = emailClean;
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    account_email.setSummary(finalEmailClean);
-                    emailString = finalEmailClean;
-                }
-            });
-        } else {
-            String emailClean = "";
-            try {
-                emailClean = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-            } catch (InvalidKeySpecException e) {
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                e.printStackTrace();
-            }
-            final String finalEmailClean = emailClean;
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    account_email.setSummary(finalEmailClean);
-                    emailString = finalEmailClean;
-                }
-            });
-            AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-            String accountClean = "";
-            try {
-                accountClean = EnDeCryptTextUtils.decrypt(accountUtils.getStringNoThread(context, "account", AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(emailClean, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            } catch (InvalidKeySpecException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                e.printStackTrace();
-            }
-            final String finalAccountClean = accountClean;
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    account.setSummary(finalAccountClean);
-                    accountString = finalAccountClean;
-                }
-            });
-        }*/
     }
 
     void showDeleteAccountDialog(final EditText et) {
-        AlertDialog.Builder dialog=new AlertDialog.Builder(context);
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
         final View dialogView = LayoutInflater.from(context)
-                .inflate(R.layout.checkbox_dialog,null);
+                .inflate(R.layout.checkbox_dialog, null);
         dialog.setView(dialogView);
         dialog.setTitle(getResources().getString(R.string.dialog_title_notice));
-        TextView textView=dialogView.findViewById(R.id.checkbox_dialog_message);
+        TextView textView = dialogView.findViewById(R.id.checkbox_dialog_message);
         textView.setText(getResources().getString(R.string.dialog_delete_account_message));
         final CheckBox checkBox = dialogView.findViewById(R.id.checkbox_dialog_checkbox);
         checkBox.setText(getString(R.string.dialog_logout_checkbox_text));
         checkBox.setChecked(true);
         dialog.setNegativeButton(context.getResources().getString(android.R.string.cancel), null);
         dialog.setPositiveButton(getResources().getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                final ProgressDialog deleting = new ProgressDialog(context);
+                deleting.setTitle(getResources().getString(R.string.dialog_title_wait));
+                deleting.setMessage(getResources().getString(R.string.dialog_deleting_message));
+                deleting.show();
+
+                new Thread(new Runnable() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        final ProgressDialog deleting = new ProgressDialog(context);
-                        deleting.setTitle(getResources().getString(R.string.dialog_title_wait));
-                        deleting.setMessage(getResources().getString(R.string.dialog_deleting_message));
-                        deleting.show();
-
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Looper.prepare();
-                                String injmpw = "";
-                                try {
-                                    injmpw = EnDeCryptTextUtils.encrypt(et.getText().toString(), Variables.TEXT_ENCRYPTION_KEY);
-                                } catch (InvalidKeySpecException e) {
-                                    e.printStackTrace();
-                                } catch (InvalidKeyException e) {
-                                    e.printStackTrace();
-                                } catch (NoSuchPaddingException e) {
-                                    e.printStackTrace();
-                                } catch (IllegalBlockSizeException e) {
-                                    e.printStackTrace();
-                                } catch (BadPaddingException e) {
-                                    e.printStackTrace();
-                                }
-                                String acoe = "";
-                                int loginMethod = MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1);
-                                if (loginMethod == 0) {
-                                    try {
-                                        acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                                    } catch (InvalidKeyException e) {
-                                        e.printStackTrace();
-                                    } catch (InvalidKeySpecException e) {
-                                        e.printStackTrace();
-                                    } catch (NoSuchPaddingException e) {
-                                        e.printStackTrace();
-                                    } catch (IllegalBlockSizeException e) {
-                                        e.printStackTrace();
-                                    } catch (BadPaddingException e) {
-                                        e.printStackTrace();
-                                    }
-                                } else {
-                                    try {
-                                        acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                                    } catch (InvalidKeyException e) {
-                                        e.printStackTrace();
-                                    } catch (InvalidKeySpecException e) {
-                                        e.printStackTrace();
-                                    } catch (NoSuchPaddingException e) {
-                                        e.printStackTrace();
-                                    } catch (IllegalBlockSizeException e) {
-                                        e.printStackTrace();
-                                    } catch (BadPaddingException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                AccountUtils au = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
-                                int sta = -1;
-                                if (loginMethod == 0) {
-                                    try {
-                                        sta = au.delectAccountNoThreadAndDialog(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(acoe, Variables.TEXT_ENCRYPTION_KEY), injmpw);
-                                    } catch (InvalidKeySpecException e) {
-                                        e.printStackTrace();
-                                    } catch (InvalidKeyException e) {
-                                        e.printStackTrace();
-                                    } catch (NoSuchPaddingException e) {
-                                        e.printStackTrace();
-                                    } catch (IllegalBlockSizeException e) {
-                                        e.printStackTrace();
-                                    } catch (BadPaddingException e) {
-                                        e.printStackTrace();
-                                    }
-                                } else {
-                                    try {
-                                        sta = au.delectAccountNoThreadAndDialog(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(acoe, Variables.TEXT_ENCRYPTION_KEY), injmpw);
-                                    } catch (InvalidKeySpecException e) {
-                                        e.printStackTrace();
-                                    } catch (InvalidKeyException e) {
-                                        e.printStackTrace();
-                                    } catch (NoSuchPaddingException e) {
-                                        e.printStackTrace();
-                                    } catch (IllegalBlockSizeException e) {
-                                        e.printStackTrace();
-                                    } catch (BadPaddingException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                deleting.dismiss();
-                                if (sta != 0) {
-                                    Toast.makeText(ModifyUserInformationScreen.this, getResources().getString(R.string.toast_successfully_deleted_account), Toast.LENGTH_SHORT).show();
-                                    MSCRApplication.getSharedPreferences()
-                                            .edit()
-                                            .remove(Variables.SHARED_PREFERENCE_IS_LOGINED)
-                                            .remove(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD)
-                                            .remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)
-                                            .remove(Variables.SHARED_PREFERENCE_LOGIN_METHOD)
-                                            .apply();
-                                    if(checkBox.isChecked()){
-                                        Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"chat_avatars"));
-                                        Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"chats"));
-                                        Utils.deleteDirectory(new File(Utils.getDataFilesPath(context),"information"));
-                                        File chatsFile=new File(Utils.getDataFilesPath(context),"chats.json");
-                                        chatsFile.delete();
-                                    }
-                                    File file;
-                                    if(MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD,-1)!=1){
-                                        //account
-                                        file = new File(Utils.getDataFilesPath(context), "avatar_" + getAccountEncrypted())/*EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0],Variables.TEXT_ENCRYPTION_KEY))*/;
-                                    }else{
-                                        //email
-                                        file = new File(Utils.getDataFilesPath(context), "avatar_" + getEmailEncrypted()/*EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0],Variables.TEXT_ENCRYPTION_KEY)*/);
-                                    }
-                                    if(file!=null&&file.exists()) {
-                                        file.delete();
-                                    }
-                                    if(Variables.COMMUNICATOR!=null){
-                                        try{
-                                            Variables.COMMUNICATOR.disConnect();
-                                        }catch (Exception e){
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                    finish();
-                                    Utils.startActivity(context, StartScreen.class);
-                                } else {
-                                    Toast.makeText(ModifyUserInformationScreen.this, getResources().getString(R.string.toast_failed_to_delete_account), Toast.LENGTH_SHORT).show();
-                                }
-                                Looper.loop();
+                    public void run() {
+                        Looper.prepare();
+                        String injmpw = "";
+                        try {
+                            injmpw = EnDeCryptTextUtils.encrypt(et.getText().toString(), Variables.TEXT_ENCRYPTION_KEY);
+                        } catch (InvalidKeySpecException e) {
+                            e.printStackTrace();
+                        } catch (InvalidKeyException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchPaddingException e) {
+                            e.printStackTrace();
+                        } catch (IllegalBlockSizeException e) {
+                            e.printStackTrace();
+                        } catch (BadPaddingException e) {
+                            e.printStackTrace();
+                        }
+                        String acoe = "";
+                        try {
+                            acoe = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                        } catch (InvalidKeyException e) {
+                            e.printStackTrace();
+                        } catch (InvalidKeySpecException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchPaddingException e) {
+                            e.printStackTrace();
+                        } catch (IllegalBlockSizeException e) {
+                            e.printStackTrace();
+                        } catch (BadPaddingException e) {
+                            e.printStackTrace();
+                        }
+                        AccountUtils au = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Utils.getAccountUtils();
+                        int sta = -1;
+                        try {
+                            sta = au.delectAccountNoThreadAndDialog(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(acoe, Variables.TEXT_ENCRYPTION_KEY), injmpw);
+                        } catch (InvalidKeySpecException e) {
+                            e.printStackTrace();
+                        } catch (InvalidKeyException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchPaddingException e) {
+                            e.printStackTrace();
+                        } catch (IllegalBlockSizeException e) {
+                            e.printStackTrace();
+                        } catch (BadPaddingException e) {
+                            e.printStackTrace();
+                        }
+                        deleting.dismiss();
+                        if (sta != 0) {
+                            Toast.makeText(ModifyUserInformationScreen.this, getResources().getString(R.string.toast_successfully_deleted_account), Toast.LENGTH_SHORT).show();
+                            MSCRApplication.getSharedPreferences()
+                                    .edit()
+                                    .remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)
+                                    .apply();
+                            if (checkBox.isChecked()) {
+                                Utils.deleteDirectory(new File(Utils.getDataFilesPath(context), "chat_avatars"));
+                                Utils.deleteDirectory(new File(Utils.getDataFilesPath(context), "chats"));
+                                Utils.deleteDirectory(new File(Utils.getDataFilesPath(context), "information"));
+                                File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+                                chatsFile.delete();
                             }
-                        }).start();
+                            File file;
+                            //account
+                            file = new File(Utils.getDataFilesPath(context), "avatar_" + getAccountEncrypted())/*EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0],Variables.TEXT_ENCRYPTION_KEY))*/;
 
+                            if (file != null && file.exists()) {
+                                file.delete();
+                            }
+                            if (Variables.COMMUNICATOR != null) {
+                                try {
+                                    Variables.COMMUNICATOR.disConnect();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            finish();
+                            Utils.startActivity(context, StartActivity.class);
+                        } else {
+                            Toast.makeText(ModifyUserInformationScreen.this, getResources().getString(R.string.toast_failed_to_delete_account), Toast.LENGTH_SHORT).show();
+                        }
+                        Looper.loop();
                     }
-                }).show();
+                }).start();
+
+            }
+        }).show();
     }
 
     public int uploadInformation(final String name, final String gender, final String whatSUp) {
@@ -1088,19 +918,17 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                 uploading.show();
             }
         });
-        InputStream in;
         InputStream newI = null;
         try {
-            in = getResources().getAssets().open("userInformation.xml");/*newI = Utils.replaceUserInformationContents(in, name, gender, whatSUp);*/
-            newI = Utils.replaceUserInformationContents(in, name, gender, whatSUp);
+            newI = Utils.createNewUserInformation(name, gender, whatSUp);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        AccountUtils accountUtils = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
+        AccountUtils accountUtils = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Utils.getAccountUtils();
         int s = accountUtils.uploadUserInformation(context, uploading, emailStringEncrypted, accountStringEncrypted, passwordEncrypted, newI);
 
         if (s != 0) {
-            Toast.makeText(context, getResources().getString(R.string.toast_successfully_to_upload_userinformation), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, getResources().getString(R.string.toast_successfully_to_upload_userinformation), Toast.LENGTH_SHORT).show();
             return s;
         } else {
             Toast.makeText(context, getResources().getString(R.string.toast_failed_to_upload_userinformation), Toast.LENGTH_SHORT).show();
@@ -1129,7 +957,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                     }
                 });/*Toast.makeText(context, "1", Toast.LENGTH_SHORT).show();*/
             } else {
-                Toast.makeText(context, getResources().getString(R.string.toast_tip_set_gender), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, getResources().getString(R.string.toast_tip_set_gender), Toast.LENGTH_SHORT).show();
                 nowGender = -1;
                 genderChoice = -1;
                 runOnUiThread(new Runnable() {
@@ -1140,7 +968,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                 });
             }
         } else {
-            Toast.makeText(context, getResources().getString(R.string.toast_tip_set_gender), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, getResources().getString(R.string.toast_tip_set_gender), Toast.LENGTH_SHORT).show();
             nowGender = -1;
             genderChoice = -1;
             runOnUiThread(new Runnable() {
@@ -1159,8 +987,8 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                 }
             });
         } else {
-            Toast.makeText(context, getResources().getString(R.string.toast_tip_set_name), Toast.LENGTH_SHORT).show();
-            tNameET = null;
+            //Toast.makeText(context, getResources().getString(R.string.toast_tip_set_name), Toast.LENGTH_SHORT).show();
+            tNameET = "";
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -1177,8 +1005,8 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                 }
             });
         } else {
-            Toast.makeText(context, getResources().getString(R.string.toast_tip_set_whatsup), Toast.LENGTH_SHORT).show();
-            tWhatsupET = null;
+            //Toast.makeText(context, getResources().getString(R.string.toast_tip_set_whatsup), Toast.LENGTH_SHORT).show();
+            tWhatsupET = "";
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -1189,7 +1017,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
     }
 
     public void initUserInformationFile() {
-        if (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) == 0) {
+        //if (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0) == 0) {
             /*String accountClean = "";
             try {
                 accountClean = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
@@ -1212,36 +1040,36 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                 }
             });
             accountString = finalAccountClean;*/
-            //AccountUtils accountUtils = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);*/Variables.ACCOUNT_UTILS;
-            //String emailClean = EnDeCryptTextUtils.decrypt(accountUtils.getStringNoThread(context, "email", AccountUtils.BY_ACCOUNT, accountStringEncrypted);
-            try {
-                //AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                informationFile = Variables.ACCOUNT_UTILS.getUserInformationNoThread(context, emailStringEncrypted, accountStringEncrypted, passwordEncrypted);
-            } catch (Exception e) {
-                Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_get_user_information));
-                e.printStackTrace();
-            }
-        } else {
-            //AccountUtils accountUtils = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
+        //AccountUtils accountUtils = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);*/Variables.ACCOUNT_UTILS;
+        //String emailClean = EnDeCryptTextUtils.decrypt(accountUtils.getStringNoThread(context, "email", AccountUtils.BY_ACCOUNT, accountStringEncrypted);
+        try {
             //AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-            try {
+            informationFile = Utils.getAccountUtils().getBytesNoThread(context, "information", AccountUtils.BY_ACCOUNT, accountStringEncrypted);
+        } catch (Exception e) {
+            Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_get_user_information));
+            e.printStackTrace();
+        }
+        //} else {
+        //AccountUtils accountUtils = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
+        //AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+         /*   try {
                 informationFile = Variables.ACCOUNT_UTILS.getUserInformationNoThread(context, emailStringEncrypted, accountStringEncrypted, passwordEncrypted);
             } catch (Exception e) {
                 Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_get_user_information));
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
     public void initUserInformationContents() {
         if (informationFile == null) {
             Toast.makeText(this, getResources().getString(R.string.toast_no_user_information), Toast.LENGTH_SHORT).show();
         } else {
-            userInformationList = XMLUtils.readXmlBySAX(informationFile);
+            userInformationList = UserInformationUtils.read(context, informationFile);
             if (userInformationList != null) {
-                accountNameContent = userInformationList.get(accountNameIndex).getNameContent();
-                accountGenderContent = userInformationList.get(accountGenderIndex).getGenderContent();
-                accountWhatSUpContent = userInformationList.get(accountWhatSUpIndex).getWhatsupContent();
+                accountNameContent = userInformationList.nameContent;
+                accountGenderContent = userInformationList.genderContent;
+                accountWhatSUpContent = userInformationList.whatsupContent;
             } else {
                 Toast.makeText(this, getResources().getString(R.string.toast_no_user_information), Toast.LENGTH_SHORT).show();
             }
@@ -1250,64 +1078,46 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
 
     void initAvatar(boolean connected) {
         //final AccountUtils au = Variables.ACCOUNT_UTILS;
-        if(connected) {
+        if (connected) {
             try {
-                int lm = MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1);
                 String by;
                 String byContent;
-                if (lm == 0) {
-                    by = AccountUtils.BY_ACCOUNT;
-                    byContent = getAccountEncrypted().toString();
-                } else {
-                    by = AccountUtils.BY_EMAIL;
-                    byContent = getEmailEncrypted().toString();
-                }
-                avatarInputStream = Variables.ACCOUNT_UTILS.getAvatar(context, by, byContent, passwordEncrypted);
-                //Utils.inputStream2File(nowGetAvatar,new File(Utils.getDataFilesPath(context), "avatar_" + (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) == 0 ? getAccountEncrypted() : getEmailEncrypted())));
+                by = AccountUtils.BY_ACCOUNT;
+                byContent = getAccountEncrypted().toString();
+                avatarBytes = Utils.getAccountUtils().getBytesNoThread(context, "avatar", by, byContent);
+                if (avatarBytes != null && avatarBytes.length != 0)
+                    FileUtils.bytes2File(avatarBytes, new File(Utils.getDataFilesPath(context), "avatar_" + getAccountEncrypted()));
             } catch (Exception e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_to_downloadavatar));
                 Toast.makeText(context, getResources().getString(R.string.toast_failed_to_downloadavatar), Toast.LENGTH_SHORT).show();
             }
 
-        }else{
+        } else {
             try {
-                avatarInputStream = new FileInputStream(new File(Utils.getDataFilesPath(context), "avatar_" + (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) == 0 ? getAccountEncrypted() : getEmailEncrypted())));
-            }catch(FileNotFoundException e){
+                avatarBytes = FileUtils.toByteArray(new File(Utils.getDataFilesPath(context), "avatar_" + getAccountEncrypted()));
+            } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(context, getString(R.string.dialog_exception_file_not_found), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, getString(R.string.dialog_exception_failed_to_read_file), Toast.LENGTH_SHORT).show();
             }
         }
         /*try {
-            avatarInputStream = new FileInputStream(new File(Utils.getDataFilesPath(context), "avatar_" + (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) == 0 ? getAccountEncrypted() : getEmailEncrypted())));
+            avatarBytes = new FileInputStream(new File(Utils.getDataFilesPath(context), "avatar_" + (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0) == 0 ? getAccountEncrypted() : getEmailEncrypted())));
         }catch(FileNotFoundException e){
             e.printStackTrace();
             Toast.makeText(context, getString(R.string.dialog_exception_file_not_found), Toast.LENGTH_SHORT).show();
         }*/
-        if (avatarInputStream != null) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    avatarP.setIcon(FormatTools.getInstance().InputStream2Drawable(avatarInputStream));
-                }
-            });
-        } else {
-            Toast.makeText(context, getResources().getString(R.string.toast_tip_set_avatar), Toast.LENGTH_SHORT).show();
+        if (avatarBytes != null) {
+            runOnUiThread(() -> avatarP.setIcon(FormatTools.getInstance().Bytes2Drawable(avatarBytes)));
         }
     }
 
     boolean initPassword() throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
-        if (MSCRApplication.getSharedPreferences().getBoolean(Variables.SHARED_PREFERENCE_IS_LOGINED, false)) {
-            if (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, -1) == 0) {
-                passwordEncrypted = EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1], Variables.TEXT_ENCRYPTION_KEY);
-                passwordCanUse = true;
-                return true;
-            } else {
-                passwordEncrypted = EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1], Variables.TEXT_ENCRYPTION_KEY);
-                passwordCanUse = true;
-                return true;
-            }
-        }else {
+        if (MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)) {
+            passwordEncrypted = EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1], Variables.TEXT_ENCRYPTION_KEY);
+            passwordCanUse = true;
+            return true;
+        } else {
             Toast.makeText(context, getResources().getString(R.string.toast_login_retry), Toast.LENGTH_SHORT).show();
             passwordCanUse = false;
             return false;
@@ -1323,19 +1133,21 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
                     @Override
                     public void run() {
                         Looper.prepare();
-                        if (resultCode == RESULT_OK && Utils.checkLoginInformationAndNetwork(context)) {
-                            try {
-                                avatarBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                                //*Drawable drawable = new BitmapDrawable(avatarBitmap); avatar.setIcon(drawable);*//*
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                avatarBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                                avatarIs = new ByteArrayInputStream(baos.toByteArray());
-                                uploadAvatar(avatarIs);
-                                File file = new File(Utils.getDataCachePath(context), tempAvatarName);
-                                file.delete();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                                Utils.exceptionDialog(context, e);
+                        if (Utils.checkLoginStatus(context)) {
+                            if (resultCode == RESULT_OK && Utils.checkLoginInformationAndNetwork(context)) {
+                                try {
+                                    avatarBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+                                    //*Drawable drawable = new BitmapDrawable(avatarBitmap); avatar.setIcon(drawable);*//*
+                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                    avatarBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                    avatarIs = new ByteArrayInputStream(baos.toByteArray());
+                                    uploadAvatar(avatarIs);
+                                    File file = new File(Utils.getDataCachePath(context), tempAvatarName);
+                                    file.delete();
+                                } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                    Utils.exceptionDialog(context, e);
+                                }
                             }
                         }
                         Looper.loop();
@@ -1344,25 +1156,21 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
 
                 break;
             case RC_CHOOSE_PHOTO:
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Looper.prepare();
-                        if (resultCode == RESULT_OK && Utils.checkLoginInformationAndNetwork(context)) { /* 判断手机系统版本号*/
-                            if (Build.VERSION.SDK_INT >= 19) {/* 4.4及以上系统使用这个方法处理图片*/
-                                handleImageOnKitKat(data);
-                            } else {/* 4.4以下系统使用这个方法处理图片*/
-                                handleImageBeforeKitKat(data);
-                            }
-
+                new Thread(() -> {
+                    Looper.prepare();
+                    if (resultCode == RESULT_OK && Utils.checkLoginInformationAndNetwork(context)) { /* 判断手机系统版本号*/
+                        if (Build.VERSION.SDK_INT >= 19) {/* 4.4及以上系统使用这个方法处理图片*/
+                            handleImageOnKitKat(data);
+                        } else {/* 4.4以下系统使用这个方法处理图片*/
+                            handleImageBeforeKitKat(data);
                         }
-                        /*Uri uri = data.getData(); String filePath = FileUtil.getFilePathByUri(this, uri); if (!TextUtils.isEmpty(filePath)) { RequestOptions requestOptions1 = new RequestOptions().skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE); //将照片显示在 ivImage上 Glide.with(this).load(filePath).apply(requestOptions1).into(ivImage); }*/
+                    }
+                    Looper.loop();
+                }).start();
+                /*Uri uri = data.getData(); String filePath = FileUtil.getFilePathByUri(this, uri); if (!TextUtils.isEmpty(filePath)) { RequestOptions requestOptions1 = new RequestOptions().skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE); //将照片显示在 ivImage上 Glide.with(this).load(filePath).apply(requestOptions1).into(ivImage); }*/
 
                         /*uploading.dismiss();
                         gettingAvatar.dismiss();*/
-                        Looper.loop();
-                    }
-                }).start();
                 break;
             default:
                 break;
@@ -1374,7 +1182,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
 
     @TargetApi(19)
     private void handleImageOnKitKat(Intent data) {
-        String imagePath = null;
+        String imagePath = "";
         Uri uri = data.getData();
         if (DocumentsContract.isDocumentUri(this, uri)) {/* 如果是document类型的Uri，则通过document id处理*/
             String docId = DocumentsContract.getDocumentId(uri);
@@ -1404,7 +1212,7 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
     }
 
     private String getImagePath(Uri uri, String selection) {
-        String path = null;/* 通过Uri和selection来获取真实的图片路径*/
+        String path = "";/* 通过Uri和selection来获取真实的图片路径*/
         Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
         if (cursor != null) {
             if (cursor.moveToFirst())
@@ -1416,59 +1224,36 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
 
     private void displayImage(String imagePath) {
         if (imagePath != null) {
-            Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-            avatarIs = FormatTools.getInstance().Bitmap2InputStream(bitmap);
-            uploadAvatar(avatarIs);
+            //Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+            try {
+                avatarIs = new FileInputStream(new File(imagePath));
+                uploadAvatar(avatarIs);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Utils.exceptionDialog(context, e);
+            }
         } else {
             Toast.makeText(this, getResources().getString(R.string.toast_failed_to_get_photo_from_album), Toast.LENGTH_SHORT).show();
         }
     }
 
     void uploadAvatar(InputStream avatarIs) {
-        //AccountUtils au = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Variables.ACCOUNT_UTILS;
         int status = 0;
         try {
             //status = au.uploadAvatar(context, uploading, EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY), avatarIs);
-            status = Variables.ACCOUNT_UTILS.uploadAvatarNoThreadAndDialog(context, emailStringEncrypted, accountStringEncrypted, passwordEncrypted, avatarIs);
-            //Variables.ACCOUNT_INFORMATION.setAvatar(avatarIs);
+            status = Utils.getAccountUtils().uploadAvatarNoThreadAndDialog(context, emailStringEncrypted, accountStringEncrypted, passwordEncrypted, avatarIs);
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(context, getResources().getString(R.string.toast_failed_to_changeavatar), Toast.LENGTH_SHORT).show();
             Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_to_changeavatar));
         }
-        //uploading.dismiss();
         if (status != 0) {
-                                        /*runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {*/
-            //avatarP.setIcon(FormatTools.getInstance().InputStream2Drawable(avatarIs));
-            //avatarP.setIcon(null);
-                                            /*}
-                                        });*/
             initAvatar(true);
             Toast.makeText(context, getResources().getString(R.string.toast_successfully_changed_avatar), Toast.LENGTH_SHORT).show();
-
-                                        /*try {
-                                            avatar = au2.getInputStream(context, "avatar", "password", EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY));
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    avatarP.setIcon(FormatTools.getInstance().InputStream2Drawable(avatar));
-                                                }
-                                            });
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                            Looper.prepare();
-                                            Toast.makeText(context, getResources().getString(R.string.toast_failed_to_downloadavatar), Toast.LENGTH_SHORT).show();
-                                            Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_failed_to_downloadavatar));
-                                            Looper.loop();
-                                        }*/
-            //initAvatar();
         } else {
             Toast.makeText(context, getResources().getString(R.string.toast_failed_to_changeavatar), Toast.LENGTH_SHORT).show();
         }
         uploading.dismiss();
-
     }
 
     @Override
@@ -1499,123 +1284,68 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
         super.onDestroy();
         unregisterReceiver(myReceiver);
     }
-    /*@Override
-    public void onSharedPreferenceChanged(MSCRApplication.getSharedPreferences() MSCRApplication.getSharedPreferences(), String key) {
 
-
-
-        initInformations();
-        if (key.equals(Variables.SHARED_PREFERENCE_ACCOUNT_NAME)) {
-            if(Utils.checkLoginInformationAndNetwork(context,false)) {
-                if(uploadInformation(name.getText(),accountGenderContent,accountWhatSUpContent)!=0) {
-                    Utils.dynamicModifyETSummary(name, getResources().getString(R.string.preference_account_name_summary));
-                }else{
-                    name.setText(null);
-                    name.setSummary(getResources().getString(R.string.preference_account_name_summary));
-                    Toast.makeText(context, getResources().getString(R.string.toast_failed_to_modify_information), Toast.LENGTH_SHORT).show();
-                }
-            }else{
-                name.setText(null);
-                name.setSummary(getResources().getString(R.string.preference_account_name_summary));
-            }
-        }
-        if (key.equals(Variables.SHARED_PREFERENCE_ACCOUNT_WHATSUP)) {
-            //Utils.dynamicModifyETSummary(whatsup,getResources().getString(R.string.preference_account_whatsup_summary));
-            if(Utils.checkLoginInformationAndNetwork(context,false)) {
-                if(uploadInformation(accountNameContent,accountGenderContent,whatsup.getText())!=0) {
-                    Utils.dynamicModifyETSummary(whatsup, getResources().getString(R.string.preference_account_whatsup_summary));
-                }else{
-                    whatsup.setText(null);
-                    whatsup.setSummary(getResources().getString(R.string.preference_account_whatsup_summary));
-                    Toast.makeText(context, getResources().getString(R.string.toast_failed_to_modify_information), Toast.LENGTH_SHORT).show();
-                }
-            }else{
-                whatsup.setText(null);
-                whatsup.setSummary(getResources().getString(R.string.preference_account_whatsup_summary));
-            }
-        }
-        if (key.equals(Variables.SHARED_PREFERENCE_ACCOUNT_GENDER)) {
-            //Utils.dynamicModifyListSummary(gender,getResources().getString(R.string.preference_account_gender_summary));
-            if (key.equals(Variables.SHARED_PREFERENCE_ACCOUNT_GENDER)) {
-                //Utils.dynamicModifyETSummary(whatsup,getResources().getString(R.string.preference_account_whatsup_summary));
-                if(Utils.checkLoginInformationAndNetwork(context,false)) {
-                    if(uploadInformation(accountNameContent,gender.getValue(),accountWhatSUpContent)!=0) {
-                        Utils.dynamicModifyListSummary(gender, getResources().getString(R.string.preference_account_gender_summary));
-                    }else{
-                        gender.setValue(null);
-                        gender.setSummary(getResources().getString(R.string.preference_account_gender_summary));
-                        Toast.makeText(context, getResources().getString(R.string.toast_failed_to_modify_information), Toast.LENGTH_SHORT).show();
-                    }
-                }else{
-                    gender.setValue(null);
-                    gender.setSummary(getResources().getString(R.string.preference_account_gender_summary));
-                }
-            }
-        }
-        //initInformations();
-    }*/
-
-    public void changeEnabledOfPreferencesOfEnabled(boolean enabled){
+    public void changeEnabledOfPreferencesOfEnabled(boolean enabled) {
         delete_account.setEnabled(enabled);
     }
 
 
-    AccountInformation getAccountInformation(){
+    AccountInformation getAccountInformation() {
         return Variables.ACCOUNT_INFORMATION;
     }
 
-    CharSequence getAccountEncrypted(){
-        if(getAccountInformation()!=null)
+    CharSequence getAccountEncrypted() {
+        if (getAccountInformation() != null)
             return getAccountInformation().getAccountE();
-        return null;
+        return "";
     }
 
-    CharSequence getEmailEncrypted(){
-        if(getAccountInformation()!=null)
+    CharSequence getEmailEncrypted() {
+        if (getAccountInformation() != null)
             return getAccountInformation().getEmailE();
-        return null;
+        return "";
     }
 
-    boolean isNetworkConnected(){
-        if(getAccountInformation()!=null)
+    boolean isNetworkConnected() {
+        if (getAccountInformation() != null)
             return getAccountInformation().isNetworkConnected();
         return false;
     }
-    boolean isCanLogin(){
-        if(getAccountInformation()!=null)
+
+    boolean isCanLogin() {
+        if (getAccountInformation() != null)
             return getAccountInformation().isCanLogin();
         return false;
     }
-    boolean isLogined(){
-        if(getAccountInformation()!=null)
+
+    boolean isLogined() {
+        if (getAccountInformation() != null)
             return getAccountInformation().isLogined();
         return false;
     }
 
-    CharSequence getNickname(){
-        if(getAccountInformation()!=null)
+    CharSequence getNickname() {
+        if (getAccountInformation() != null)
             return getAccountInformation().getNickname();
-        return null;
+        return "";
     }
-    CharSequence getWhatsup(){
-        if(getAccountInformation()!=null)
+
+    CharSequence getWhatsup() {
+        if (getAccountInformation() != null)
             return getAccountInformation().getWhatsup();
-        return null;
+        return "";
     }
-    CharSequence getGender(){
-        if(getAccountInformation()!=null)
+
+    CharSequence getGender() {
+        if (getAccountInformation() != null)
             return getAccountInformation().getGender();
-        return null;
+        return "";
     }
-    /*InputStream getAvatar(){
-        if(getAccountInformation()!=null)
-            return getAccountInformation().getAvatar();
-        return null;
-    }*/
+
     @Override
     protected void onResume() {
         super.onResume();
-        if(Variables.COMMUNICATOR!=null){
+        if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
     }

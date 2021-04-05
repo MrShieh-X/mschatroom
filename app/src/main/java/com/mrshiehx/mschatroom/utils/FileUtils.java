@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,8 +11,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +38,10 @@ public class FileUtils {
         }
         return false;
     }
+
     /**
      * 遍历文件夹下的文件
+     *
      * @param file 地址
      */
     public static List<File> getFile(File file) {
@@ -58,8 +60,10 @@ public class FileUtils {
         }
         return list;
     }
+
     /**
      * 删除文件
+     *
      * @param target 目标文件
      * @return
      */
@@ -76,10 +80,12 @@ public class FileUtils {
         }
         return true;
     }
+
     /**
      * 向文件中添加内容
+     *
      * @param strcontent 内容
-     * @param subfile   目标文件
+     * @param subfile    目标文件
      */
     public static void writeToFile(String strcontent, File subfile) {
         //生成文件夹之后，再生成文件，不然会出错
@@ -97,8 +103,10 @@ public class FileUtils {
             e.printStackTrace();
         }
     }
+
     /**
      * 修改文件内容（覆盖或者添加）
+     *
      * @param file    目标文件
      * @param content 覆盖内容
      * @param append  指定了写入的方式，是覆盖写还是追加写(true=追加)(false=覆盖)
@@ -110,42 +118,18 @@ public class FileUtils {
         writer.flush();
         writer.close();
     }
+
     /**
      * 读取文件内容
+     *
      * @param target 目标File对象
      * @return 返回文件内容
-     *
      */
-    public static String getString(File target) throws Exception {
-        /*FileInputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(target);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        InputStreamReader inputStreamReader = null;
-        try {
-            inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
-        } catch (UnsupportedEncodingException e1) {
-            e1.printStackTrace();
-        }
-        BufferedReader reader = new BufferedReader(inputStreamReader);
-        StringBuffer sb = new StringBuffer("");
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-                sb.append("\n");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return sb.toString();*/
-        return getStringNoException(target);
+    public static String getString(File target) throws IOException {
+        return getString(new FileInputStream(target));
     }
 
-    public static String getStringNoException(File target) throws IOException{
-        FileInputStream inputStream = new FileInputStream(target);
+    public static String getString(InputStream inputStream) throws IOException {
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
         BufferedReader reader = new BufferedReader(inputStreamReader);
         StringBuffer sb = new StringBuffer();
@@ -159,8 +143,37 @@ public class FileUtils {
         reader.close();
         return sb.toString();
     }
+
+
+    public static String readFileByBytes(InputStream in) throws IOException {
+        byte[] tempbytes = new byte[100];
+        int byteread = 0;
+        // 读入多个字节到字节数组中，byteread为一次读入的字节数
+        StringBuilder builder = new StringBuilder();
+        while ((byteread = in.read(tempbytes)) != -1) {
+            builder.append(new String(tempbytes));
+        }
+        in.close();
+        return builder.toString();
+    }
+
+    public static byte[] toByteArray(File file) throws IOException {
+        FileChannel fc = new RandomAccessFile(file, "r").getChannel();
+        MappedByteBuffer byteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0,
+                fc.size()).load();
+        //System.out.println(byteBuffer.isLoaded());
+        byte[] result = new byte[(int) fc.size()];
+        if (byteBuffer.remaining() > 0) {
+            // System.out.println("remain");
+            byteBuffer.get(result, 0, byteBuffer.remaining());
+        }
+        fc.close();
+        return result;
+    }
+
     /**
      * 重命名文件
+     *
      * @param oldPath 原来的文件地址
      * @param newPath 新的文件地址
      */
@@ -176,33 +189,35 @@ public class FileUtils {
      * @param toFile   要粘贴的文件目录
      * @return 是否复制成功
      */
-    /**public static boolean copy(String fromFile, String toFile) {
-        //要复制的文件目录
-        File[] currentFiles;
-        File root = new File(fromFile);
-        //如同判断SD卡是否存在或者文件是否存在
-        //如果不存在则 return出去
-        if (!root.exists()) {
-            return false;
-        }
-        //如果存在则获取当前目录下的全部文件 填充数组
-        currentFiles = root.listFiles();
-        //目标目录
-        File targetDir = new File(toFile);
-        //创建目录
-        if (!targetDir.exists()) {
-            targetDir.mkdirs();
-        }
-        //遍历要复制该目录下的全部文件
-        for (int i = 0; i < currentFiles.length; i++) {
-            if (currentFiles[i].isDirectory()) {//如果当前项为子目录 进行递归
-                copy(currentFiles[i].getPath() + "/", toFile + currentFiles[i].getName() + "/");
-            } else {//如果当前项为文件则进行文件拷贝
-                CopySdcardFile(currentFiles[i].getPath(), toFile + currentFiles[i].getName());
-            }
-        }
-        return true;
-    }*/
+    /**
+     * public static boolean copy(String fromFile, String toFile) {
+     * //要复制的文件目录
+     * File[] currentFiles;
+     * File root = new File(fromFile);
+     * //如同判断SD卡是否存在或者文件是否存在
+     * //如果不存在则 return出去
+     * if (!root.exists()) {
+     * return false;
+     * }
+     * //如果存在则获取当前目录下的全部文件 填充数组
+     * currentFiles = root.listFiles();
+     * //目标目录
+     * File targetDir = new File(toFile);
+     * //创建目录
+     * if (!targetDir.exists()) {
+     * targetDir.mkdirs();
+     * }
+     * //遍历要复制该目录下的全部文件
+     * for (int i = 0; i < currentFiles.length; i++) {
+     * if (currentFiles[i].isDirectory()) {//如果当前项为子目录 进行递归
+     * copy(currentFiles[i].getPath() + "/", toFile + currentFiles[i].getName() + "/");
+     * } else {//如果当前项为文件则进行文件拷贝
+     * CopySdcardFile(currentFiles[i].getPath(), toFile + currentFiles[i].getName());
+     * }
+     * }
+     * return true;
+     * }
+     */
     //文件拷贝
 //要复制的目录下的所有非子目录(文件夹)文件拷贝
     public static boolean copySdcardFile(String fromFile, String toFile) {
@@ -221,7 +236,6 @@ public class FileUtils {
             return false;
         }
     }
-
 
 
     public static long getFolderSize(File file) throws Exception {
@@ -281,6 +295,11 @@ public class FileUtils {
                 + "TB";
     }
 
-
+    public static void bytes2File(byte[] bytes, File file) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        fileOutputStream.write(bytes, 0, bytes.length);
+        fileOutputStream.flush();
+        fileOutputStream.close();
+    }
 
 }

@@ -15,8 +15,9 @@ import android.widget.ImageView;
 
 /**
  * 能缩放的ImageView
- * @from https://www.jianshu.com/p/7ce081a1bbf9
+ *
  * @author 简书（https://www.jianshu.com）@xiasuhuei321（https://www.jianshu.com/u/e1fed0fb341b）
+ * @from https://www.jianshu.com/p/7ce081a1bbf9
  */
 public class PictureViewerImageView extends ImageView implements View.OnTouchListener, ScaleGestureDetector.OnScaleGestureListener,
         ViewTreeObserver.OnGlobalLayoutListener {

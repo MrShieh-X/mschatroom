@@ -15,19 +15,15 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
-import android.webkit.MimeTypeMap;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.mrshiehx.mschatroom.R;
-import com.mrshiehx.mschatroom.StartScreen;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.utils.FormatTools;
 import com.mrshiehx.mschatroom.utils.Utils;
@@ -41,20 +37,21 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class PictureViewerScreen extends Activity {
-    Context context=PictureViewerScreen.this;
+    Context context = PictureViewerScreen.this;
     //Button back;
     PictureViewerImageView image;
     //private View contentViewGroup;
     boolean ps;
-    String[] permissions=StartScreen.permissions;
+    String[] permissions = Variables.PERMISSIONS;
     AlertDialog.Builder dialog_no_permissions;
     AlertDialog dialog2;
     String contentType;
     String content;
     public static InputStream imageInputStream;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        Utils.initialization(PictureViewerScreen.this,R.string.activity_picture_viewer_name, android.R.style.Theme_DeviceDefault,android.R.style.Theme_DeviceDefault);
+        Utils.initialization(PictureViewerScreen.this, R.string.activity_picture_viewer_name, android.R.style.Theme_DeviceDefault, android.R.style.Theme_DeviceDefault);
         super.onCreate(savedInstanceState);
         getActionBar().setDisplayHomeAsUpEnabled(true);
         LinearLayout mainLayout = new LinearLayout(this);
@@ -65,20 +62,8 @@ public class PictureViewerScreen extends Activity {
         mainLayout.setLayoutParams(llp);
         mainLayout.addView(image);
         setContentView(mainLayout);
-        //setContentView(R.layout.activity_picture_viewer);
-        //back=findViewById(R.id.back);
-        //image=findViewById(R.id.main_image);
-        //setStatusBarFullTransparent();
-        //setFitSystemWindow(false);
-        //setFitSystemWindow(true);
-        /*back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });*/
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ps = shouldShowRequestPermissionRationale(StartScreen.permissions[0]);
+            ps = shouldShowRequestPermissionRationale(Variables.PERMISSIONS[0]);
         }
         //InputStreamItem inputStream = (InputStreamItem) getIntent().getSerializableExtra("image");
         /**
@@ -95,9 +80,9 @@ public class PictureViewerScreen extends Activity {
 
 
                 if (contentType.equals("localPath")) {
-                    int WRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(getApplicationContext(), StartScreen.permissions[0]);
-                    int INTERNET = ContextCompat.checkSelfPermission(getApplicationContext(), StartScreen.permissions[1]);
-                    int ACCESS_NETWORK_STATE = ContextCompat.checkSelfPermission(getApplicationContext(), StartScreen.permissions[2]);
+                    int WRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(getApplicationContext(), Variables.PERMISSIONS[0]);
+                    int INTERNET = ContextCompat.checkSelfPermission(getApplicationContext(), Variables.PERMISSIONS[1]);
+                    int ACCESS_NETWORK_STATE = ContextCompat.checkSelfPermission(getApplicationContext(), Variables.PERMISSIONS[2]);
                     // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
                     if (WRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED || INTERNET != PackageManager.PERMISSION_GRANTED || ACCESS_NETWORK_STATE != PackageManager.PERMISSION_GRANTED) {
                         // 如果没有授予该权限，就去提示用户请求
@@ -109,58 +94,43 @@ public class PictureViewerScreen extends Activity {
                     method02(content);
                 } else {
                     Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
-                    //Utils.showLongSnackbar(image,getString(R.string.toast_picture_viewer_nothing));
                 }
 
 
             } else if (uri != null) {
-                String qianzhui="file://";
-                if (uri.toString().startsWith(qianzhui)){
-                    //Toast.makeText(context, "117", Toast.LENGTH_SHORT).show();
+                String qianzhui = "file://";
+                if (uri.toString().startsWith(qianzhui)) {
                     try {
-                        //InputStream inputStream=new FileInputStream(uri.toString().substring(/*7*/qianzhui.length()));
-                        //Toast.makeText(context, "120", Toast.LENGTH_SHORT).show();
                         image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(getContentResolver().openInputStream(uri)));
-                        //Toast.makeText(context, "122", Toast.LENGTH_SHORT).show();
                     } catch (FileNotFoundException e) {
-                        //Toast.makeText(context, "124", Toast.LENGTH_SHORT).show();
                         e.printStackTrace();
                         Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_load_image));
                     }
-                }else{
-                    //Toast.makeText(context, "126", Toast.LENGTH_SHORT).show();
+                } else {
                     Toast.makeText(context, getString(R.string.dialog_exception_failed_to_load_image), Toast.LENGTH_SHORT).show();
                 }
             } else {
-                //Toast.makeText(context, "130", Toast.LENGTH_SHORT).show();
                 Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
             }
         } else {
-            //Toast.makeText(context, "139", Toast.LENGTH_SHORT).show();
             try {
-                //Toast.makeText(context, "117", Toast.LENGTH_SHORT).show();
-                //Toast.makeText(context, imageInputStream.toString(), Toast.LENGTH_SHORT).show();
                 image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(imageInputStream));
-
-                //Toast.makeText(context, "139", Toast.LENGTH_SHORT).show();
-                //Toast.makeText(context, "120", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_load_image));
-                //Toast.makeText(context, "124", Toast.LENGTH_SHORT).show();
             }
-            //Toast.makeText(context, "126", Toast.LENGTH_SHORT).show();
         }
 
     }
 
     private void startRequestPermission() {
-        if(!ps) {
-            ActivityCompat.requestPermissions(this, StartScreen.permissions, 321);
-        }else{
+        if (!ps) {
+            ActivityCompat.requestPermissions(this, Variables.PERMISSIONS, 321);
+        } else {
             showDialogTipUserGoToAppSettting();
         }
     }
+
     /**
      * 用户权限 申请 的回调方法
      *
@@ -184,9 +154,9 @@ public class PictureViewerScreen extends Activity {
                     }
                 } else {
 
-                    if(contentType.equals("localPath")){
+                    if (contentType.equals("localPath")) {
                         method01(content);
-                    } else{
+                    } else {
                         Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
                         //Utils.showLongSnackbar(image,getString(R.string.toast_picture_viewer_nothing));
                     }
@@ -196,6 +166,7 @@ public class PictureViewerScreen extends Activity {
 
 
     }
+
     private void showDialogTipUserGoToAppSettting() {
         dialog_no_permissions = new AlertDialog.Builder(this);
         dialog_no_permissions.setTitle(getString(R.string.dialog_no_permissions_title)/*"存储权限不可用"*/)
@@ -207,7 +178,7 @@ public class PictureViewerScreen extends Activity {
                         goToAppSetting();
                     }
                 }).setNegativeButton(getString(android.R.string.cancel), null).setCancelable(false);
-        dialog2=dialog_no_permissions.show();
+        dialog2 = dialog_no_permissions.show();
     }
 
     @Override
@@ -223,13 +194,13 @@ public class PictureViewerScreen extends Activity {
                     // 提示用户应该去应用设置界面手动开启权限
                     showDialogTipUserGoToAppSettting();
                 } else {
-                    if (dialog2 != null&&dialog2.isShowing()) {
+                    if (dialog2 != null && dialog2.isShowing()) {
                         dialog2.dismiss();
                     }
 
-                    if(contentType.equals("localPath")){
+                    if (contentType.equals("localPath")) {
                         method01(content);
-                    } else{
+                    } else {
                         Toast.makeText(context, getString(R.string.toast_picture_viewer_nothing), Toast.LENGTH_SHORT).show();
                         //Utils.showLongSnackbar(image,getString(R.string.toast_picture_viewer_nothing));
                     }
@@ -237,6 +208,7 @@ public class PictureViewerScreen extends Activity {
             }
         }
     }
+
     private void goToAppSetting() {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -244,26 +216,28 @@ public class PictureViewerScreen extends Activity {
         intent.setData(uri);
         startActivityForResult(intent, 123);
     }
+
     void method01(final String content) {
-        File file=new File(content);
-        if(file.exists()){
+        File file = new File(content);
+        if (file.exists()) {
             try {
                 InputStream is = new FileInputStream(file);
                 image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(is));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context,e,getString(R.string.dialog_exception_failed_to_read_file));
+                Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_read_file));
                 Toast.makeText(context, getString(R.string.dialog_exception_failed_to_read_file), Toast.LENGTH_SHORT).show();
                 //Utils.showLongSnackbar(image,getString(R.string.dialog_exception_failed_to_read_file));
             }
 
-        }else{
+        } else {
             Toast.makeText(context, getString(R.string.dialog_exception_file_not_found), Toast.LENGTH_SHORT).show();
             //Utils.showLongSnackbar(image,getString(R.string.dialog_exception_file_not_found));
         }
     }
-    void method02(final String content){
-        if(Utils.networkAvailableDialog(context)){
+
+    void method02(final String content) {
+        if (Utils.networkAvailableDialog(context)) {
             final ProgressDialog downloading = new ProgressDialog(context);
             downloading.setTitle(context.getResources().getString(R.string.dialog_title_wait));
             downloading.setMessage(context.getResources().getString(R.string.dialog_downloading_message));
@@ -289,13 +263,13 @@ public class PictureViewerScreen extends Activity {
                                             image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(is));
                                         }
                                     });
-                                }catch (Exception e){
+                                } catch (Exception e) {
                                     Looper.prepare();
                                     downloading.dismiss();
-                                    Utils.exceptionDialog(context,e,getString(R.string.dialog_exception_failed_to_load_image));
+                                    Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_load_image));
                                     Looper.loop();
                                 }
-                            }else{
+                            } else {
                                 Looper.prepare();
                                 downloading.dismiss();
                                 Toast.makeText(context, getString(R.string.dialog_exception_downloadfailed), Toast.LENGTH_SHORT).show();
@@ -343,7 +317,7 @@ public class PictureViewerScreen extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(Variables.COMMUNICATOR!=null){
+        if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
     }
