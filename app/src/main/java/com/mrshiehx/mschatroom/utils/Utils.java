@@ -1233,4 +1233,14 @@ public class Utils {
         });
         return dialog.show();
     }
+
+
+
+    public static void reload(Context context) {
+        final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
+        new Thread(() -> {
+            Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+            dialog.dismiss();
+        }).start();
+    }
 }

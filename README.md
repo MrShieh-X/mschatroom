@@ -11,8 +11,9 @@ Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>1.1 (Apr. 5, 2021)</b><br/>
+<b>1.1.1 (Apr. 7, 2021)</b><br/>
 Historical version: <br/>
+<b>1.1.1 (Apr. 7, 2021)</b><br/>
 <b>1.1 (Apr. 5, 2021)</b><br/>
 <b>1.0 (Jan. 31, 2021)</b><br/>
 <b>beta-2 (Jan. 26, 2021)</b><br/>
@@ -91,7 +92,8 @@ After setting up a server with MySQL, modify the variable content in the file `V
 
 | Variable name|Meaning|
 | --------|:----:|
-| DEFAULT_SERVER_ADDRESS|Default server (or local computer) address|
+| DEFAULT_SERVER_ADDRESS|Default server (or local computer) address (database)|
+| DEFAULT_SERVER_ADDRESS_COMMUNICATION|Default server (or local computer) address (communication)|
 | DEFAULT_SERVER_PORT|Default server (or local computer) port (used for communication)|
 | DEFAULT_DATABASE_NAME|Default MySQL database name|
 | DEFAULT_DATABASE_USER_NAME|Default MySQL database account|

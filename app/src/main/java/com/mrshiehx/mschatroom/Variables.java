@@ -14,22 +14,26 @@ public class Variables {
     public static final String TAG = "MSChatRoom";
     public static final String TAG_SHORT = "MSCR";
 
-    //默认服务器地址
-    public static String DEFAULT_SERVER_ADDRESS = "192.168.101.157";
-    //默认服务器端口
+    //默认服务器地址（数据库）
+    public static String DEFAULT_SERVER_ADDRESS = "xxx.xxx.xx.xxx";
+    //默认服务器地址（通讯）
+    public static String DEFAULT_SERVER_ADDRESS_COMMUNICATION = "xxx.xxx.xx.xxx";
+    //默认服务器端口（通讯）
     public static int DEFAULT_SERVER_PORT = 6553;
     //默认MySQL数据库名称
-    public static String DEFAULT_DATABASE_NAME = "mscr";
+    public static String DEFAULT_DATABASE_NAME = "mschatroom";
     //默认MySQL数据库账号
     public static String DEFAULT_DATABASE_USER_NAME = "root";
     //默认MySQL数据库密码
-    public static String DEFAULT_DATABASE_USER_PASSWORD = "wwwwwww";
+    public static String DEFAULT_DATABASE_USER_PASSWORD = "mypassword";
     //默认MySQL表格名称
     public static String DEFAULT_DATABASE_TABLE_NAME = "users";
 
-    //服务器地址
+    //服务器地址（数据库）
     public static String SERVER_ADDRESS = DEFAULT_SERVER_ADDRESS;
-    //服务器端口
+    //服务器地址（通讯）
+    public static String SERVER_ADDRESS_COMMUNICATION = DEFAULT_SERVER_ADDRESS_COMMUNICATION;
+    //服务器端口（通讯）
     public static int SERVER_PORT = DEFAULT_SERVER_PORT;
     //MySQL数据库名称
     public static String DATABASE_NAME = DEFAULT_DATABASE_NAME;
@@ -44,13 +48,13 @@ public class Variables {
     //拆分符号（不要使用字母和数字）
     public static final String SPLIT_SYMBOL = "&";
     //文本加密密钥（不能太长，也不能太短）
-    public static final String TEXT_ENCRYPTION_KEY = "fuckfuckfuckfuckfuckfuck";
+    public static final String TEXT_ENCRYPTION_KEY = "encryptKey";
     //发送验证码邮件的邮箱的SMTP服务器地址
     public static final String CAPTCHA_EMAIL_SMTP_SERVER_ADDRESS = "smtp.163.com";
     //发送验证码邮件的邮箱地址
-    public static String CAPTCHA_EMAIL_ADDRESS = "mrsxservice@163.com";
+    public static String CAPTCHA_EMAIL_ADDRESS = "xxxxxx@xxx.com";
     //发送验证码邮件的邮箱的授权码
-    public static String AUTHENTICATOR = "TFXQXEGWNOJVWOVE";
+    public static String AUTHENTICATOR = "XXXXXXXXXXXXXX";
     //作者的网站
     public static final String AUTHOR_WEBSITE_URL = "https://mrshieh-x.github.io";
     //作者的GitHub地址
@@ -68,7 +72,7 @@ public class Variables {
     //检查更新更新文件地址
     public static final String NEW_VERSION_FILE_INFORMATION_URL = "https://gitee.com/MrShiehX/mschatroom/raw/master/new_version.json";
     //获得验证码时间（秒）
-    public static final int GET_CAPTCHA_TIME_SECOND = 5;
+    public static final int GET_CAPTCHA_TIME_SECOND = 60;
     //获得验证码时间（毫秒）
     public static final int GET_CAPTCHA_TIME = GET_CAPTCHA_TIME_SECOND * 1000;
     //MySQL 账户工具类，在LoadingScreen提前建立连接，进入界面后不用再次建立

@@ -1,6 +1,7 @@
 package com.mrshiehx.mschatroom.utils;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.R;
@@ -31,9 +32,9 @@ public class UserInformationUtils {
             return new UserInformation(jsonObject.optString("name"), jsonObject.optString("gender"), jsonObject.optString("whatIsUp"));
         } catch (Exception e) {
             e.printStackTrace();
-            Utils.exceptionDialog(context, e, MSCRApplication.getContext().getString(R.string.dialog_exception_parsing_json_failed));
+            Toast.makeText(context, MSCRApplication.getContext().getString(R.string.dialog_exception_parsing_json_failed), Toast.LENGTH_SHORT).show();
         }
-        return null;
+        return new UserInformation("","","");
     }
 
     public static UserInformation read(Context context, byte[] file) {
@@ -44,8 +45,8 @@ public class UserInformationUtils {
             return new UserInformation(jsonObject.optString("name"), jsonObject.optString("gender"), jsonObject.optString("whatIsUp"));
         } catch (Exception e) {
             e.printStackTrace();
-            Utils.exceptionDialog(context, e, MSCRApplication.getContext().getString(R.string.dialog_exception_parsing_json_failed));
+            Toast.makeText(context, MSCRApplication.getContext().getString(R.string.dialog_exception_parsing_json_failed), Toast.LENGTH_SHORT).show();
         }
-        return null;
+        return new UserInformation("","","");
     }
 }

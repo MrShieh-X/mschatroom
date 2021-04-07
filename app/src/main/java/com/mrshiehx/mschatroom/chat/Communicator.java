@@ -60,7 +60,7 @@ public class Communicator {
     }
 
     public void init() {
-        Variables.ADDRESS = new InetSocketAddress(Variables.SERVER_ADDRESS, Variables.SERVER_PORT);
+        Variables.ADDRESS = new InetSocketAddress(Variables.SERVER_ADDRESS_COMMUNICATION, Variables.SERVER_PORT);
         try {
             Variables.CONNECTOR = new NioSocketConnector();
             Variables.CONNECTOR.getSessionConfig().setReadBufferSize(2048);

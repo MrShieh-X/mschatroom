@@ -11,8 +11,9 @@ MrShiehX 拥有该应用程序的版权。<br/>
 
 ## 版本
 最新版本：<br/>
-<b>1.1 (2021年4月5日)</b><br/>
+<b>1.1.1 (2021年4月7日)</b><br/>
 历史版本：<br/>
+<b>1.1.1 (2021年4月7日)</b><br/>
 <b>1.1 (2021年4月5日)</b><br/>
 <b>1.0 (2021年1月31日)</b><br/>
 <b>beta-2 (2021年1月26日)</b><br/>
@@ -91,7 +92,8 @@ create table `users` (`email` varchar(1000) not null,`account` varchar(1000) not
 
 | 变量名|含义|
 | --------|:----:|
-| DEFAULT_SERVER_ADDRESS|默认服务器（或本地计算机）地址|
+| DEFAULT_SERVER_ADDRESS|默认服务器（或本地计算机）地址（数据库）|
+| DEFAULT_SERVER_ADDRESS_COMMUNICATION|默认服务器（或本地计算机）地址（通讯）|
 | DEFAULT_SERVER_PORT|默认服务器（或本地计算机）端口（用于通讯）|
 | DEFAULT_DATABASE_NAME|默认MySQL数据库名称|
 | DEFAULT_DATABASE_USER_NAME|默认MySQL数据库账号|

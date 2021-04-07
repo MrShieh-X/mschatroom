@@ -1348,5 +1348,12 @@ public class ModifyUserInformationScreen extends AppCompatPreferenceActivity {
         if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
+        if(Variables.ACCOUNT_UTILS!=null){
+            if(Variables.ACCOUNT_UTILS.getConnection()==null){
+                Utils.reload(context);
+            }
+        }else{
+            Utils.reload(context);
+        }
     }
 }

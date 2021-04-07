@@ -1,5 +1,8 @@
 # Update Logs
-Currently, the latest version is 1.1, which was updated on April 5, 2021.
+Currently, the latest version is 1.1.1, which was updated on April 7, 2021.
+
+## 1.1.1 (Apr. 7, 2021)
+- Fixed some issues.
 
 ## 1.1 (Apr. 5, 2021)
 - The dialog for setting server information has been deleted.

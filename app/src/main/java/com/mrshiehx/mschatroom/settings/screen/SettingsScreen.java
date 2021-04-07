@@ -254,13 +254,14 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
     void init() {
         if (Utils.isNetworkConnected(context)) {
             //Toast.makeText(context, String.valueOf(Utils.getAccountUtils()==null), Toast.LENGTH_SHORT).show();
-            if (Variables.ACCOUNT_UTILS == null) {
+            /*if (Variables.ACCOUNT_UTILS == null) {
                 final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Looper.prepare();
-                        Connection connection = ConnectionUtils.getConnection(Variables.SERVER_ADDRESS, Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD);
+                        Connection connection = null;
+                        try{
+                            connection=ConnectionUtils.getConnection(Variables.SERVER_ADDRESS, Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD);
+                        } catch (Exception e){
+                            e.printStackTrace();
+                        }
                         if (connection == null) {
                             Toast.makeText(context, getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
                             initAvatarFromLocal();
@@ -268,10 +269,7 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                             Variables.ACCOUNT_UTILS = new AccountUtils(connection, Variables.DATABASE_TABLE_NAME);
                         }
                         dialog.dismiss();
-                        Looper.loop();
-                    }
-                }).start();
-            }
+            }*/
         } else {
             setTitle(getString(R.string.activity_settings_screen_offline_mode_name));
         }
@@ -280,18 +278,9 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
 
     void initUserInformation() {
         if (MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Looper.prepare();
                     initAvatar();
-                    Looper.loop();
-                }
-            }).start();
 
         }
-        new Thread(() -> {
-            Looper.prepare();
             if (Utils.checkLoginStatus(context)) {
 
                 if (Utils.checkLoginInformationAndNetwork(context)) {
@@ -324,17 +313,9 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                     });
                 } else {
                     //Set Name
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            accountPreference.setTitle(getNickname());
-
-                        }
-                    });
+                    runOnUiThread(() -> accountPreference.setTitle(getNickname()));
                 }
             }
-            Looper.loop();
-        }).start();
 
 
     }
@@ -471,7 +452,20 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
         if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
-        init();
+        final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
+        new Thread(() -> {
+            Looper.prepare();
+            if(Variables.ACCOUNT_UTILS!=null){
+                if(Variables.ACCOUNT_UTILS.getConnection()==null){
+                    Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+                }
+            }else{
+                Variables.ACCOUNT_UTILS=new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+            }
+            runOnUiThread(dialog::dismiss);
+            init();
+            Looper.loop();
+        }).start();
     }
 
     @Override
@@ -502,12 +496,7 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
             initAvatarFromLocal();
         }
         if (avatarInputStream != null) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    accountPreference.setIcon(FormatTools.getInstance().Bytes2Drawable(avatarInputStream));
-                }
-            });
+            runOnUiThread(() -> accountPreference.setIcon(FormatTools.getInstance().Bytes2Drawable(avatarInputStream)));
         }
     }
 

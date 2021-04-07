@@ -16,6 +16,7 @@ import com.mrshiehx.mschatroom.modify_user_information.screen.ModifyUserInformat
 import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.ConnectionUtils;
+import com.mrshiehx.mschatroom.utils.Utils;
 
 public class NetworkStateReceiver extends BroadcastReceiver {
     public static final int TYPE_NONE = -1;
@@ -30,18 +31,18 @@ public class NetworkStateReceiver extends BroadcastReceiver {
             if (context instanceof MainScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.app_name));
                 if (i != 0) {
-                    reload(context);
+                    Utils.reload(context);
                 }
             } else if (context instanceof SettingsScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_settings_screen_name));
                 if (i != 0) {
-                    reload(context);
+                    Utils.reload(context);
                 }
             } else if (context instanceof ModifyUserInformationScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
                 ((ModifyUserInformationScreen) context).changeEnabledOfPreferencesOfEnabled(true);
                 if (i != 0) {
-                    reload(context);
+                    Utils.reload(context);
                 }
             } else if (context instanceof ChatScreen) {
                 //((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
@@ -62,17 +63,6 @@ public class NetworkStateReceiver extends BroadcastReceiver {
             }
         }
         i++;
-    }
-
-    void reload(Context context) {
-        final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-                dialog.dismiss();
-            }
-        }).start();
     }
 
     public static int getNetWorkStates(Context context) {
