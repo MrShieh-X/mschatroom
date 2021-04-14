@@ -43,6 +43,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.chat.Communicator;
 import com.mrshiehx.mschatroom.chat.message.MessageItem;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 
@@ -57,7 +58,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidKeyException;
@@ -67,8 +67,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,10 +76,6 @@ import javax.crypto.NoSuchPaddingException;
 
 //工具类
 public class Utils {
-
-    public static File createFile(String path, String fileName) {
-        return new File(path, fileName);
-    }
 
     public static String getAndroidDirCachePath(Context context) {
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) || !Environment.isExternalStorageRemovable()) {
@@ -103,20 +97,6 @@ public class Utils {
         return context.getCacheDir().getAbsolutePath();
     }
 
-    public static boolean fileIsExists(Context context, String filePathAndName) {
-        try {
-            File f = new File(filePathAndName);
-            if (!f.exists()) {
-                return false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Utils.exceptionDialog(context, e);
-            return false;
-        }
-        return true;
-    }
-
     /*public static void deleteFile(Context context, String filePathAndName) {
         try {
             File f = new File(filePathAndName);
@@ -135,71 +115,6 @@ public class Utils {
             Utils.exceptionDialog(context, e);
         }
     }*/
-
-    public static void downloadFile(final Context context, View forsb, final String downloadFileUrl, final String afterDownloadFileName, final String downloadToPath) {
-        if (isNetworkConnected(context) == true) {
-            File file = new File(getDataFilesPath(context));
-            if (!file.exists()) {
-                file.mkdirs();
-            }
-            final ProgressDialog downloading = new ProgressDialog(context);
-            downloading.setTitle(context.getResources().getString(R.string.dialog_title_wait));
-            downloading.setMessage(context.getResources().getString(R.string.dialog_downloading_message));
-            downloading.setCancelable(false);
-            downloading.show();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        URL url = new URL(downloadFileUrl);
-                        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                        con.setReadTimeout(5000);
-                        con.setConnectTimeout(5000);
-                        con.setRequestProperty("Charset", "UTF-8");
-                        con.setRequestMethod("GET");
-                        if (con.getResponseCode() == 200) {
-                            InputStream is = con.getInputStream();
-                            FileOutputStream fileOutputStream = null;
-                            if (is != null) {
-                                //FileUtils fileUtils = new FileUtils();
-                                fileOutputStream = new FileOutputStream(createFile(downloadToPath, afterDownloadFileName));
-                                byte[] buf = new byte[1024];
-                                int ch;
-                                while ((ch = is.read(buf)) != -1) {
-                                    fileOutputStream.write(buf, 0, ch);
-                                }
-                            }
-                            if (fileOutputStream != null) {
-                                fileOutputStream.flush();
-                                fileOutputStream.close();
-                            }
-                        }
-                        final Timer timer = new Timer();
-                        timer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                if (Utils.fileIsExists(context, downloadToPath + "/" + afterDownloadFileName) == true) {
-                                    downloading.dismiss();
-                                    timer.cancel();
-                                } else {
-
-                                }
-                            }
-                        }, 0, 100);
-
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Looper.prepare();
-                        exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_downloadfailed));
-                        Looper.loop();
-                    }
-                }
-            }).start();
-        } else {
-            Snackbar.make(forsb, context.getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
-        }
-    }
 
     /*public static String getJson(Context context, String filePathAndName) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -241,14 +156,14 @@ public class Utils {
         return stringBuilder.toString();
     }*/
 
-    public static AlertDialog showDialog(final Context context, String title, String message) {
+    public static AlertDialog showDialog(final Context context, CharSequence title, CharSequence message) {
         AlertDialog.Builder dialog =
                 new AlertDialog.Builder(context);
         dialog.setTitle(title).setMessage(message);
         return dialog.show();
     }
 
-    public static AlertDialog showDialog(final Context context, String title, String message, String buttonName, DialogInterface.OnClickListener buttonOnClickListener) {
+    public static AlertDialog showDialog(final Context context, CharSequence title, CharSequence message, CharSequence buttonName, DialogInterface.OnClickListener buttonOnClickListener) {
         AlertDialog.Builder dialog =
                 new AlertDialog.Builder(context);
         dialog.setTitle(title).setMessage(message);
@@ -702,21 +617,24 @@ public class Utils {
                 } catch (BadPaddingException e) {
                     e.printStackTrace();
                 }
-                Boolean result = ud.login(context, loggingIn, AccountUtils.BY_ACCOUNT, accountE, passwordE);
+                boolean result = ud.login(context, AccountUtils.BY_ACCOUNT, accountE, passwordE);
+                loggingIn.dismiss();
                 if (!result) {
-                    Utils.showDialog(context,
-                            context.getResources().getString(R.string.dialog_title_notice),
-                            context.getResources().getString(R.string.dialog_failed_login_insettings_message),
-                            context.getResources().getString(R.string.dialog_failed_login_insettings_button_gotologin_text),
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    LoginScreen.can_i_back = true;
-                                    Intent intent = new Intent(context, LoginScreen.class);
-                                    intent.putExtra("account", password);
-                                    context.startActivity(intent);
-                                }
-                            });
+                    if (Variables.ACCOUNT_UTILS != null && Variables.ACCOUNT_UTILS.getConnection() != null) {
+                        Utils.showDialog(context,
+                                context.getResources().getString(R.string.dialog_title_notice),
+                                context.getResources().getString(R.string.dialog_failed_login_insettings_message),
+                                context.getResources().getString(R.string.dialog_failed_login_insettings_button_gotologin_text),
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        LoginScreen.can_i_back = true;
+                                        Intent intent = new Intent(context, LoginScreen.class);
+                                        intent.putExtra("account", password);
+                                        context.startActivity(intent);
+                                    }
+                                });
+                    }
                     return false;
                 } else {
                     return true;
@@ -1134,12 +1052,28 @@ public class Utils {
      * @return 格式化后的时间
      * @throws Exception 防止出错
      */
-    public static String formatTime(String timeYMDHM) throws Exception {
-        String[] time = timeYMDHM.split(";");
-        String[] date = time[0].split("-");
-        int year = Integer.parseInt(date[0]);
-        int month = Integer.parseInt(date[1]);
-        int day = Integer.parseInt(date[2]);
+    public static String formatTime(long timeYMDHM) throws Exception {
+        Time tim = new Time();
+        tim.set(timeYMDHM);
+        String timYear = tim.year + "";
+        String timMonth = tim.month + 1 + "";
+        String timDay = tim.monthDay + "";
+        if (timMonth.length() == 1) timMonth = "0" + timMonth;
+        if (timDay.length() == 1) timDay = "0" + timDay;
+
+        String tim0 = timYear + "-" + timMonth + "-" + timDay;
+
+
+        String timHour = tim.hour + "";
+        String timMinute = tim.minute + "";
+        if (timHour.length() == 1) timHour = "0" + timHour;
+        if (timMinute.length() == 1) timMinute = "0" + timMinute;
+        String tim1 = timHour + ":" + timMinute;
+
+
+        int year = tim.year;
+        int month = tim.month + 1;
+        int day = tim.monthDay;
         Time Time = new Time();
         Time.setToNow();
         int cYear = Time.year;
@@ -1148,12 +1082,12 @@ public class Utils {
         String timeText;
         if (year == cYear) {
             if (month == cMonth && day == cDay) {
-                timeText = time[1];
+                timeText = tim1;
             } else {
-                timeText = month + "-" + day + " " + time[1];
+                timeText = timMonth + "-" + timDay + " " + tim1;
             }
         } else {
-            timeText = time[0] + " " + time[1];
+            timeText = tim0 + " " + tim1;
         }
         return timeText;
     }
@@ -1186,13 +1120,8 @@ public class Utils {
             if (!TextUtils.isEmpty(s)) {
                 try {
                     String[] ss = EnDeCryptTextUtils.decrypt(s).split(Variables.SPLIT_SYMBOL);
-                    if (ss != null) {
-                        if (ss.length != 2) {
-                            showLoginStatusHasProblemDialog(context);
-                            return false;
-                        }
-                    } else {
-                        showLoginStatusHasProblemDialog(context);
+                    if (ss.length != 2) {
+                        showLoginStatusHasProblemDialog(context, ss[0]);
                         return false;
                     }
                 } catch (Exception e) {
@@ -1235,12 +1164,36 @@ public class Utils {
     }
 
 
-
     public static void reload(Context context) {
         final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
         new Thread(() -> {
+            Looper.prepare();
             Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+            if (Variables.COMMUNICATOR == null) {
+                Variables.COMMUNICATOR = new Communicator(context, Utils.valueOf(Variables.ACCOUNT_INFORMATION.getAccountE()), Utils.valueOf(Variables.ACCOUNT_INFORMATION.getEmailE()));
+                try {
+                    if (Variables.COMMUNICATOR.connect()) {
+                        Toast.makeText(context, R.string.loadinglog_success_connect_communication_server, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(context, R.string.loadinglog_failed_connect_communication_server, Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(context, String.format(MSCRApplication.getContext().getString(R.string.loadinglog_failed_connect_communication_server_withcause), e + ""), Toast.LENGTH_SHORT).show();
+                }
+            }
             dialog.dismiss();
+            Looper.loop();
         }).start();
+    }
+
+    public static String valueOf(CharSequence c) {
+        if (c == null) return "";
+        return c.toString();
+    }
+
+    public static String valueOf(Object c) {
+        if (c == null) return "";
+        return String.valueOf(c);
     }
 }

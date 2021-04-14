@@ -41,7 +41,7 @@ public class AccountUtils {
         conn = ConnectionUtils.getConnection(Variables.SERVER_ADDRESS, databaseName, databaseUser, databasePassword);
     }
 
-    public String getEmailByAccountNoThread(Context context, String account) {
+    public String getEmailByAccount(Context context, String account) {
         if (conn == null) {
             Log.i(Variables.TAG, "getEmailByAccount:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -57,14 +57,14 @@ public class AccountUtils {
                 return RETURN;
             } catch (Exception e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return "";
             }
         }
     }
 
 
-    public String getAccountByEmailNoThread(Context context, String email) {
+    public String getAccountByEmail(Context context, String email) {
         if (conn == null) {
             Log.i(Variables.TAG, "getAccountByEmail:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -80,14 +80,14 @@ public class AccountUtils {
                 return RETURN;
             } catch (Exception e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return "";
             }
         }
     }
 
 
-    public String getStringNoThread(Context context, String needToGet, String by, String byContent) {
+    public String getString(Context context, String needToGet, String by, String byContent) {
         if (conn == null) {
             Log.i(Variables.TAG, "getString:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -103,13 +103,13 @@ public class AccountUtils {
                 return RETURN;
             } catch (Exception e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return "";
             }
         }
     }
 
-    public InputStream getInputStreamNoThread(Context context, String needToGet, String by, String byContent) {
+    public InputStream getInputStream(Context context, String needToGet, String by, String byContent) {
         if (conn == null) {
             Log.i(Variables.TAG, "getInputStream:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -125,13 +125,13 @@ public class AccountUtils {
                 return RETURN_INPUTSTREAM;
             } catch (Exception e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return null;
             }
         }
     }
 
-    public byte[] getBytesNoThread(Context context, String needToGet, String by, String byContent) {
+    public byte[] getBytes(Context context, String needToGet, String by, String byContent) {
         if (conn == null) {
             Log.i(Variables.TAG, "getBytes:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -148,7 +148,7 @@ public class AccountUtils {
                 return bytes;
             } catch (Exception e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return null;
             }
         }
@@ -169,19 +169,13 @@ public class AccountUtils {
                 return RETURN_INPUTSTREAM;
             } catch (Exception e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return null;
             }
         }
     }
 
-    public int register(Context context, ProgressDialog ingDialog, String email, String account, String password) throws IOException {
-        int s = registerNoThreadAndDialog(context, email, account, password);
-        ingDialog.dismiss();
-        return s;
-    }
-
-    public int registerNoThreadAndDialog(Context context, String email, String account, String password) throws IOException {
+    public int register(Context context, String email, String account, String password) throws IOException {
         if (conn == null) {
             Log.i(Variables.TAG, "register:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -199,21 +193,13 @@ public class AccountUtils {
                 return pre.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_upload_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_upload_data), Toast.LENGTH_SHORT).show();
                 return 0;
             }
         }
     }
 
-    public boolean login(Context context, ProgressDialog ingDialog, String loginMethod, String accountOrEmail, String password) {
-        boolean s = loginNoThreadAndDialog(context, loginMethod, accountOrEmail, password);
-        ingDialog.dismiss();
-
-
-        return s;
-    }
-
-    public boolean loginNoThreadAndDialog(Context context, String loginMethod, String accountOrEmail, String password) {
+    public boolean login(Context context, String loginMethod, String accountOrEmail, String password) {
         if (conn == null) {
             Log.i(Variables.TAG, "login:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -230,14 +216,14 @@ public class AccountUtils {
                 return t;
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return false;
             }
 
         }
     }
 
-    public boolean tryLoginWithoutPasswordNoThreadAndDialog(Context context, String loginMethod, String accountOrEmail) {
+    public boolean tryLoginWithoutPassword(Context context, String loginMethod, String accountOrEmail) {
         if (conn == null) {
             Log.i(Variables.TAG, "tryLoginWithoutPassword:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -253,14 +239,14 @@ public class AccountUtils {
                 return t;
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return false;
             }
 
         }
     }
 
-    public int tryLoginWithoutPasswordNoThreadAndDialogInt(Context context, String loginMethod, String accountOrEmail) {
+    public int tryLoginWithoutPasswordInt(Context context, String loginMethod, String accountOrEmail) {
         if (conn == null) {
             Log.i(Variables.TAG, "tryLoginWithoutPassword:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -276,20 +262,14 @@ public class AccountUtils {
                 return t ? 1 : 0;
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return 2;
             }
 
         }
     }
 
-    public int resetPassword(Context context, ProgressDialog ingDialog, String email, String newPassword) {
-        int s = resetPasswordNoThreadAndDialog(context, email, newPassword);
-        ingDialog.dismiss();
-        return s;
-    }
-
-    public int resetPasswordNoThreadAndDialog(Context context, String email, String newPassword) {
+    public int resetPassword(Context context, String email, String newPassword) {
         if (conn == null) {
             Log.i(Variables.TAG, "reset password:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -302,14 +282,14 @@ public class AccountUtils {
                 return stmt.executeUpdate(sql);
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_upload_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_upload_data), Toast.LENGTH_SHORT).show();
                 return 0;
             }
 
         }
     }
 
-    public InputStream getUserInformationNoThread(Context context, String email, String account, String password) {
+    public InputStream getUserInformation(Context context, String email, String account, String password) {
         PreparedStatement prepar;
         if (conn == null) {
             Log.i(Variables.TAG, "getUserInformation:conn is null");
@@ -326,14 +306,14 @@ public class AccountUtils {
                 return inputStream;
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return null;
             }
 
         }
     }
 
-    public InputStream getUserInformationWithoutPasswordNoThread(Context context, String by, String byContent) {
+    public InputStream getUserInformationWithoutPassword(Context context, String by, String byContent) {
         PreparedStatement prepar;
         if (conn == null) {
             Log.i(Variables.TAG, "getUserInformationWithoutPassword:conn is null");
@@ -351,20 +331,14 @@ public class AccountUtils {
                 return inputStream;
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return null;
             }
 
         }
     }
 
-    public int uploadUserInformation(Context context, ProgressDialog ingDialog, String email, String account, String password, InputStream newUserInformation) {
-        int s = uploadUserInformationNoThreadAndDialog(context, email, account, password, newUserInformation);
-        ingDialog.dismiss();
-        return s;
-    }
-
-    public int uploadUserInformationNoThreadAndDialog(Context context, String email, String account, String password, InputStream newUserInformation) {
+    public int uploadUserInformation(Context context, String email, String account, String password, InputStream newUserInformation) {
         if (conn == null) {
             Log.i(Variables.TAG, "uploadUserInformation:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -377,14 +351,14 @@ public class AccountUtils {
                 return pre.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_upload_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_upload_data), Toast.LENGTH_SHORT).show();
                 return 0;
             }
 
         }
     }
 
-    public int uploadAvatarNoThreadAndDialog(Context context, String email, String account, String password, InputStream newAvatar) {
+    public int uploadAvatar(Context context, String email, String account, String password, InputStream newAvatar) {
         if (conn == null) {
             Log.i(Variables.TAG, "uploadAvatar:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -397,20 +371,14 @@ public class AccountUtils {
                 return pre.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_upload_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_upload_data), Toast.LENGTH_SHORT).show();
                 return 0;
             }
 
         }
     }
 
-    public int delectAccount(Context context, ProgressDialog ingDialog, String by, String byContent, String password) {
-        int s = delectAccountNoThreadAndDialog(context, by, byContent, password);
-        ingDialog.dismiss();
-        return s;
-    }
-
-    public int delectAccountNoThreadAndDialog(Context context, String by, String byContent, String password) {
+    public int delectAccount(Context context, String by, String byContent, String password) {
         if (conn == null) {
             Log.i(Variables.TAG, "delectAccount:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -422,19 +390,13 @@ public class AccountUtils {
                 return stmt.executeUpdate(sql);
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_upload_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_upload_data), Toast.LENGTH_SHORT).show();
                 return 0;
             }
         }
     }
 
     public boolean find(Context context, ProgressDialog ingDialog, String by, String byContent) {
-        boolean s = findNoThreadAndDialog(context, by, byContent);
-        ingDialog.dismiss();
-        return s;
-    }
-
-    public boolean findNoThreadAndDialog(Context context, String by, String byContent) {
         if (conn == null) {
             Log.i(Variables.TAG, "find:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -448,7 +410,7 @@ public class AccountUtils {
                 return res.next();
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_download_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
                 return false;
             }
         }
@@ -458,7 +420,7 @@ public class AccountUtils {
         return conn;
     }
 
-    public int updateMessagesNoThreadAndDialog(Context context, String by, String byContent, String newMessages) {
+    public int updateMessages(Context context, String by, String byContent, String newMessages) {
         if (conn == null) {
             Log.i(Variables.TAG, "uploadAvatar:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -471,7 +433,7 @@ public class AccountUtils {
                 return pre.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_upload_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_upload_data), Toast.LENGTH_SHORT).show();
                 return 0;
             }
 
@@ -491,7 +453,7 @@ public class AccountUtils {
                 return stmt.executeUpdate(sql);
             } catch (SQLException e) {
                 e.printStackTrace();
-                Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_failed_upload_data));
+                Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_upload_data), Toast.LENGTH_SHORT).show();
                 return 0;
             }
 

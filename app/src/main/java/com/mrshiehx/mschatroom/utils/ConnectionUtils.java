@@ -56,7 +56,7 @@ public class ConnectionUtils {
 
     public static ProgressDialog showConnectingDialog(Context context) {
         ProgressDialog dialog = new ProgressDialog(context);
-        dialog.setTitle(context.getString(R.string.dialog_title_wait));
+        //dialog.setTitle(context.getString(R.string.dialog_title_wait));
         dialog.setMessage(context.getString(R.string.dialog_connecting_message));
         dialog.setCancelable(false);
         dialog.show();

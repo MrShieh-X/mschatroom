@@ -138,7 +138,7 @@ public class FileUtils {
             sb.append(line);
             sb.append("\n");
         }
-        inputStream.close();
+        //inputStream.close();
         inputStreamReader.close();
         reader.close();
         return sb.toString();
@@ -242,12 +242,14 @@ public class FileUtils {
         long size = 0;
         try {
             File[] fileList = file.listFiles();
-            for (int i = 0; i < fileList.length; i++) {
-                // 如果下面还有文件
-                if (fileList[i].isDirectory()) {
-                    size = size + getFolderSize(fileList[i]);
-                } else {
-                    size = size + fileList[i].length();
+            if (fileList != null) {
+                for (File value : fileList) {
+                    // 如果下面还有文件
+                    if (value.isDirectory()) {
+                        size = size + getFolderSize(value);
+                    } else {
+                        size = size + value.length();
+                    }
                 }
             }
         } catch (Exception e) {
@@ -302,4 +304,106 @@ public class FileUtils {
         fileOutputStream.close();
     }
 
+    public static String hexReadFile(String file) throws IOException {
+        InputStream is = new FileInputStream(new File(file));
+
+        int bytesCounter = 0;
+        int value = 0;
+        StringBuilder sbHex = new StringBuilder();
+        StringBuilder sbText = new StringBuilder();
+        StringBuilder sbResult = new StringBuilder();
+
+        while ((value = is.read()) != -1) {
+            //convert to hex value with "X" formatter
+            sbHex.append(String.format("%02X", value));
+
+            //If the chracater is not convertable, just print a dot symbol "."
+            if (!Character.isISOControl(value)) {
+                sbText.append((char) value);
+            } else {
+                sbText.append("");
+            }
+
+            //if 16 bytes are read, reset the counter,
+            //clear the StringBuilder for formatting purpose only.
+            if (bytesCounter == 15) {
+                sbResult.append(sbHex);//.append("      ").append(sbText).append("\n");
+                sbHex.setLength(0);
+                sbText.setLength(0);
+                bytesCounter = 0;
+            } else {
+                bytesCounter++;
+            }
+        }
+        //if still got content
+        if (bytesCounter != 0) {
+            //add spaces more formatting purpose only
+            for (; bytesCounter < 16; bytesCounter++) {
+                //1 character 3 spaces
+                sbHex.append("");
+            }
+            sbResult.append(sbHex);//.append("      ").append(sbText).append("\n");
+        }
+        is.close();
+        return sbResult.toString();// + "\n\n";
+    }
+
+    public static void hexWrite(String bytes, File file) throws IOException {
+        hexWrite(hexString2Bytes(bytes), file);
+    }
+
+    public static void hexWrite(byte[] bytes, File file) throws IOException {
+        FileOutputStream fop = new FileOutputStream(file);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        fop.write(bytes);
+        fop.flush();
+        fop.close();
+        fop.close();
+    }
+
+    public static byte[] hexString2Bytes(String hex) {
+
+        if ((hex == null) || (hex.equals(""))) {
+            return null;
+        } else if (hex.length() % 2 != 0) {
+            return null;
+        } else {
+            hex = hex.toUpperCase();
+            int len = hex.length() / 2;
+            byte[] b = new byte[len];
+            char[] hc = hex.toCharArray();
+            for (int i = 0; i < len; i++) {
+                int p = 2 * i;
+                b[i] = (byte) (charToByte(hc[p]) << 4 | charToByte(hc[p + 1]));
+            }
+            return b;
+        }
+
+    }
+
+    private static byte charToByte(char c) {
+        return (byte) "0123456789ABCDEF".indexOf(c);
+    }
+
+    public static void copy(File source, File to) throws IOException {
+        InputStream input = new FileInputStream(source);
+        OutputStream output = new FileOutputStream(to);
+        byte[] buf = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = input.read(buf)) != -1) {
+            output.write(buf, 0, bytesRead);
+        }
+        input.close();
+        output.close();
+    }
+
+    public static String bytesToString(byte[] bytes) {
+        StringBuilder builder = new StringBuilder();
+        for (byte aByte : bytes) {
+            builder.append(String.format("%02X", aByte));
+        }
+        return builder.toString().toUpperCase();
+    }
 }

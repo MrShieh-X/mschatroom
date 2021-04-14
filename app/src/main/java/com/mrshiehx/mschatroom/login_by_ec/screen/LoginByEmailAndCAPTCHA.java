@@ -68,7 +68,7 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
             get_captcha.setEnabled(false);
             //login.setEnabled(false);
         } else {
-            if (TextUtils.isEmpty(input_email.getText().toString())) {
+            if (TextUtils.isEmpty(input_email.getText())) {
                 get_captcha.setEnabled(false);
                 //login.setEnabled(false);
             }
@@ -81,10 +81,10 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                     //Get captcha
                     try {
                         get_captcha.setEnabled(false);
-                        SendEmailUtils sendEmail = new SendEmailUtils(input_email.getText().toString().toLowerCase());
+                        SendEmailUtils sendEmail = new SendEmailUtils(Utils.valueOf(input_email.getText()).toLowerCase());
                         sendEmail.sendCaptcha(captcha);
                         Snackbar.make(get_captcha, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show();
-                        email = input_email.getText().toString().toLowerCase();
+                        email = Utils.valueOf(input_email.getText()).toLowerCase();
                         input_email.setEnabled(false);
                         mCountDownTimerUtils.start();
                     } catch (Exception e) {
@@ -102,7 +102,7 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
         input_email.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (Utils.isEmail(input_email.getText().toString()) && charSequence.length() > 0 == true) {
+                if (Utils.isEmail(Utils.valueOf(input_email.getText())) && charSequence.length() > 0) {
                     if (Utils.isNetworkConnected(context)) {
                         if (mCountDownTimerUtils.isRunning() == true) {
                             get_captcha.setEnabled(false);
@@ -136,13 +136,9 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                if (Utils.isEmail(input_email.getText().toString()) && editable.length() > 0 == true) {
+                if (Utils.isEmail(Utils.valueOf(input_email.getText())) && editable.length() > 0) {
                     if (Utils.isNetworkConnected(context)) {
-                        if (mCountDownTimerUtils.isRunning() == true) {
-                            get_captcha.setEnabled(false);
-                        } else {
-                            get_captcha.setEnabled(true);
-                        }
+                        get_captcha.setEnabled(!mCountDownTimerUtils.isRunning());
                     } else {
                         get_captcha.setEnabled(false);
                     }
@@ -158,11 +154,11 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (Utils.isNetworkConnected(context)) {
-                    if (TextUtils.isEmpty(input_email.getText().toString()) || TextUtils.isEmpty(input_captcha.getText().toString())) {
+                    if (TextUtils.isEmpty(Utils.valueOf(input_email.getText())) || TextUtils.isEmpty(input_captcha.getText().toString())) {
                         Snackbar.make(login, getResources().getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
                     } else {
                         loggingIn = new ProgressDialog(context);
-                        loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
+                        //loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
                         loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
                         loggingIn.setCancelable(false);
                         loggingIn.show();
@@ -172,10 +168,10 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                                 public void run() {
                                     Looper.prepare();
                                     try {
-                                        if (input_captcha.getText().toString().equals(captcha)) {
+                                        if (Utils.valueOf(input_captcha.getText()).equals(captcha)) {
                                             AccountUtils mysqlUtils = /*new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME)*/Utils.getAccountUtils();
                                             try {
-                                                clean_password = EnDeCryptTextUtils.decrypt(mysqlUtils.getStringNoThread(context, "password", AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
+                                                clean_password = EnDeCryptTextUtils.decrypt(mysqlUtils.getString(context, "password", AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)), Variables.TEXT_ENCRYPTION_KEY);
                                             } catch (InvalidKeySpecException e) {
                                                 e.printStackTrace();
                                             } catch (InvalidKeyException e) {
@@ -189,7 +185,7 @@ public class LoginByEmailAndCAPTCHA extends AppCompatActivity {
                                             }
                                             try {
 
-                                                if (mysqlUtils.login(context, loggingIn, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(clean_password, Variables.TEXT_ENCRYPTION_KEY))) {
+                                                if (mysqlUtils.login(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(clean_password, Variables.TEXT_ENCRYPTION_KEY))) {
 
                                                     loggingIn.dismiss();
                                                     Snackbar.make(login, getResources().getString(R.string.toast_successfully_login), Snackbar.LENGTH_SHORT).show();

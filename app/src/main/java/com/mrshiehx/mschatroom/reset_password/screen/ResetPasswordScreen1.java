@@ -64,7 +64,7 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
         if (!Utils.networkAvailableDialog(context)) {
             get_captcha.setEnabled(false);
         } else {
-            if (TextUtils.isEmpty(input_email.getText().toString())) {
+            if (TextUtils.isEmpty(input_email.getText())) {
                 get_captcha.setEnabled(false);
             }
         }
@@ -154,7 +154,7 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (Utils.isNetworkConnected(context)) {
-                    if (TextUtils.isEmpty(input_email.getText().toString()) || TextUtils.isEmpty(input_captcha.getText().toString())) {
+                    if (TextUtils.isEmpty(input_email.getText()) || TextUtils.isEmpty(input_captcha.getText())) {
                         Snackbar.make(get_captcha, getResources().getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
                     } else {
                         new Thread(new Runnable() {
@@ -164,7 +164,7 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
                                 if (input_captcha.getText().toString().equals(captcha)) {
                                     AccountUtils mysqlUtils = Utils.getAccountUtils();
                                     try {
-                                        if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY))) {
+                                        if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY))) {
                                             //ResetPasswordScreen2.email = email;
                                             //Utils.startActivity(context, ResetPasswordScreen2.class);
                                             Intent intent = new Intent(context, ResetPasswordScreen2.class);

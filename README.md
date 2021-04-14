@@ -11,11 +11,12 @@ Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>1.1.1 (Apr. 7, 2021)</b><br/>
+<b>1.2 (Apr. 14, 2021) (Corresponding to server 1.2)</b><br/>
 Historical version: <br/>
-<b>1.1.1 (Apr. 7, 2021)</b><br/>
-<b>1.1 (Apr. 5, 2021)</b><br/>
-<b>1.0 (Jan. 31, 2021)</b><br/>
+<b>1.2 (Apr. 14, 2021) (Corresponding to server 1.2)</b><br/>
+<b>1.1.1 (Apr. 7, 2021) (Corresponding to server 1.1)</b><br/>
+<b>1.1 (Apr. 5, 2021) (Corresponding to server 1.1)</b><br/>
+<b>1.0 (Jan. 31, 2021) (Corresponding to server 1.0)</b><br/>
 <b>beta-2 (Jan. 26, 2021)</b><br/>
 <b>beta-1 (Jan. 21, 2021)</b><br/>
 <b>alpha-6 (Dec. 27, 2020)</b><br/>

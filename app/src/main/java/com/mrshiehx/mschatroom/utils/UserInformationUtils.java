@@ -34,7 +34,7 @@ public class UserInformationUtils {
             e.printStackTrace();
             Toast.makeText(context, MSCRApplication.getContext().getString(R.string.dialog_exception_parsing_json_failed), Toast.LENGTH_SHORT).show();
         }
-        return new UserInformation("","","");
+        return new UserInformation("", "", "");
     }
 
     public static UserInformation read(Context context, byte[] file) {
@@ -47,6 +47,6 @@ public class UserInformationUtils {
             e.printStackTrace();
             Toast.makeText(context, MSCRApplication.getContext().getString(R.string.dialog_exception_parsing_json_failed), Toast.LENGTH_SHORT).show();
         }
-        return new UserInformation("","","");
+        return new UserInformation("", "", "");
     }
 }

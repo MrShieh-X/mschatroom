@@ -86,7 +86,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (Utils.isNetworkConnected(context)) {
-                    if (TextUtils.isEmpty(input_new_password.getText().toString()) || TextUtils.isEmpty(input_confirm_password.getText().toString())) {
+                    if (TextUtils.isEmpty(input_new_password.getText()) || TextUtils.isEmpty(input_confirm_password.getText())) {
                         Snackbar.make(reset_password, getResources().getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
                     } else {
                         if (input_new_password.getText().toString().equals(input_confirm_password.getText().toString()) == false) {
@@ -95,7 +95,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                             if (input_new_password.length() < 8 || input_new_password.length() > 16) {
                             } else {
                                 resetting = new ProgressDialog(context);
-                                resetting.setTitle(getResources().getString(R.string.dialog_title_wait));
+                                //resetting.setTitle(getResources().getString(R.string.dialog_title_wait));
                                 resetting.setMessage(getResources().getString(R.string.dialog_resetting_message));
                                 resetting.setCancelable(false);
                                 resetting.show();
@@ -108,7 +108,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                                             AccountUtils ud = Utils.getAccountUtils();
                                             int result = 0;
                                             try {
-                                                result = ud.resetPassword(context, resetting, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY));
+                                                result = ud.resetPassword(context, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY));
                                             } catch (InvalidKeySpecException e) {
                                                 e.printStackTrace();
                                             } catch (InvalidKeyException e) {
@@ -158,7 +158,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
     private TextWatcher checkPasswordsTextWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            if (input_new_password.getText().toString().equals(input_confirm_password.getText().toString()) == false) {
+            if (Utils.valueOf(input_new_password.getText()).equals(Utils.valueOf(input_confirm_password.getText())) == false) {
                 //Snackbar.make(context, getResources().getString(R.string.toast_password_different), Snackbar.LENGTH_SHORT).show();
                 input_confirm_password.setError(getResources().getString(R.string.aceterror_password_different));
             }
@@ -166,7 +166,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
 
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            if (input_new_password.getText().toString().equals(input_confirm_password.getText().toString()) == false) {
+            if (Utils.valueOf(input_new_password.getText()).equals(Utils.valueOf(input_confirm_password.getText())) == false) {
                 input_confirm_password.setError(getResources().getString(R.string.aceterror_password_different));
             }
         }
@@ -174,7 +174,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable editable) {
 
-            if (input_new_password.getText().toString().equals(input_confirm_password.getText().toString()) == false) {
+            if (Utils.valueOf(input_new_password.getText()).equals(Utils.valueOf(input_confirm_password.getText())) == false) {
                 input_confirm_password.setError(getResources().getString(R.string.aceterror_password_different));
             } else {
                 if (editable.length() < 8 || editable.length() > 16) {

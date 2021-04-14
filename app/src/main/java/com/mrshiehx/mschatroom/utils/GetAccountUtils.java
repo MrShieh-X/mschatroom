@@ -67,7 +67,7 @@ public class GetAccountUtils {
     public static boolean checkCanLogin(AccountUtils accountUtils, Context context, String loginMethod, String accountOrEmailEncrypted, String passwordEncrypted) {
         //Toast.makeText(context, "", Toast.LENGTH_SHORT).show();
         //AccountUtils accountUtils=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);
-        return accountUtils.loginNoThreadAndDialog(context, loginMethod, accountOrEmailEncrypted, passwordEncrypted);
+        return accountUtils.login(context, loginMethod, accountOrEmailEncrypted, passwordEncrypted);
     }
 
     /**
@@ -87,7 +87,7 @@ public class GetAccountUtils {
      */
     public static String getEmail(AccountUtils accountUtils, Context context, String accountEncrypted) {
         //AccountUtils accountUtils=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);
-        return accountUtils.getStringNoThread(context, "email", "account", accountEncrypted);
+        return accountUtils.getString(context, "email", "account", accountEncrypted);
     }
 
     /**
@@ -107,7 +107,7 @@ public class GetAccountUtils {
      */
     public static String getAccount(AccountUtils accountUtils, Context context, String emailEncrypted) {
         //AccountUtils accountUtils=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);
-        return accountUtils.getStringNoThread(context, "account", "email", emailEncrypted);
+        return accountUtils.getString(context, "account", "email", emailEncrypted);
     }
 
     /**
@@ -117,7 +117,7 @@ public class GetAccountUtils {
      */
     public static byte[] getUserInformation(AccountUtils accountUtils, Context context, String accountEncrypted) {
         //AccountUtils accountUtils=new AccountUtils(Variables.DATABASE_NAME,Variables.DATABASE_USER,Variables.DATABASE_PASSWORD,Variables.DATABASE_TABLE_NAME);
-        return accountUtils.getBytesNoThread(context, "information", AccountUtils.BY_ACCOUNT, accountEncrypted);
+        return accountUtils.getBytes(context, "information", AccountUtils.BY_ACCOUNT, accountEncrypted);
     }
 
     /**

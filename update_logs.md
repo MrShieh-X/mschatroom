@@ -1,5 +1,10 @@
 # Update Logs
-Currently, the latest version is 1.1.1, which was updated on April 7, 2021.
+Currently, the latest version is 1.2, which was updated on April 14, 2021.
+
+## 1.2 (Apr. 14, 2021)
+- Support sending pictures.
+- Modified the start page.
+- Optimize and fix some problems.
 
 ## 1.1.1 (Apr. 7, 2021)
 - Fixed some issues.

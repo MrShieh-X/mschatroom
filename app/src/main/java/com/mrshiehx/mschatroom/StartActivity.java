@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,9 +14,12 @@ import android.os.Looper;
 import android.os.StrictMode;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -31,9 +35,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.mrshiehx.mschatroom.chat.Communicator;
 import com.mrshiehx.mschatroom.chat.message.MessageItem;
+import com.mrshiehx.mschatroom.chat.message.MessageTypes;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 import com.mrshiehx.mschatroom.main.chats.ChatItem;
 import com.mrshiehx.mschatroom.main.screen.MainScreen;
+import com.mrshiehx.mschatroom.shared_variables.DataFiles;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.FileUtils;
@@ -49,6 +55,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -95,7 +102,8 @@ public class StartActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Variables.ACCOUNT_INFORMATION = new AccountInformation();
-        Utils.initialization(StartActivity.this, R.string.app_name, android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen, android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
+        Utils.initializationNoTheme(StartActivity.this, R.string.app_name);
+        makeStatusBarBeTranslucent();
         setContentView(R.layout.activity_loading);
         appName = findViewById(R.id.loading_app_name);
         log = findViewById(R.id.log);
@@ -116,7 +124,7 @@ public class StartActivity extends Activity {
         }
 
         if (log_layout.getVisibility() == View.VISIBLE) {
-            log.setText(String.format(getString(R.string.loadinglog_main_information), Utils.getVersionName(context), String.valueOf(Utils.getVersionCode(context))));
+            log.setText(String.format(getString(R.string.loadinglog_main_information), Utils.getVersionName(context), Utils.valueOf(Utils.getVersionCode(context))));
             newLog(getString(R.string.loadinglog_start_loading));
         }
 
@@ -302,7 +310,7 @@ public class StartActivity extends Activity {
                             Variables.ACCOUNT_INFORMATION.setEmailE(emailEncrypted);
                             Variables.ACCOUNT_INFORMATION.setInformation(new ByteArrayInputStream(info));
                             newLog(getString(R.string.loadinglog_success_get_account_information));
-                            byte[] avatar = accountUtils.getBytesNoThread(context, "avatar", by, getAvatarByContent);
+                            byte[] avatar = accountUtils.getBytes(context, "avatar", by, getAvatarByContent);
                             if (avatar != null)
                                 Variables.ACCOUNT_INFORMATION.setAvatar(FormatTools.getInstance().Bytes2Drawable(avatar));
                             //Variables.ACCOUNT_INFORMATION.setAvatar(avatar);
@@ -356,71 +364,222 @@ public class StartActivity extends Activity {
                             }
                             //Variables.ACCOUNT_INFORMATION = Variables.ACCOUNT_INFORMATION;
 
-                            /**
-                             * 加载聊天
-                             */
-                            loadChats(accountUtils);
 
                             newLog(getString(R.string.loadinglog_downloading_messages));
                             try {
+                                File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
                                 String messages;
                                 //if (MSCRApplication.getSharedPreferences().getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0) != 1) {
-                                messages = accountUtils.getStringNoThread(context, "messages", AccountUtils.BY_ACCOUNT, Variables.ACCOUNT_INFORMATION.getAccountE().toString());
-                                accountUtils.setString(context, "messages", "", AccountUtils.BY_ACCOUNT, Variables.ACCOUNT_INFORMATION.getAccountE().toString());
+                                messages = accountUtils.getString(context, "messages", AccountUtils.BY_ACCOUNT, Utils.valueOf(Variables.ACCOUNT_INFORMATION.getAccountE()).toUpperCase());
                                 /*} else {
-                                    messages = accountUtils.getStringNoThread(context, "messages", AccountUtils.BY_EMAIL, Variables.ACCOUNT_INFORMATION.getEmailE().toString());
+                                    messages = accountUtils.getString(context, "messages", AccountUtils.BY_EMAIL, Variables.ACCOUNT_INFORMATION.getEmailE().toString());
                                     accountUtils.setString(context, "messages", "", AccountUtils.BY_EMAIL, Variables.ACCOUNT_INFORMATION.getEmailE().toString());
                                 }*/
 
                                 if (!TextUtils.isEmpty(messages)) {
-                                    /*JSONArray head;
-                                    try{
-                                        head=new JSONArray(messages);
-                                    }catch (Exception e){
+                                    JSONArray head;
+                                    try {
+                                        head = new JSONArray(messages);
+                                    } catch (Exception e) {
                                         e.printStackTrace();
-                                        head=new JSONArray();
+                                        head = new JSONArray();
                                     }
 
-                                    List<ChatItem> chatItemList = new Gson().fromJson(FileUtils.getString(new File(Utils.getDataFilesPath(context), "chats.json")), new TypeToken<List<ChatItem>>() {
-                                    }.getType());
-                                    for(int i=0;i<head.length();i++){
-                                        JSONObject jsonObject=head.getJSONObject(i);
-                                        String acco=jsonObject.optString("acco");
-                                        if(!TextUtils.isEmpty(acco)){
-                                            JSONArray messagesArray=jsonObject.optJSONArray("messages");
-                                            if(messagesArray!=null){
-                                                File chatFile = new File(Utils.getDataFilesPath(context), "chats" + File.separator + acco + ".json");
+                                    List<ChatItem> chatItemList = /*new Gson().fromJson(, new TypeToken<List<ChatItem>>(){}.getType())*/new ArrayList<>();
+                                    String var;
+                                    try {
+                                        var = FileUtils.getString(chatsFile);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        var = "";
+                                    }
+                                    JSONArray var2;
+                                    if (var.length() != 0) {
+                                        try {
+                                            var2 = new JSONArray(var);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            var2 = new JSONArray();
+                                        }
+                                    } else {
+                                        var2 = new JSONArray();
+                                    }
+
+                                    for (int i = 0; i < var2.length(); i++) {
+                                        JSONObject var3 = var2.getJSONObject(i);
+                                        chatItemList.add(new ChatItem(var3.optString("emailOrAccount"), var3.optString("name")));
+                                    }
+
+                                    for (int i = 0; i < head.length(); i++) {
+                                        JSONObject jsonObject = head.getJSONObject(i);
+                                        String acco = jsonObject.optString("account");
+                                        if (!TextUtils.isEmpty(acco)) {
+                                            JSONArray messagesArray = jsonObject.optJSONArray("messages");
+                                            if (messagesArray != null) {
+                                                File chatFile = new File(DataFiles.CHATS_DIR, acco + ".json");
+                                                if (!chatFile.getParentFile().exists()) {
+                                                    chatFile.getParentFile().mkdirs();
+                                                }
+                                                if (!chatFile.exists()) {
+                                                    chatFile.createNewFile();
+                                                }
                                                 String chatFileContent = FileUtils.getString(chatFile);
-                                                boolean did=false;
-                                                if(chatItemList!=null) {
-                                                    for (int j = 0; j < chatItemList.size(); j++) {
-                                                        ChatItem item=chatItemList.get(i);
-                                                        if(acco.toLowerCase().equals(item.getEmailOrAccount().toLowerCase())){
+                                                int k = -1;
+                                                for (int j = 0; j < chatItemList.size(); j++) {
+                                                    ChatItem item = chatItemList.get(j);
+                                                    if (acco.toLowerCase().equals(item.getEmailOrAccount().toLowerCase())) {
+                                                        k = j;
+                                                        break;
+                                                    }
+                                                }
+
+                                                if (k == -1) {
+                                                    /**not exists*/
+                                                    chatItemList.add(new ChatItem(acco, ""));
+                                                }
 
 
+                                                JSONArray var3;
+                                                try {
+                                                    var3 = new JSONArray(chatFileContent);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                    var3 = new JSONArray();
+                                                }
 
-
-
-                                                            did=false;
-                                                            break;
+                                                for (int j = 0; j < messagesArray.length(); j++) {
+                                                    JSONObject var4 = messagesArray.optJSONObject(j);
+                                                    if (var4 != null) {
+                                                        String var5 = var4.optString("text");
+                                                        int var6 = var4.optInt("type");
+                                                        long time = var4.optLong("time");
+                                                        JSONObject var7 = new JSONObject();
+                                                        var7.put("y", var6);
+                                                        //long millis=System.currentTimeMillis();
+                                                        /**code for*/
+                                                        if (var6 == MessageTypes.PICTURE.code) {
+                                                            File var8 = new File(DataFiles.IMAGES_DIR, Utils.valueOf(time));
+                                                            if (!var8.getParentFile().exists())
+                                                                var8.getParentFile().mkdirs();
+                                                            if (var8.exists()) var8.delete();
+                                                            var8.createNewFile();
+                                                            var7.put("c", Utils.valueOf(time));
+                                                            try {
+                                                                FileUtils.hexWrite(var5, var8);
+                                                            } catch (Exception e) {
+                                                                e.printStackTrace();
+                                                            }
+                                                        } else if (var6 == MessageTypes.TEXT.code) {
+                                                            var7.put("c", var5);
+                                                        } else {
+                                                            var7.put("c", var5);
                                                         }
-                                                    }
+                                                        /**code for*/
+                                                        var7.put("t", MessageItem.TYPE_RECEIVER);
 
-                                                    if(!did){
-                                                        asdf
+                                                        var7.put("s", time);
+                                                        boolean shouldAddTime = false;
+
+                                                        JSONObject jsonObject1 = new JSONObject();
+
+                                                        jsonObject1.put("c", MessageItem.toTimeString(time));
+                                                        jsonObject1.put("s", time);
+                                                        jsonObject1.put("t", MessageItem.TYPE_TIME);
+                                                        jsonObject1.put("y", MessageTypes.TEXT.code);
+                                                        if (j == 0 || var3.length() == 0) {
+                                                            shouldAddTime = true;
+                                                        } else {
+                                                            List<Integer> types = new ArrayList<>();
+                                                            List<MessageItem> list = new ArrayList<>();
+                                                            for (int ij = 0; i < var3.length(); ij++) {
+                                                                list.add(MessageItem.valueOf(var3.optJSONObject(ij)));
+                                                            }
+                                                            for (MessageItem item : list) {
+                                                                types.add(item.getType());
+                                                            }
+                                                            int indexOf = types.lastIndexOf(MessageItem.TYPE_TIME);
+                                                            Time Time = new Time();
+                                                            Time.set(time);
+                                                            int year = Time.year;
+                                                            /**START FROM 1*/
+                                                            int month = Time.month + 1;
+                                                            int day = Time.monthDay;
+                                                            int hour = Time.hour;
+                                                            int minute = Time.minute;
+                                                            MessageItem timeItem = list.get(indexOf);
+                                                            long timeYMDAndHM = timeItem.getTime();
+                                                            Time time1 = new Time();
+                                                            time1.set(timeYMDAndHM);
+                                                            int yearF = time1.year;
+                                                            int monthF = time1.month + 1;
+                                                            int dayF = time1.monthDay;
+                                                            int hourF = time1.hour;
+                                                            int minuteF = time1.minute;
+                                                            //int xiangcha=minute-minuteF;
+                                                            //Toast.makeText(context, Utils.valueOf(yearF==year&&monthF==month&&dayF==day&&hourF==hour), Toast.LENGTH_SHORT).show();
+                                                            if (list.size() > 0) {
+                                                                if (yearF == year && monthF == month && dayF == day && hourF == hour) {
+                                                                    int xiangcha = 6;
+                                                                    try {
+                                                                        Time timm = new Time();
+                                                                        timm.set(list.get(list.size() - 1).getTime());
+                                                                        xiangcha = minute - timm.minute;
+                                                                    } catch (Throwable ignored) {
+                                                                    }
+                                                                    if (xiangcha >= 5) {
+                                                                        //YES
+                                                                        shouldAddTime = true;
+                                                                    }
+                                                                } else {
+                                                                    //YES
+                                                                    shouldAddTime = true;
+                                                                }
+                                                            } else {
+                                                                shouldAddTime = true;
+                                                            }
+
+                                                        }
+                                                        if (shouldAddTime) {
+                                                            var3.put(jsonObject1);
+                                                        }
+                                                        var3.put(var7);
                                                     }
-                                                }else{
-                                                    adsdsf
+                                                }
+                                                try {
+                                                    FileUtils.modifyFile(chatFile, Utils.valueOf(var3), false);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
                                                 }
                                             }
                                         }
-                                    }*/
+                                    }
 
-/**code*/
+                                    JSONArray var3 = new JSONArray();
+                                    for (ChatItem item : chatItemList) {
+                                        JSONObject var4 = new JSONObject();
+                                        String var5 = item.getEmailOrAccount();
+                                        String var6 = item.getName();
+                                        //String var7=item.getLatestMsg();
+                                        //String var8=item.getLatestMsgDate();
+                                        if (!TextUtils.isEmpty(var5))
+                                            var4.put("emailOrAccount", var5);
+                                        if (!TextUtils.isEmpty(var6)) var4.put("name", var5);
+                                        //if(!TextUtils.isEmpty(var7))var4.put("latestMsg",var6);
+                                        //if(!TextUtils.isEmpty(var8))var4.put("latestMsgDate",var7);
+                                        var3.put(var4);
+                                    }
+                                    try {
+                                        FileUtils.modifyFile(chatsFile, Utils.valueOf(var3), false);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    accountUtils.setString(context, "messages", "", AccountUtils.BY_ACCOUNT, Utils.valueOf(Variables.ACCOUNT_INFORMATION.getAccountE()).toUpperCase());
 
 
+/*
                                     JSONObject jsonObject = new JSONObject(messages);
-                                    List<ChatItem> chatItemList = new Gson().fromJson(FileUtils.getString(new File(Utils.getDataFilesPath(context), "chats.json")), new TypeToken<List<ChatItem>>() {
+                                    List<ChatItem> chatItemList = new Gson().fromJson(FileUtils.getString(com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE), new TypeToken<List<ChatItem>>() {
                                     }.getType());
 
                                     for (int in = 0; in < chatItemList.size(); in++) {
@@ -437,9 +596,9 @@ public class StartActivity extends Activity {
                                             for (int i = 0; i < resultArray.length(); i++) {
                                                 String message = resultArray.getString(i);
                                                 if (!TextUtils.isEmpty(message)) {
-                                                    /**
-                                                     * 开始添加到<chat>.json
-                                                     */
+                                                    *//**
+                                     * 开始添加到<chat>.json
+                                     *//*
                                                     messageItemListNew.add(new MessageItem(message, MessageItem.TYPE_RECEIVER));
                                                 }
                                             }
@@ -469,7 +628,7 @@ public class StartActivity extends Activity {
                                             chatFile.createNewFile();
                                             FileUtils.modifyFile(chatFile, messagesArray.toString(), false);
                                         }
-                                    }
+                                    }*/
                                     newLog(getString(R.string.loadinglog_success_download_messages));
                                 } else {
                                     newLog(getString(R.string.loadinglog_messages_is_empty));
@@ -479,6 +638,12 @@ public class StartActivity extends Activity {
                                 e.printStackTrace();
                                 newLog(getString(R.string.loadinglog_failed_download_messages));
                             }
+
+
+                            /**
+                             * 加载聊天
+                             */
+                            loadChats(accountUtils);
 
                             newLog(R.string.loadinglog_connecting_communication_server);
                             if (Variables.COMMUNICATOR == null) {
@@ -578,7 +743,7 @@ public class StartActivity extends Activity {
     }
 
     void loadChats(AccountUtils au) {
-        File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+        File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
         if (chatsFile.exists()) {
             newLog(getString(R.string.loadinglog_start_load_chats));
             Gson gson = new Gson();
@@ -625,18 +790,18 @@ public class StartActivity extends Activity {
     void addForStart(final AccountUtils au, final String eoa, final File chatsFile, final int a, final List<ChatItem> items, final String by) throws Exception {
         ChatItem item = null;
         try {
-            int status = au.tryLoginWithoutPasswordNoThreadAndDialogInt(context, by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+            int status = au.tryLoginWithoutPasswordInt(context, by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
             if (status == 1) {
                 /**
                  * 如果账号存在
                  */
-                byte[] avatar = au.getBytesNoThread(context, "avatar", by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-                byte[] info = au.getBytesNoThread(context, "information", by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-                //byte[] infob = au.getBytesNoThread(context,"information", by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-                File cafile = new File(Utils.getDataFilesPath(context), "chat_avatars");
-                File avatarFile = new File(Utils.getDataFilesPath(context), "chat_avatars" + File.separator + EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
-                File infoFile = new File(Utils.getDataFilesPath(context), "information" + File.separator + EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY) + ".json");
-                File infoFolder = new File(Utils.getDataFilesPath(context), "information");
+                byte[] avatar = au.getBytes(context, "avatar", by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+                byte[] info = au.getBytes(context, "information", by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+                //byte[] infob = au.getBytes(context,"information", by, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+                File cafile = DataFiles.CHAT_AVATARS_DIR;
+                File avatarFile = new File(cafile, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+                File infoFile = new File(DataFiles.INFORMATION_DIR, EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY) + ".json");
+                File infoFolder = DataFiles.INFORMATION_DIR;
 
                 if (infoFile.exists()) {
                     infoFile.delete();
@@ -706,7 +871,7 @@ public class StartActivity extends Activity {
                     /*String account = "";
                     try {
                         //account = au.getAccountByEmail(context, EnDeCryptTextUtils.encrypt(eoa[0], Variables.TEXT_ENCRYPTION_KEY));
-                        account = au.getStringNoThread(context,"account",by,EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
+                        account = au.getString(context,"account",by,EnDeCryptTextUtils.encrypt(eoa, Variables.TEXT_ENCRYPTION_KEY));
                     } catch (InvalidKeySpecException e) {
                         e.printStackTrace();
                     } catch (InvalidKeyException e) {
@@ -1005,7 +1170,7 @@ public class StartActivity extends Activity {
                 }
             }
         });
-        Log.i("MSCRLoadingScreen", time + content);
+        Log.i("MSCRStartActivity", time + content);
     }
 
     public void sessionCreated(IoSession session) {
@@ -1025,6 +1190,24 @@ public class StartActivity extends Activity {
         super.onResume();
         if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
+        }
+    }
+
+    void makeStatusBarBeTranslucent() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
+                    | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Window window = getWindow();
+            window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
+                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
     }
 }

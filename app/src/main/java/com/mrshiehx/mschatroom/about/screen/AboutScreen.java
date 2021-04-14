@@ -121,7 +121,7 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
             case 5:
                 if (Utils.isNetworkConnected(context)) {
                     final ProgressDialog progressDialog = new ProgressDialog(context);
-                    progressDialog.setTitle(getString(R.string.dialog_title_wait));
+                    //progressDialog.setTitle(getString(R.string.dialog_title_wait));
                     progressDialog.setMessage(getString(R.string.dialog_checking_updates_message));
 
                     progressDialog.show();
@@ -177,7 +177,7 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
                                                                 @Override
                                                                 public void run() {
                                                                     downloading_new_version[0] = new ProgressDialog(context);
-                                                                    downloading_new_version[0].setTitle(getString(R.string.dialog_title_wait));
+                                                                    //downloading_new_version[0].setTitle(getString(R.string.dialog_title_wait));
                                                                     downloading_new_version[0].setMessage(getString(R.string.dialog_downloading_file_message));
                                                                     downloading_new_version[0].show();
                                                                 }

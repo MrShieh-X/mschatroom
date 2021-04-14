@@ -48,10 +48,46 @@
                 android:layout_gravity="center"
                 android:layout_margin="10dp"
                 android:textIsSelectable="true"
-                android:textColor="#fff" />
+                android:textColor="#fff"
+                android:text="asdfasfasdfasdfasfasdfasdfasfasdf"/>
         </LinearLayout>
 
     </LinearLayout>
+
+
+
+    <LinearLayout
+        android:id="@+id/left_layout_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/left_avatar_picture"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_gravity="left"
+            android:src="@drawable/account"/>
+
+        <LinearLayout
+            android:id="@+id/left_layout_inside_picture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:background="@drawable/message_receiver_dark">
+
+            <ImageView
+                android:id="@+id/left_msg_picture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+
 
     <LinearLayout
         android:id="@+id/right_layout"
@@ -85,6 +121,58 @@
 
             <ImageView
                 android:id="@+id/right_avatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/account" />
+        </LinearLayout>
+    </LinearLayout>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <LinearLayout
+        android:id="@+id/right_layout_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/right_layout_inside_picture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/message_self">
+
+            <ImageView
+                android:id="@+id/right_msg_picture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:id="@+id/right_avatar_layout_picture">
+
+            <ImageView
+                android:id="@+id/right_avatar_picture"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:src="@drawable/account" />

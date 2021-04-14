@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.widget.Toast;
 
 import com.mrshiehx.mschatroom.utils.FileUtils;
+import com.mrshiehx.mschatroom.utils.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -85,6 +86,7 @@ public class AccountInformation {
         if (information != null) {
             try {
                 String content = FileUtils.getString(information);
+                information.close();
                 JSONObject jsonObject;
                 try {
                     jsonObject = new JSONObject(content);
@@ -136,11 +138,11 @@ public class AccountInformation {
     }
 
     public CharSequence getAccountE() {
-        return accountE;
+        return accountE.toString().toLowerCase();
     }
 
     public CharSequence getEmailE() {
-        return emailE;
+        return Utils.valueOf(emailE).toLowerCase();
     }
 
     public CharSequence getNickname() {

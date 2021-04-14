@@ -2,8 +2,10 @@ package com.mrshiehx.mschatroom.chat.message;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.view.LayoutInflater;
@@ -19,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.shared_variables.DataFiles;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.FileUtils;
@@ -85,7 +88,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                             if (Utils.isEmail(eoaClean)) {
                                 by = AccountUtils.BY_EMAIL;
                             }
-                            byte[] info = Variables.ACCOUNT_UTILS.getBytesNoThread(context, "information", by, emailOrAccountOfChattingWithManEncrypted);
+                            byte[] info = Variables.ACCOUNT_UTILS.getBytes(context, "information", by, emailOrAccountOfChattingWithManEncrypted);
                             UserInformation information = UserInformationUtils.read(context, info);
                             nickname = information.nameContent;
                             gender = information.genderContent;
@@ -97,7 +100,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                     }
                 }
             } else {
-                File file2 = new File(Utils.getDataFilesPath(context), "information" + File.separator + emailOrAccountOfChattingWithManEncrypted + ".json");
+                File file2 = new File(DataFiles.INFORMATION_DIR, emailOrAccountOfChattingWithManEncrypted + ".json");
                 if (file2.exists()) {
                     try {
                         UserInformation list = UserInformationUtils.read(context, FileUtils.toByteArray(file));
@@ -127,6 +130,16 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         ImageView leftAvatar;
         ImageView rightAvatar;
 
+        LinearLayout leftLayoutP;
+        LinearLayout rightLayoutP;
+        LinearLayout leftLayoutInsideP;
+        LinearLayout rightLayoutInsideP;
+        LinearLayout rightAvatarLayoutP;
+        ImageView leftMsgP;
+        ImageView rightMsgP;
+        ImageView leftAvatarP;
+        ImageView rightAvatarP;
+
         public ViewHolder(View view) {
             super(view);
             leftLayout = view.findViewById(R.id.left_layout);
@@ -140,9 +153,22 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
             tip = view.findViewById(R.id.tip);
             leftAvatar = view.findViewById(R.id.left_avatar);
             rightAvatar = view.findViewById(R.id.right_avatar);
+
+
+            leftLayoutP = view.findViewById(R.id.left_layout_picture);
+            rightLayoutP = view.findViewById(R.id.right_layout_picture);
+            leftLayoutInsideP = view.findViewById(R.id.left_layout_inside_picture);
+            rightLayoutInsideP = view.findViewById(R.id.right_layout_inside_picture);
+            rightAvatarLayoutP = view.findViewById(R.id.right_avatar_layout_picture);
+            leftMsgP = view.findViewById(R.id.left_msg_picture);
+            rightMsgP = view.findViewById(R.id.right_msg_picture);
+            leftAvatarP = view.findViewById(R.id.left_avatar_picture);
+            rightAvatarP = view.findViewById(R.id.right_avatar_picture);
             if (!MSCRApplication.getSharedPreferences().getBoolean(Variables.SHARED_PREFERENCE_SHOW_AVATARS_WHEN_CHATTING, true)) {
                 leftAvatar.setVisibility(View.GONE);
                 rightAvatarLayout.setVisibility(View.GONE);
+                leftAvatarP.setVisibility(View.GONE);
+                rightAvatarLayoutP.setVisibility(View.GONE);
             }
 
             if (MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").equals("light")) {
@@ -165,8 +191,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
             holder.rightLayout.setVisibility(View.GONE);
             holder.leftLayout.setVisibility(View.GONE);
             holder.tipLayout.setVisibility(View.VISIBLE);
+            holder.rightLayoutP.setVisibility(View.GONE);
+            holder.leftLayoutP.setVisibility(View.GONE);
             try {
-                String[] time = msg.getContent().split(";");
+                long t = msg.getTime();
+                /*String[] time = msg.getContent().split(";");
                 String[] date = time[0].split("-");
                 int year = Integer.parseInt(date[0]);
                 int month = Integer.parseInt(date[1]);
@@ -185,7 +214,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                     }
                 } else {
                     timeText = time[0] + " " + time[1];
-                }
+                }*/
+                String timeText = Utils.formatTime(t);
                 if (!TextUtils.isEmpty(timeText)) {
                     holder.tip.setText(timeText);
                 }
@@ -198,44 +228,84 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
             holder.leftLayout.setVisibility(View.VISIBLE);
             holder.tipLayout.setVisibility(View.GONE);
             holder.rightLayout.setVisibility(View.GONE);
-            holder.leftMsg.setText(msg.getContent());
+            holder.rightLayoutP.setVisibility(View.GONE);
+
+            if (msg.getContentType() == MessageTypes.PICTURE.code) {
+                holder.leftLayoutP.setVisibility(View.VISIBLE);
+                holder.leftLayout.setVisibility(View.GONE);
+                File file = new File(DataFiles.IMAGES_DIR, msg.getContent());
+                try {
+                    holder.leftMsgP.setImageDrawable(FormatTools.getInstance().Bytes2Drawable(FileUtils.toByteArray(file)));
+                    //holder.rightMsgP.setImageBitmap(FormatTools.getInstance().Bytes2Bitmap(FileUtils.toByteArray(new File(Utils.getDataFilesPath(context), "images" + File.separator + msg.getContent()))));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                holder.leftMsgP.setOnClickListener((v) -> viewPicture(context, file.getAbsolutePath()));
+            } else {
+                holder.leftLayoutP.setVisibility(View.GONE);
+                holder.leftLayout.setVisibility(View.VISIBLE);
+                holder.leftMsg.setText(msg.getContent());
+            }
+
             if (MSCRApplication.getSharedPreferences().getBoolean(Variables.SHARED_PREFERENCE_SHOW_AVATARS_WHEN_CHATTING, true)) {
-                holder.leftAvatar.setVisibility(View.VISIBLE);
-                if (avatar != null) {
-                    holder.leftAvatar.setImageDrawable(avatar);
+                if (msg.getContentType() == MessageTypes.PICTURE.code) {
+                    holder.leftAvatarP.setVisibility(View.VISIBLE);
+                    if (avatar != null) {
+                        holder.leftAvatarP.setImageDrawable(avatar);
+                    }
+                } else {
+                    holder.leftAvatar.setVisibility(View.VISIBLE);
+                    if (avatar != null) {
+                        holder.leftAvatar.setImageDrawable(avatar);
+                    }
                 }
             }
-            holder.leftAvatar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+            View.OnClickListener var = v -> {
+                try {
+                    String eoa = "";
                     try {
-                        String eoa = "";
-                        try {
-                            eoa = EnDeCryptTextUtils.decrypt(emailOrAccountOfChattingWithManEncrypted);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        showInformationDialog(context, eoa, avatar, !TextUtils.isEmpty(nickname) ? nickname : EnDeCryptTextUtils.decrypt(emailOrAccountOfChattingWithManEncrypted), gender, whatsup);
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
+                        eoa = EnDeCryptTextUtils.decrypt(emailOrAccountOfChattingWithManEncrypted);
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
-
+                    showInformationDialog(context, eoa, avatar, !TextUtils.isEmpty(nickname) ? nickname : EnDeCryptTextUtils.decrypt(emailOrAccountOfChattingWithManEncrypted), gender, whatsup);
+                } catch (IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (BadPaddingException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeySpecException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
                 }
-            });
+
+            };
+            holder.leftAvatar.setOnClickListener(var);
+            holder.leftAvatarP.setOnClickListener(var);
         } else if (msg.getType() == MessageItem.TYPE_SELF) {
             holder.rightLayout.setVisibility(View.VISIBLE);
             holder.leftLayout.setVisibility(View.GONE);
             holder.tipLayout.setVisibility(View.GONE);
-            holder.rightMsg.setText(msg.getContent());
-            holder.rightAvatar.setOnClickListener(new View.OnClickListener() {
+            holder.leftLayoutP.setVisibility(View.GONE);
+            if (msg.getContentType() == MessageTypes.PICTURE.code) {
+                holder.rightLayoutP.setVisibility(View.VISIBLE);
+                holder.rightLayout.setVisibility(View.GONE);
+                File file = new File(DataFiles.IMAGES_DIR, msg.getContent());
+                try {
+                    holder.rightMsgP.setImageDrawable(FormatTools.getInstance().Bytes2Drawable(FileUtils.toByteArray(file)));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                holder.rightMsgP.setOnClickListener((v) -> viewPicture(context, file.getAbsolutePath()));
+            } else {
+                holder.rightLayoutP.setVisibility(View.GONE);
+                holder.rightLayout.setVisibility(View.VISIBLE);
+                holder.rightMsg.setText(msg.getContent());
+                holder.rightMsgP.setVisibility(View.GONE);
+            }
+            View.OnClickListener var = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     try {
@@ -243,7 +313,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                         if (Variables.ACCOUNT_INFORMATION != null)
                             eoa = EnDeCryptTextUtils.decrypt((String) Variables.ACCOUNT_INFORMATION.getAccountE());
                         showInformationDialog(context, eoa, avatarR, !TextUtils.isEmpty(Variables.ACCOUNT_INFORMATION.getNickname()) ? Variables.ACCOUNT_INFORMATION.getNickname() : (
-                                EnDeCryptTextUtils.decrypt(Variables.ACCOUNT_INFORMATION.getAccountE().toString(), Variables.TEXT_ENCRYPTION_KEY)), Variables.ACCOUNT_INFORMATION.getGender(), Variables.ACCOUNT_INFORMATION.getWhatsup());
+                                EnDeCryptTextUtils.decrypt(Variables.ACCOUNT_INFORMATION.getAccountE().toString().toUpperCase(), Variables.TEXT_ENCRYPTION_KEY)), Variables.ACCOUNT_INFORMATION.getGender(), Variables.ACCOUNT_INFORMATION.getWhatsup());
                     } catch (InvalidKeyException e) {
                         e.printStackTrace();
                     } catch (InvalidKeySpecException e) {
@@ -256,33 +326,64 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                         e.printStackTrace();
                     }
                 }
-            });
+            };
+            holder.rightAvatar.setOnClickListener(var);
+            holder.rightAvatarP.setOnClickListener(var);
             if (MSCRApplication.getSharedPreferences().getBoolean(Variables.SHARED_PREFERENCE_SHOW_AVATARS_WHEN_CHATTING, true)) {
-                holder.rightAvatarLayout.setVisibility(View.VISIBLE);
-                if (avatarR != null) {
-                    holder.rightAvatar.setImageDrawable(avatarR);
+                if (msg.getContentType() == MessageTypes.PICTURE.code) {
+                    holder.rightAvatarLayoutP.setVisibility(View.VISIBLE);
+                    if (avatarR != null) {
+                        holder.rightAvatarP.setImageDrawable(avatarR);
+                    }
+                } else {
+                    holder.rightAvatarLayout.setVisibility(View.VISIBLE);
+                    if (avatarR != null) {
+                        holder.rightAvatar.setImageDrawable(avatarR);
+                    }
                 }
             }
-        } else if (msg.getType() == MessageItem.TYPE_FAILED_SEND) {
+        } else if (msg.getType() == MessageItem.TYPE_FAILED_SEND || msg.getType() == MessageItem.TYPE_FAILED_SEND_SO) {
             holder.rightLayout.setVisibility(View.GONE);
             holder.leftLayout.setVisibility(View.GONE);
+            holder.rightLayoutP.setVisibility(View.GONE);
+            holder.leftLayoutP.setVisibility(View.GONE);
             holder.tipLayout.setVisibility(View.VISIBLE);
-            holder.tip.setText(String.format(context.getString(R.string.chat_tip_failed_send), msg.getContent()));
-        } else if (msg.getType() == MessageItem.TYPE_FAILED_SEND_OFFLINE) {
+            String showTip;
+            if (msg.getContentType() == MessageTypes.PICTURE.code) {
+                showTip = context.getString(R.string.message_type_picture_lower);
+            } else {
+                showTip = msg.getContent();
+            }
+
+            holder.tip.setText(String.format(msg.getType() == MessageItem.TYPE_FAILED_SEND_SO ? context.getString(R.string.chat_tip_failed_send_so) : context.getString(R.string.chat_tip_failed_send), showTip));
+        } else if (msg.getType() == MessageItem.TYPE_FAILED_SEND_OFFLINE || msg.getType() == MessageItem.TYPE_FAILED_SEND_OFFLINE_SO) {
             holder.rightLayout.setVisibility(View.GONE);
             holder.leftLayout.setVisibility(View.GONE);
+            holder.leftLayoutP.setVisibility(View.GONE);
+            holder.rightLayoutP.setVisibility(View.GONE);
             holder.tipLayout.setVisibility(View.VISIBLE);
             holder.tip.setText(context.getString(R.string.chat_tip_offline));
-        } else if (msg.getType() == MessageItem.TYPE_FAILED_SEND_NOT_LOGGINED) {
+        } else if (msg.getType() == MessageItem.TYPE_FAILED_SEND_NOT_LOGGINED || msg.getType() == MessageItem.TYPE_FAILED_SEND_NOT_LOGGINED_SO) {
             holder.rightLayout.setVisibility(View.GONE);
             holder.leftLayout.setVisibility(View.GONE);
+            holder.leftLayoutP.setVisibility(View.GONE);
+            holder.rightLayoutP.setVisibility(View.GONE);
             holder.tipLayout.setVisibility(View.VISIBLE);
             holder.tip.setText(context.getString(R.string.chat_tip_not_loggined));
-        } else if (msg.getType() == MessageItem.TYPE_FAILED_SEND_LOGIN_FAILED) {
+        } else if (msg.getType() == MessageItem.TYPE_FAILED_SEND_LOGIN_FAILED || msg.getType() == MessageItem.TYPE_FAILED_SEND_LOGIN_FAILED_SO) {
             holder.rightLayout.setVisibility(View.GONE);
             holder.leftLayout.setVisibility(View.GONE);
+            holder.leftLayoutP.setVisibility(View.GONE);
+            holder.rightLayoutP.setVisibility(View.GONE);
             holder.tipLayout.setVisibility(View.VISIBLE);
             holder.tip.setText(context.getString(R.string.chat_tip_failed_logined));
+        } else if (msg.getType() == MessageItem.TYPE_FAILED_SEND_CONNECT_FAILED || msg.getType() == MessageItem.TYPE_FAILED_SEND_CONNECT_FAILED_SO) {
+            holder.rightLayout.setVisibility(View.GONE);
+            holder.leftLayout.setVisibility(View.GONE);
+            holder.leftLayoutP.setVisibility(View.GONE);
+            holder.rightLayoutP.setVisibility(View.GONE);
+            holder.tipLayout.setVisibility(View.VISIBLE);
+            holder.tip.setText(context.getString(R.string.chat_tip_failed_connect));
         }
     }
 
@@ -300,5 +401,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
 
         alertDialog.setMessage(String.format(context.getString(R.string.dialog_user_information_message), eoa, gender.equals("male") ? context.getString(R.string.preference_account_gender_male) : ((gender.equals("female") ? context.getString(R.string.preference_account_gender_female) : context.getString(R.string.preference_account_gender_summary))), !TextUtils.isEmpty(whatsup) ? whatsup : context.getString(R.string.preference_account_whatsup_summary)));
         alertDialog.show();
+    }
+
+    void viewPicture(Context context, String path) {
+        Intent intent = new Intent();
+        intent.setData(Uri.parse("mscr://picture_viewer/view?localPath=" + path));
+        context.startActivity(intent);
     }
 }

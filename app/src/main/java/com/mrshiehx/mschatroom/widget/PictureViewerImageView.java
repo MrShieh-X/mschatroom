@@ -196,7 +196,7 @@ public class PictureViewerImageView extends ImageView implements View.OnTouchLis
                 scaleFactor = initScale / scale;
             if (scaleFactor * scale > SCALE_MAX)
                 scaleFactor = SCALE_MAX / scale;
-            Log.e(TAG, "scaleFactor2---->" + scaleFactor);
+            //Log.e(TAG, "scaleFactor2---->" + scaleFactor);
             //设置缩放比例
             scaleMatrix.postScale(scaleFactor, scaleFactor,
                     detector.getFocusX(), detector.getFocusY());

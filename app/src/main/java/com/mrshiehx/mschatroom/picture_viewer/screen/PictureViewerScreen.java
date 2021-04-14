@@ -81,10 +81,8 @@ public class PictureViewerScreen extends Activity {
 
                 if (contentType.equals("localPath")) {
                     int WRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(getApplicationContext(), Variables.PERMISSIONS[0]);
-                    int INTERNET = ContextCompat.checkSelfPermission(getApplicationContext(), Variables.PERMISSIONS[1]);
-                    int ACCESS_NETWORK_STATE = ContextCompat.checkSelfPermission(getApplicationContext(), Variables.PERMISSIONS[2]);
                     // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
-                    if (WRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED || INTERNET != PackageManager.PERMISSION_GRANTED || ACCESS_NETWORK_STATE != PackageManager.PERMISSION_GRANTED) {
+                    if (WRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED) {
                         // 如果没有授予该权限，就去提示用户请求
                         startRequestPermission();
                     } else {
@@ -239,7 +237,7 @@ public class PictureViewerScreen extends Activity {
     void method02(final String content) {
         if (Utils.networkAvailableDialog(context)) {
             final ProgressDialog downloading = new ProgressDialog(context);
-            downloading.setTitle(context.getResources().getString(R.string.dialog_title_wait));
+            //downloading.setTitle(context.getResources().getString(R.string.dialog_title_wait));
             downloading.setMessage(context.getResources().getString(R.string.dialog_downloading_message));
             downloading.setCancelable(false);
             downloading.show();

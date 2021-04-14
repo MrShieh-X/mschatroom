@@ -65,18 +65,18 @@ public class RegisterScreen extends AppCompatActivity {
     private View.OnClickListener registerOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            if (TextUtils.isEmpty(reg_input_account.getText().toString()) || TextUtils.isEmpty(reg_input_email.getText().toString()) || TextUtils.isEmpty(reg_input_password.getText().toString()) || TextUtils.isEmpty(reg_input_confirm_password.getText().toString()) || TextUtils.isEmpty(reg_input_captcha.getText().toString())) {
+            if (TextUtils.isEmpty(Utils.valueOf(reg_input_account.getText())) || TextUtils.isEmpty(reg_input_email.getText().toString()) || TextUtils.isEmpty(reg_input_password.getText().toString()) || TextUtils.isEmpty(reg_input_confirm_password.getText().toString()) || TextUtils.isEmpty(reg_input_captcha.getText().toString())) {
                 input_content_empty.setVisibility(View.VISIBLE);
             } else {
                 input_content_empty.setVisibility(View.GONE);
-                if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == false) {
+                if (Utils.valueOf(reg_input_password.getText()).equals(Utils.valueOf(reg_input_confirm_password.getText())) == false) {
                     password_different.setVisibility(View.VISIBLE);
-                } else if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == true) {
+                } else if (Utils.valueOf(reg_input_password.getText()).equals(Utils.valueOf(reg_input_confirm_password.getText())) == true) {
                     password_different.setVisibility(View.GONE);
                     if (reg_input_password.length() < 8 || reg_input_password.length() > 16) {
 
                     } else {
-                        if (reg_input_captcha.getText().toString().equals(captcha) == true) {
+                        if (Utils.valueOf(reg_input_captcha.getText()).equals(captcha) == true) {
                             if (reg_input_account.getText().length() < 4 || reg_input_account.getText().length() > 20) {
                                 Snackbar.make(register, getResources().getString(R.string.toast_account_insufficient_length_or_too_long), Snackbar.LENGTH_SHORT).show();
                             } else {
@@ -90,7 +90,7 @@ public class RegisterScreen extends AppCompatActivity {
                                         // database = sQLiteOpenHelper.getWritableDatabase();
                                         //database.execSQL(createTableSql);
                                         //database.execSQL(insertSql);
-                                        registering.setTitle(getResources().getString(R.string.dialog_title_wait));
+                                        //registering.setTitle(getResources().getString(R.string.dialog_title_wait));
                                         registering.setMessage(getResources().getString(R.string.dialog_registering_message));
                                         registering.setCancelable(false);
                                         registering.show();
@@ -104,21 +104,21 @@ public class RegisterScreen extends AppCompatActivity {
                                                 //Boolean resultEmail = registerAndLogin.loginByEmail(context, email, password);
                                                 //String emaila=reg_input_email.getText().toString();
                                                 try {
-                                                    if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)) == true) {
+                                                    if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)) == true) {
                                                         //邮箱已存在
                                                         Snackbar.make(register, getResources().getString(R.string.toast_registered_email), Snackbar.LENGTH_LONG).show();
-                                                    } else if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)) == false) {
-                                                        if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == true) {
+                                                    } else if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY)) == false) {
+                                                        if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == true) {
                                                             //账号已存在
                                                             Snackbar.make(register, getResources().getString(R.string.toast_registered_account), Snackbar.LENGTH_SHORT).show();
-                                                        } else if (mysqlUtils.tryLoginWithoutPasswordNoThreadAndDialog(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == false) {
+                                                        } else if (mysqlUtils.tryLoginWithoutPassword(context, AccountUtils.BY_ACCOUNT, EnDeCryptTextUtils.encrypt(account, Variables.TEXT_ENCRYPTION_KEY)) == false) {
                                                             //Real register
-                                                            String accountR = reg_input_account.getText().toString().toLowerCase();
-                                                            String passwordR = reg_input_password.getText().toString();
+                                                            String accountR = Utils.valueOf(reg_input_account.getText()).toLowerCase();
+                                                            String passwordR = Utils.valueOf(reg_input_password.getText());
                                                             AccountUtils mysqlUtils2 = Utils.getAccountUtils();
                                                             int result = 0;
                                                             try {
-                                                                result = mysqlUtils2.register(context, registering, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(accountR, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(passwordR, Variables.TEXT_ENCRYPTION_KEY));
+                                                                result = mysqlUtils2.register(context, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(accountR, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(passwordR, Variables.TEXT_ENCRYPTION_KEY));
                                                             } catch (InvalidKeySpecException e) {
                                                                 e.printStackTrace();
                                                             } catch (InvalidKeyException e) {
@@ -134,6 +134,7 @@ public class RegisterScreen extends AppCompatActivity {
                                                                 Snackbar.make(register, getResources().getString(R.string.toast_failed_register), Snackbar.LENGTH_SHORT).show();
                                                                 Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_register));
                                                             }
+                                                            registering.dismiss();
                                                             if (result == 0) {
                                                                 Snackbar.make(register, getResources().getString(R.string.toast_failed_register), Snackbar.LENGTH_SHORT).show();
                                                             } else {
@@ -142,7 +143,7 @@ public class RegisterScreen extends AppCompatActivity {
                                                                 LoginScreen.can_i_back = true;
                                                             }
                                                         /*Looper.prepare();
-                                                        Snackbar.make(context, String.valueOf(result), Snackbar.LENGTH_SHORT).show();*/
+                                                        Snackbar.make(context, Utils.valueOf(result), Snackbar.LENGTH_SHORT).show();*/
 
                                                         }
 
@@ -219,7 +220,7 @@ public class RegisterScreen extends AppCompatActivity {
             button_get_captcha.setEnabled(false);
             register.setEnabled(false);
         } else {
-            if (TextUtils.isEmpty(reg_input_email.getText().toString())) {
+            if (TextUtils.isEmpty(Utils.valueOf(reg_input_email.getText()))) {
                 button_get_captcha.setEnabled(false);
             }
         }
@@ -240,7 +241,7 @@ public class RegisterScreen extends AppCompatActivity {
                     try {
                         //gettingCaptcha=true;
                         button_get_captcha.setEnabled(false);
-                        SendEmailUtils sendEmail = new SendEmailUtils(reg_input_email.getText().toString().toLowerCase());
+                        SendEmailUtils sendEmail = new SendEmailUtils(Utils.valueOf(reg_input_email.getText()).toLowerCase());
                         sendEmail.sendCaptcha(captcha);
                         Snackbar.make(register, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show();
                         email = reg_input_email.getText().toString().toLowerCase();
@@ -319,13 +320,9 @@ public class RegisterScreen extends AppCompatActivity {
         reg_input_email.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (Utils.isEmail(reg_input_email.getText().toString()) && charSequence.length() > 0 == true) {
+                if (Utils.isEmail(Utils.valueOf(reg_input_email.getText())) && charSequence.length() > 0 == true) {
                     if (Utils.isNetworkConnected(context)) {
-                        if (mCountDownTimerUtils.isRunning() == true) {
-                            button_get_captcha.setEnabled(false);
-                        } else {
-                            button_get_captcha.setEnabled(true);
-                        }
+                        button_get_captcha.setEnabled(!mCountDownTimerUtils.isRunning());
                     } else {
                         button_get_captcha.setEnabled(false);
                     }
@@ -336,7 +333,7 @@ public class RegisterScreen extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (Utils.isEmail(reg_input_email.getText().toString()) && charSequence.length() > 0 == true) {
+                if (Utils.isEmail(Utils.valueOf(reg_input_email.getText())) && charSequence.length() > 0) {
                     if (Utils.isNetworkConnected(context)) {
                         button_get_captcha.setEnabled(!mCountDownTimerUtils.isRunning());
                     } else {
@@ -349,7 +346,7 @@ public class RegisterScreen extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                if (Utils.isEmail(reg_input_email.getText().toString()) && editable.length() > 0 == true) {
+                if (Utils.isEmail(Utils.valueOf(reg_input_email.getText())) && editable.length() > 0 == true) {
                     if (Utils.isNetworkConnected(context)) {
                         if (mCountDownTimerUtils.isRunning() == true) {
                             button_get_captcha.setEnabled(false);
@@ -381,28 +378,27 @@ public class RegisterScreen extends AppCompatActivity {
     private TextWatcher checkPasswordsTextWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == false) {
+            if (!Utils.valueOf(reg_input_password.getText()).equals(Utils.valueOf(reg_input_confirm_password))) {
                 password_different.setVisibility(View.VISIBLE);
-            } else if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == true) {
+            } else if (Utils.valueOf(reg_input_password.getText()).equals(Utils.valueOf(reg_input_confirm_password.getText()))) {
                 password_different.setVisibility(View.GONE);
             }
         }
 
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == false) {
+            if (Utils.valueOf(reg_input_password.getText()).equals(Utils.valueOf(reg_input_confirm_password.getText())) == false) {
                 password_different.setVisibility(View.VISIBLE);
-            } else if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == true) {
+            } else if (Utils.valueOf(reg_input_password.getText()).equals(Utils.valueOf(reg_input_confirm_password.getText())) == true) {
                 password_different.setVisibility(View.GONE);
             }
         }
 
         @Override
         public void afterTextChanged(Editable editable) {
-
             if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == false) {
                 password_different.setVisibility(View.VISIBLE);
-            } else if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString()) == true) {
+            } else if (reg_input_password.getText().toString().equals(reg_input_confirm_password.getText().toString())) {
                 password_different.setVisibility(View.GONE);
                 if (editable.length() < 8 || editable.length() > 16) {
                     reg_input_password.setError(getResources().getString(R.string.aceterror_password_insufficient_length_or_too_long));

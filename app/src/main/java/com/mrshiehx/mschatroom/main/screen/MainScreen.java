@@ -34,11 +34,13 @@ import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.about.screen.AboutScreen;
 import com.mrshiehx.mschatroom.broadcast_receivers.NetworkStateReceiver;
 import com.mrshiehx.mschatroom.chat.message.MessageItem;
+import com.mrshiehx.mschatroom.chat.message.MessageTypes;
 import com.mrshiehx.mschatroom.chat.screen.ChatScreen;
 import com.mrshiehx.mschatroom.chat.screen.ChatScreenLauncher;
 import com.mrshiehx.mschatroom.main.chats.ChatsAdapter;
 import com.mrshiehx.mschatroom.main.chats.ChatItem;
 import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
+import com.mrshiehx.mschatroom.shared_variables.DataFiles;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.ConnectionUtils;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
@@ -106,15 +108,15 @@ public class MainScreen extends AppCompatActivity {
         fablp.gravity = Gravity.END | Gravity.BOTTOM;
         fab.setLayoutParams(fablp);
         finding = new ProgressDialog(context);
-        finding.setTitle(getResources().getString(R.string.dialog_title_wait));
+        //finding.setTitle(getResources().getString(R.string.dialog_title_wait));
         finding.setMessage(getResources().getString(R.string.dialog_finding_message));
         finding.setCancelable(false);
         adding = new ProgressDialog(context);
-        adding.setTitle(getResources().getString(R.string.dialog_title_wait));
+        //adding.setTitle(getResources().getString(R.string.dialog_title_wait));
         adding.setMessage(getResources().getString(R.string.dialog_adding_chat));
         adding.setCancelable(false);
         initializing = new ProgressDialog(context);
-        initializing.setTitle(getResources().getString(R.string.dialog_title_wait));
+        //initializing.setTitle(getResources().getString(R.string.dialog_title_wait));
         initializing.setMessage(getResources().getString(R.string.dialog_initializing_chat));
         initializing.setCancelable(false);
         lv.setAdapter(null);
@@ -127,7 +129,7 @@ public class MainScreen extends AppCompatActivity {
             String[] languageAndCountry = PreferenceManager.getDefaultSharedPreferences(context).getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
             setTitle(Utils.getStringByLocale(context, R.string.activity_main_screen_offline_mode_name, languageAndCountry[0], languageAndCountry[1]));
         } else {
-            //Toast.makeText(context, String.valueOf(Variables.ACCOUNT_UTILS==null), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, Utils.valueOf(Variables.ACCOUNT_UTILS==null), Toast.LENGTH_SHORT).show();
             if (Variables.ACCOUNT_UTILS == null) {
                 final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
                 new Thread(new Runnable() {
@@ -203,7 +205,7 @@ public class MainScreen extends AppCompatActivity {
                                                 String accountE = aae[0];
                                                 String emailE = aae[1];
 
-                                                File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+                                                File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
 
                                                 if (chatsFile.exists()) {
                                                     try {
@@ -306,7 +308,7 @@ public class MainScreen extends AppCompatActivity {
                                                 String accountE = aae[0];
                                                 String emailE = aae[1];
 
-                                                File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+                                                File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
 
                                                 if (chatsFile.exists()) {
                                                     try {
@@ -507,8 +509,27 @@ public class MainScreen extends AppCompatActivity {
                 new AlertDialog.Builder(context).setTitle(getString(R.string.dialog_title_notice)).setMessage(getString(R.string.dialog_delete_chat_message)).setNegativeButton(getString(android.R.string.cancel), null).setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
-                        File chatFile = new File(Utils.getDataFilesPath(context), "chats" + File.separator + ((ChatItem) lv.getItemAtPosition((int) selectedId)).getEmailOrAccount() + ".json");
+                        File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
+                        File chatFile = new File(DataFiles.CHATS_DIR, ((ChatItem) lv.getItemAtPosition((int) selectedId)).getEmailOrAccount() + ".json");
+                        try {
+                            List<File> files = new ArrayList<>();
+                            JSONArray jsonArray = new JSONArray(FileUtils.getString(chatFile));
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                                if (jsonObject.optInt("y") == MessageTypes.PICTURE.code) {
+                                    String var = jsonObject.optString("c", "");
+                                    if (!TextUtils.isEmpty(var))
+                                        files.add(new File(DataFiles.IMAGES_DIR, var));
+                                }
+                            }
+                            for (File file : files) {
+                                if (file != null && file.exists()) {
+                                    file.delete();
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         if (chatFile.exists()) {
                             chatFile.delete();
                         }
@@ -597,10 +618,10 @@ public class MainScreen extends AppCompatActivity {
         boolean ok = Utils.getAccountUtils().find(context, finding, by, encrypted);
         if (ok) {
             finding.dismiss();
-            InputStream avatar = Utils.getAccountUtils().getInputStreamNoThread(context, "avatar", by, encrypted);
+            InputStream avatar = Utils.getAccountUtils().getInputStream(context, "avatar", by, encrypted);
             //String name = "";
             ChatItem item = null;
-            byte[] info = Utils.getAccountUtils().getBytesNoThread(context, "information", by, encrypted);
+            byte[] info = Utils.getAccountUtils().getBytes(context, "information", by, encrypted);
             String readName = UserInformationUtils.read(context, info).nameContent;
             /*if (!TextUtils.isEmpty(readName)) {
              *//*try {
@@ -625,8 +646,8 @@ public class MainScreen extends AppCompatActivity {
                 accountOrName=encrypted;
             }*/
             if (avatar != null) {
-                File cafile = new File(Utils.getDataFilesPath(context), "chat_avatars");
-                File file = new File(Utils.getDataFilesPath(context), "chat_avatars" + File.separator + encrypted);
+                File cafile = DataFiles.CHAT_AVATARS_DIR;
+                File file = new File(DataFiles.CHAT_AVATARS_DIR, encrypted);
                 if (!cafile.exists()) {
                     cafile.mkdirs();
                 } else {
@@ -696,7 +717,7 @@ public class MainScreen extends AppCompatActivity {
             /**
              * 添加聊天到JSON
              */
-            File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+            File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
             if (chatsFile.exists()) {
                 String chatsFileContent = FileUtils.getString(chatsFile);
                 /**
@@ -720,11 +741,11 @@ public class MainScreen extends AppCompatActivity {
                     //content.add(item);
                     //final List<ChatItem> chatItems = new ArrayList<ChatItem>();
                     //新建json
-                    //Log.e("fuck",String.valueOf(content));
+                    //Log.e("fuck",Utils.valueOf(content));
                     //chatItems.addAll(content);
                     //chatItems.addAll(content);
                     content.add(item);
-                    //og.e("fuck2",String.valueOf(content));
+                    //og.e("fuck2",Utils.valueOf(content));
                     JSONArray chatArray = new JSONArray();
                     for (int i = 0; i < content.size(); i++) {
 
@@ -828,11 +849,11 @@ public class MainScreen extends AppCompatActivity {
                 adding.dismiss();
             }
             try {
-                if (!new File(Utils.getDataFilesPath(context), "chats").exists()) {
-                    new File(Utils.getDataFilesPath(context), "chats").mkdirs();
+                if (!DataFiles.CHATS_DIR.exists()) {
+                    DataFiles.CHATS_DIR.mkdirs();
                 }
-                new File(Utils.getDataFilesPath(context), "chats" + File.separator + encrypted + ".json").createNewFile();
-                FileUtils.modifyFile(new File(Utils.getDataFilesPath(context), "chats" + File.separator + encrypted + ".json"), "[]", false);
+                new File(DataFiles.CHATS_DIR, encrypted + ".json").createNewFile();
+                FileUtils.modifyFile(new File(DataFiles.CHATS_DIR, encrypted + ".json"), "[]", false);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -845,40 +866,17 @@ public class MainScreen extends AppCompatActivity {
 
 
     void initFromFile(final ListView lv, List<ChatItem> content) {
-        File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+        File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
         if (chatsFile.exists()) {
             try {
-
-                //String contentCon = Utils.getJsonByAssets(context, "chats.json");
-
-                /*
+                JSONArray jsonArray;
                 try {
-                    inputStream = new FileInputStream(new File(Utils.getDataFilesPath(context), "chats.json"));
-                } catch (FileNotFoundException e) {
+                    jsonArray = new JSONArray(FileUtils.getString(com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE));
+                } catch (Exception e) {
                     e.printStackTrace();
-                    Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_file_not_found));
+                    jsonArray = new JSONArray();
+                    Toast.makeText(context, getText(R.string.dialog_exception_failed_to_load_chat), Toast.LENGTH_SHORT).show();
                 }
-                InputStreamReader inputStreamReader = null;
-                try {
-                    inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
-                } catch (UnsupportedEncodingException e1) {
-                    e1.printStackTrace();
-                    Utils.exceptionDialog(context, e1, getString(R.string.dialog_exception_failed_to_read_file));
-                }
-                BufferedReader reader = new BufferedReader(inputStreamReader);
-                StringBuffer sb = new StringBuffer("");
-                String line;
-                try {
-                    while ((line = reader.readLine()) != null) {
-                        sb.append(line);
-                        sb.append("\n");
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_read_file));
-                }
-*/
-                JSONArray jsonArray = new JSONArray(FileUtils.getString(new File(Utils.getDataFilesPath(context), "chats.json")));
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
                     String emailOrAccount = jsonObject.getString("emailOrAccount");
@@ -886,14 +884,21 @@ public class MainScreen extends AppCompatActivity {
                     String latestMsg = "";
                     String latestMsgDate = "";
 
-                    File chatFile = new File(Utils.getDataFilesPath(context), "chats" + File.separator + emailOrAccount + ".json");
+                    File chatFile = new File(DataFiles.CHATS_DIR, emailOrAccount + ".json");
                     if (chatFile.exists()) {
                         try {
                             List<MessageItem> list = new Gson().fromJson(FileUtils.getString(chatFile), new TypeToken<List<MessageItem>>() {
                             }.getType());
                             latestMsgDate = Utils.formatTime(list.get(list.size() - 1).getTime());
                             if (list.get(list.size() - 1).getType() != MessageItem.TYPE_TIME) {
-                                latestMsg = list.get(list.size() - 1).getContent();
+                                MessageItem item = list.get(list.size() - 1);
+                                /**code for*/
+                                if (item.getContentType() == MessageTypes.PICTURE.code) {
+                                    latestMsg = getString(R.string.message_type_picture);
+                                } else {
+                                    latestMsg = list.get(list.size() - 1).getContent();
+                                }
+
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -916,15 +921,12 @@ public class MainScreen extends AppCompatActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, getResources().getString(R.string.dialog_exception_parsing_json_failed));
-            } catch (IOException e) {
-                e.printStackTrace();
-                Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_read_file));
             }
         }
     }
 
     void initForAdd(final ListView lv, List<ChatItem> content, ChatItem chatItem) {
-        File chatsFile = new File(Utils.getDataFilesPath(context), "chats.json");
+        File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
         //Toast.makeText(context, ""+chatsFile.exists(), Toast.LENGTH_SHORT).show();
         if (chatsFile.exists()) {
             contentAdapter.add(chatItem);
@@ -1009,7 +1011,7 @@ public class MainScreen extends AppCompatActivity {
                 public synchronized void run() {
                     try {
                         ChatItem item = (ChatItem) lv.getItemAtPosition(finalI);
-                        File chatFile = new File(Utils.getDataFilesPath(context), "chats" + File.separator + item.getEmailOrAccount() + ".json");
+                        File chatFile = new File(DataFiles.CHATS_DIR, item.getEmailOrAccount() + ".json");
                         List<MessageItem> list = new Gson().fromJson(FileUtils.getString(chatFile), new TypeToken<List<MessageItem>>() {
                         }.getType());
                         String latestMsgDate = "";
@@ -1018,17 +1020,40 @@ public class MainScreen extends AppCompatActivity {
                         if (chatFile.exists()) {
                             latestMsgDate = Utils.formatTime(list.get(list.size() - 1).getTime());
                             if (list.get(list.size() - 1).getType() != MessageItem.TYPE_TIME) {
-                                latestMsg = list.get(list.size() - 1).getContent();
+                                /**code for*/
+                                if (list.get(list.size() - 1).getContentType() == MessageTypes.PICTURE.code) {
+                                    latestMsg = getString(R.string.message_type_picture);
+                                } else {
+                                    latestMsg = list.get(list.size() - 1).getContent();
+                                }
                             }
                         }
                         content.get(finalI).setLatestMsg(latestMsg);
                         content.get(finalI).setLatestMsgDate(latestMsgDate);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                contentAdapter = new ChatsAdapter(context, R.layout.item_main_screen_chat, content);
-                                lv.setAdapter(contentAdapter);
-                            }
+                        runOnUiThread(() -> {
+                            contentAdapter = new ChatsAdapter(context, R.layout.item_main_screen_chat, content);
+                            lv.setAdapter(contentAdapter);
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+    }
+
+    void updateLatests(String latestMsg, String latestMsgDate) {
+        for (int i = 0; i < content.size(); i++) {
+            int finalI = i;
+            new Thread(new Runnable() {
+                @Override
+                public synchronized void run() {
+                    try {
+                        content.get(finalI).setLatestMsg(latestMsg);
+                        content.get(finalI).setLatestMsgDate(latestMsgDate);
+                        runOnUiThread(() -> {
+                            contentAdapter = new ChatsAdapter(context, R.layout.item_main_screen_chat, content);
+                            lv.setAdapter(contentAdapter);
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1044,16 +1069,20 @@ public class MainScreen extends AppCompatActivity {
         if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
-        if(Variables.ACCOUNT_UTILS!=null){
-            if(Variables.ACCOUNT_UTILS.getConnection()==null){
+        /*if (Variables.ACCOUNT_UTILS != null) {
+            if (Variables.ACCOUNT_UTILS.getConnection() == null) {
                 Utils.reload(context);
             }
-        }else{
+        } else {
             Utils.reload(context);
-        }
+        }*/
     }
 
-    public void messageReceived(IoSession session, Object message) {
-        updateLatests();
+    public void messageReceived(IoSession session, Object message/*, String latestMsg, String latestMsgDate*/) {
+        updateLatests(/*latestMsg, latestMsgDate*/);
+    }
+
+    public void onDisconnectNetwork() {
+        Variables.COMMUNICATOR = null;
     }
 }

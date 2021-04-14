@@ -26,6 +26,7 @@
             android:name=".StartActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
             android:label="@string/app_name_short">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -88,24 +89,33 @@
             android:label="@string/activity_picture_viewer_name"
             android:theme="@android:style/Theme.DeviceDefault">
             <intent-filter>
-
-                <category
-                    android:name="android.intent.category.DEFAULT" />
-
-                <action
-                    android:name="android.intent.action.VIEW" />
-
-                <action
-                    android:name="android.intent.action.EDIT" />
-
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
                 <data
-                    android:scheme="file" />
-
+                    android:host="picture_viewer"
+                    android:scheme="mscr"
+                    android:path="/view" />
                 <data
-                    android:scheme="content" />
-
+                    android:host="picture_viewer"
+                    android:scheme="mschatroom"
+                    android:path="/view" />
                 <data
-                    android:mimeType="image/*" />
+                    android:host="pv"
+                    android:scheme="mscr"
+                    android:path="/view" />
+                <data
+                    android:host="pv"
+                    android:scheme="mschatroom"
+                    android:path="/view" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
 

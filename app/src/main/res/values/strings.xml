@@ -122,7 +122,7 @@
     <string name="dialog_exception_parsing_json_failed">JSON file parsing failed</string>
     <string name="dialog_exception_parsing_xml_failed">XML file parsing failed</string>
     <string name="dialog_title_wait">Wait</string>
-    <string name="dialog_downloading_message">Downloading File... (if the download time is too long, there may be network problems or application problems, you can restart the application)</string>
+    <string name="dialog_downloading_message">Downloading File...</string>
     <string name="dialog_exception_title">An error occurred</string>
     <string name="dialog_exception_message">Sorry, an error occurred in the program. We recommend that you report this problem to the author. The class file is: %1$s; the error is: %2$s</string>
     <string name="dialog_no_network_title">No Network</string>
@@ -136,12 +136,12 @@
     <string name="dialog_exception_downloadfailed">Failed to download file</string>
     <string name="dialog_exception_button_feedback">Feedback To The Author</string>
     <string name="dialog_exception_failed_get_captcha">Failed to get CAPTCHA</string>
-    <string name="dialog_registering_message">Registering... (If the registration takes too long, there may be network problems, server problems or application problems, you can try to restart the application.)</string>
+    <string name="dialog_registering_message">Registering...</string>
     <string name="dialog_exception_failed_upload_data">Data upload failed</string>
     <string name="dialog_exception_failed_login">Failed to login</string>
-    <string name="dialog_loggingIn_message">Logging in... (If the login time is too long, there may be network problems, server problems or application problems, you can try to restart the application.)</string>
+    <string name="dialog_loggingIn_message">Logging in...</string>
     <string name="dialog_exception_failed_to_save_data">Failed to save data</string>
-    <string name="dialog_resetting_message">Resetting Password... (If it takes too long to reset the password, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_resetting_message">Resetting Password...</string>
     <string name="dialog_exception_failed_download_data">Data download failed</string>
     <string name="dialog_exception_failed_get_user_information">Failed to get user information</string>
     <string name="dialog_relogin_message">Do you want to login again and replace the previous login data?</string>
@@ -152,21 +152,21 @@
     <string name="dialog_choose_photo_message">Please choose a source to get photo from.</string>
     <string name="dialog_choose_photo_button_take">Take Photo</string>
     <string name="dialog_choose_photo_button_select">Choose from Album</string>
-    <string name="dialog_uploading_message">Uploading... (If it takes too long to upload, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_uploading_message">Uploading...</string>
     <string name="dialog_exception_failed_to_changeavatar">Failed to change avatar</string>
     <string name="dialog_no_login_message">Account is not logged in. Do you want to login now?</string>
     <string name="dialog_no_login_button_gotologin_text">Go to login</string>
-    <string name="dialog_downloading_avatar">Downloading Avatar... (If it takes too long to download, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_downloading_avatar">Downloading Avatar...</string>
     <string name="dialog_exception_failed_to_downloadavatar">Failed to download avatar</string>
     <string name="dialog_delete_account_message">Are you sure you want to delete your account? This operation cannot be recalled!</string>
-    <string name="dialog_deleting_message">Deleting Account... (If it takes too long to delete, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_deleting_message">Deleting Account...</string>
     <string name="dialog_exception_file_not_found">File not found</string>
     <string name="dialog_dialog_add_chat_edittext_hint">Input a account or email address</string>
     <string name="dialog_add_chat_title">Add a chat</string>
     <string name="dialog_add_chat_button_text">Add</string>
-    <string name="dialog_finding_message">Finding Account... (If it takes too long to find, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
-    <string name="dialog_adding_chat">Adding Chat... (If it takes too long to add, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
-    <string name="dialog_initializing_chat">Initializing Chat... (If it takes too long to initialize, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_finding_message">Finding Account...</string>
+    <string name="dialog_adding_chat">Adding Chat...</string>
+    <string name="dialog_initializing_chat">Initializing Chat...</string>
     <string name="dialog_exception_failed_to_read_file">Failed to read file</string>
     <string name="dialog_exception_failed_to_en_or_de_text">Text encryption or decryption failed</string>
     <string name="dialog_exception_failed_to_initialize">Failed to initialize</string>
@@ -179,9 +179,9 @@
     <string name="dialog_no_permissions_button_gotosettings">Go to settings</string>
     <string name="dialog_clear_cache_message">Are you sure you want to clear the cache?</string>
     <string name="dialog_clear_application_data_message">Are you sure you want to clear application data? This action will exit the application.</string>
-    <string name="dialog_getting_user_information">Getting User Information... (If it takes too long to get, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_getting_user_information">Getting User Information...</string>
     <string name="dialog_logout_checkbox_text">Delete added chats and chat files</string>
-    <string name="dialog_verifying_message">Verifying... (If it takes too long to verify, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_verifying_message">Verifying...</string>
     <string name="dialog_exception_failed_to_get_files_size">Failed to get files size</string>
     <string name="dialog_set_server_information_title">Please set the server information</string>
     <string name="dialog_set_server_information_tip_firstuse">For the first use, please enter server information</string>
@@ -193,7 +193,7 @@
     <string name="dialog_button_offline_mode_text">Offline Mode</string>
     <string name="dialog_set_server_information_button_retry_operations">More Operations</string>
     <string name="dialog_loading_not_logged_in_button_gotomain_text">Go to main screen after loading chats</string>
-    <string name="dialog_checking_updates_message">Checking for updates... (If it takes too long to check, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_checking_updates_message">Checking for updates...</string>
     <string name="dialog_exception_failed_download_file">Failed to download file</string>
     <string name="dialog_exception_failed_download_files">Failed to download files</string>
     <string name="dialog_new_version_title">New Version: %s(%d)</string>
@@ -201,11 +201,13 @@
     <string name="dialog_new_version_button_update">Update</string>
     <string name="dialog_downloading_file_message">Downloading file...</string>
     <string name="dialog_downloading_files_message">Downloading files...</string>
-    <string name="dialog_connecting_message">Connecting to the server... (If it takes too long to check, there may be a network problem, server problem or application problem, you can try to restart the application.)</string>
+    <string name="dialog_connecting_message">Connecting to the server...</string>
     <string name="dialog_delete_chat_message">Do you want to delete this chat?</string>
     <string name="dialog_exception_failed_to_load_chat">Failed to load the chat</string>
     <string name="dialog_user_information_message">Account or Email Address: %1$s\n\nGender: %2$s\n\n%3$s</string>
     <string name="dialog_login_status_has_problem_message">The login status is abnormal, please login again.</string>
+    <string name="dialog_sending_picture_message">Sending picture...</string>
+    <string name="dialog_exception_failed_to_send_message">Failed to send the message</string>
 
     <string name="toast_captcha_incorrect">The CAPTCHA is incorrect</string>
     <string name="toast_registered_email">The email has been used, please change, after the change you must get CAPTCHA again</string>
@@ -259,6 +261,7 @@
     <string name="toast_check_updates_isnew">The current version is the latest version</string>
     <string name="toast_failed_check_updates">Failed to check for updates</string>
     <string name="toast_add_chat_cannot_add_self">You cannot add yourself</string>
+    <string name="toast_target_file_not_found">The target file cannot be found</string>
 
     <string name="input_information_tip">Please input server address, MySQL database name, user, password and table name(separate with &amp;)</string>
     <string name="input_information_login">Login</string>
@@ -269,6 +272,8 @@
     <string name="menu_about_exit">About</string>
     <string name="menu_main_developer_options">Developer Options</string>
     <string name="menu_main_item_delete">Delete This Chat</string>
+    <string name="menu_chat_send">Send...</string>
+    <string name="menu_chat_send_picture">Picture</string>
 
     <string name="listviewtext_about_users_can_do_item_contact">Contact MrShiehX</string>
     <string name="listviewtext_about_users_can_do_item_visit_github">Visit the GitHub repository of this application</string>
@@ -316,11 +321,18 @@
     <string name="loadinglog_success_connect_communication_server">Successfully to connect to the communication server</string>
     <string name="loadinglog_failed_connect_communication_server">Failed to connect to the communication server</string>
     <string name="loadinglog_failed_connect_communication_server_withcause">Failed to connect to the communication server, the reason is: %s</string>
+    <string name="loadinglog_failed_load_account_avatar">Failed to load the avatar</string>
 
     <string name="chat_tip_failed_send">Failed to send the message \"<xliff:g id="0">%s</xliff:g>\"</string>
+    <string name="chat_tip_failed_send_so">Failed to send the %s</string>
     <string name="chat_tip_offline">Please connect to the network and resend</string>
     <string name="chat_tip_not_loggined">Please login and resend</string>
-    <string name="chat_tip_failed_logined">Failed to send, failed to login the account</string>
+    <string name="chat_tip_failed_logined">Failed to login the account</string>
+    <string name="chat_tip_failed_connect">Failed to connect to the server</string>
 
     <string name="notification_channel_name">New messages notification</string>
+
+    <string name="message_type_picture">[Picture]</string>
+    <string name="message_type_picture_lower">picture</string>
+    <string name="message_type_picture_upper">Picture</string>
 </resources>

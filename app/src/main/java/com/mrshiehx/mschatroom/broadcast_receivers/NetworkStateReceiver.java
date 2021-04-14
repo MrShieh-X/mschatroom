@@ -52,14 +52,17 @@ public class NetworkStateReceiver extends BroadcastReceiver {
         } else {
             if (context instanceof MainScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_main_screen_offline_mode_name));
+                ((MainScreen) context).onDisconnectNetwork();
             } else if (context instanceof SettingsScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_settings_screen_offline_mode_name));
+                ((SettingsScreen) context).onDisconnectNetwork();
             } else if (context instanceof ModifyUserInformationScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_modify_user_information_screen_offline_mode_name));
                 ((ModifyUserInformationScreen) context).changeEnabledOfPreferencesOfEnabled(false);
+                ((ModifyUserInformationScreen) context).onDisconnectNetwork();
             } else if (context instanceof ChatScreen) {
                 //((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
-                ((ChatScreen) context).whenNetworkUnconnected();
+                ((ChatScreen) context).onDisconnectNetwork();
             }
         }
         i++;

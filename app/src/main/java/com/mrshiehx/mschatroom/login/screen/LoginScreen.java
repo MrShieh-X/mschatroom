@@ -56,13 +56,10 @@ public class LoginScreen extends AppCompatActivity {
     Context context = LoginScreen.this;
     ProgressDialog loggingIn;
     private long firstTime = 0;
-    SharedPreferences sharedPreferences;
     View.OnClickListener doLogin = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-            final SharedPreferences.Editor editor = sharedPreferences.edit();
-            if (TextUtils.isEmpty(input_account_or_email.getText().toString()) || TextUtils.isEmpty(input_password.getText().toString())) {
+            if (TextUtils.isEmpty(input_account_or_email.getText()) || TextUtils.isEmpty(input_password.getText())) {
                 input_content_empty.setVisibility(View.VISIBLE);
             } else {
                 //Login
@@ -77,8 +74,7 @@ public class LoginScreen extends AppCompatActivity {
                             Utils.showDialog(context, getResources().getString(R.string.dialog_title_notice), getResources().getString(R.string.dialog_relogin_message), getResources().getString(R.string.button_login), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    editor.remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD);
-                                    editor.apply();
+                                    MSCRApplication.getSharedPreferences().edit().remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD).apply();
                                     loginByEmail();
                                 }
                             });
@@ -101,8 +97,7 @@ public class LoginScreen extends AppCompatActivity {
                             Utils.showDialog(context, getResources().getString(R.string.dialog_title_notice), getResources().getString(R.string.dialog_relogin_message), getResources().getString(R.string.button_login), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    editor.remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD);
-                                    editor.apply();
+                                    MSCRApplication.getSharedPreferences().edit().remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD).apply();
                                     loginByAccount();
                                 }
                             });
@@ -119,7 +114,7 @@ public class LoginScreen extends AppCompatActivity {
     };
 
     void loginByEmail() {
-        loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
+        //loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
         loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
         loggingIn.setCancelable(false);
         loggingIn.show();
@@ -147,7 +142,7 @@ public class LoginScreen extends AppCompatActivity {
                     } catch (BadPaddingException e) {
                         e.printStackTrace();
                     }
-                    Boolean result = ud.login(context, loggingIn, AccountUtils.BY_EMAIL, emailE, passwordE);
+                    Boolean result = ud.login(context, AccountUtils.BY_EMAIL, emailE, passwordE);
                     if (!result) {
                         loggingIn.dismiss();
                         Snackbar.make(login, getResources().getString(R.string.toast_email_or_password_incorrect), Snackbar.LENGTH_SHORT).show();
@@ -169,7 +164,7 @@ public class LoginScreen extends AppCompatActivity {
     }
 
     void loginByAccount() {
-        loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
+        //loggingIn.setTitle(getResources().getString(R.string.dialog_title_wait));
         loggingIn.setMessage(getResources().getString(R.string.dialog_loggingIn_message));
         loggingIn.setCancelable(false);
         loggingIn.show();
@@ -197,7 +192,7 @@ public class LoginScreen extends AppCompatActivity {
                     } catch (BadPaddingException e) {
                         e.printStackTrace();
                     }
-                    boolean result = ud.login(context, loggingIn, AccountUtils.BY_ACCOUNT, accountE, passwordE);
+                    boolean result = ud.login(context, AccountUtils.BY_ACCOUNT, accountE, passwordE);
                     if (!result) {
                         loggingIn.dismiss();
                         Snackbar.make(login, getResources().getString(R.string.toast_account_or_password_incorrect), Snackbar.LENGTH_SHORT).show();
