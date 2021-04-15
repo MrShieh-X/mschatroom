@@ -212,8 +212,7 @@ public class AccountUtils {
                 pres.setString(1, accountOrEmail);
                 pres.setString(2, password);
                 ResultSet res = pres.executeQuery();
-                boolean t = res.next();
-                return t;
+                return res.next();
             } catch (SQLException e) {
                 e.printStackTrace();
                 Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
@@ -235,8 +234,7 @@ public class AccountUtils {
                 PreparedStatement pres = conn.prepareStatement(sql);
                 pres.setString(1, accountOrEmail);
                 ResultSet res = pres.executeQuery();
-                boolean t = res.next();
-                return t;
+                return res.next();
             } catch (SQLException e) {
                 e.printStackTrace();
                 Toast.makeText(context, context.getResources().getString(R.string.dialog_exception_failed_download_data), Toast.LENGTH_SHORT).show();
@@ -269,7 +267,7 @@ public class AccountUtils {
         }
     }
 
-    public int resetPassword(Context context, String email, String newPassword) {
+    public int resetPassword(Context context, String by, String byC, String password, String newPassword) {
         if (conn == null) {
             Log.i(Variables.TAG, "reset password:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
@@ -278,7 +276,7 @@ public class AccountUtils {
         } else {
             try {
                 Statement stmt = conn.createStatement();
-                String sql = "update " + dbTableName + " set password='" + newPassword + "' where email='" + email + "'";
+                String sql = "update " + dbTableName + " set password='" + newPassword + "' where "+by+"='" + byC + "' and password='"+password+"'";
                 return stmt.executeUpdate(sql);
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -378,9 +376,9 @@ public class AccountUtils {
         }
     }
 
-    public int delectAccount(Context context, String by, String byContent, String password) {
+    public int deleteAccount(Context context, String by, String byContent, String password) {
         if (conn == null) {
-            Log.i(Variables.TAG, "delectAccount:conn is null");
+            Log.i(Variables.TAG, "deleteAccount:conn is null");
             Toast.makeText(context, context.getResources().getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
             return 0;
         } else {

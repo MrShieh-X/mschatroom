@@ -141,4 +141,24 @@ public class GetAccountUtils {
         }
         return new String[]{account, email};
     }
+
+    public static String getPasswordDecrypted(){
+        String password="";
+        try {
+            password = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, "")).split(Variables.SPLIT_SYMBOL)[1];
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return password;
+    }
+
+    public static String getPasswordEncrypted(){
+        String password="";
+        try {
+            password = EnDeCryptTextUtils.encrypt(getPasswordDecrypted());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return password;
+    }
 }

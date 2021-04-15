@@ -73,7 +73,7 @@
     <string name="toast_account_not_exist">账户不存在</string>
     <string name="toast_successfully_reset_password">重置密码成功</string>
     <string name="activity_reset_password_name">重置密码</string>
-    <string name="activity_modify_user_information_screen_name">修改用户信息</string>
+    <string name="activity_modify_user_information_screen_name">账户资料</string>
     <string name="preference_account_notlogged_title">未登录账户</string>
     <string name="preference_account_avatar_title">头像</string>
     <string name="preference_account_notlogged_summary">点击登录</string>
@@ -95,15 +95,15 @@
     <string name="dialog_exception_failed_download_data">数据下载失败</string>
     <string name="dialog_exception_failed_get_user_information">获得用户信息失败</string>
     <string name="dialog_relogin_message">您确定要重新登录和替换之前的登录数据吗？</string>
-    <string name="dialog_failed_login_insettings_button_gotologin_text">去登录</string>
-    <string name="dialog_failed_login_insettings_message">登录失败。您要重新登录吗？</string>
+    <string name="dialog_failed_login_insettings_button_gotologin_text">登录</string>
+    <string name="dialog_failed_login_insettings_message">登录失败，请重新登录。</string>
     <string name="dialog_choose_photo_title">选择照片</string>
     <string name="dialog_logout_message">您确定要退出登录吗？</string>
     <string name="dialog_choose_photo_button_take">拍照</string>
     <string name="dialog_choose_photo_message">请选择一个获得照片的来源</string>
     <string name="dialog_choose_photo_button_select">从手机相册选择</string>
     <string name="dialog_uploading_message">上传中...</string>
-    <string name="dialog_no_login_button_gotologin_text">去登录</string>
+    <string name="dialog_no_login_button_gotologin_text">登录</string>
     <string name="dialog_downloading_avatar">下载头像中...</string>
     <string name="dialog_exception_failed_to_changeavatar">更换头像失败</string>
     <string name="dialog_exception_failed_to_downloadavatar">下载头像失败</string>
@@ -114,7 +114,7 @@
     <string name="toast_successfully_changed_avatar">更换头像成功</string>
     <string name="toast_login_retry">请登录后重试</string>
     <string name="toast_failed_to_downloadavatar">下载头像失败</string>
-    <string name="toast_failed_to_modify_information">修改信息失败</string>
+    <string name="toast_failed_to_modify_information">修改账户资料失败</string>
     <string name="toast_failed_to_upload_userinformation">上传用户信息失败</string>
     <string name="toast_successfully_to_upload_userinformation">上传用户信息成功</string>
     <string name="input_information_tip">请输入服务器地址、MySQL 数据库名称、用户、密码和TABLE名称（用&amp;分隔）</string>
@@ -275,7 +275,7 @@
     <string name="dialog_downloading_file_message">下载文件中...</string>
     <string name="dialog_downloading_files_message">下载文件中...</string>
     <string name="dialog_connecting_message">连接服务器中...</string>
-    <string name="activity_modify_user_information_screen_offline_mode_name">修改用户信息（离线模式）</string>
+    <string name="activity_modify_user_information_screen_offline_mode_name">账户资料（离线模式）</string>
     <string name="activity_settings_screen_offline_mode_name">设置（离线模式）</string>
     <string name="dialog_delete_chat_message">您要删除此聊天吗？</string>
     <string name="dialog_exception_failed_to_load_chat">加载聊天失败</string>
@@ -317,4 +317,9 @@
     <string name="dialog_exception_failed_to_send_message">发送消息失败</string>
     <string name="loadinglog_failed_load_account_avatar">加载图像失败</string>
     <string name="chat_tip_failed_connect">连接服务器失败</string>
+    <string name="preference_modify_password_title">重置账户密码</string>
+    <string name="toast_failed_to_modify_password">重置密码失败</string>
+    <string name="dialog_modify_password_title">重置账户密码</string>
+    <string name="dialog_modifying_password_message">重置账户密码中...</string>
+    <string name="toast_successfully_reset_password_relogin">重置密码成功，请重新登录</string>
 </resources>

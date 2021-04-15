@@ -11,10 +11,10 @@
       "type": "SINGLE",
       "filters": [],
       "properties": [],
-      "versionCode": 12,
-      "versionName": "1.2",
+      "versionCode": 13,
+      "versionName": "1.2.1",
       "enabled": true,
-      "outputFile": "mscr_1.2-release.apk"
+      "outputFile": "mscr_1.2.1-release.apk"
     }
   ]
 }

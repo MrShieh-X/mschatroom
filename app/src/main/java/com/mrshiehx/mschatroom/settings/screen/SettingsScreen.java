@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -26,12 +25,10 @@ import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.broadcast_receivers.NetworkStateReceiver;
-import com.mrshiehx.mschatroom.chat.Communicator;
-import com.mrshiehx.mschatroom.modify_user_information.screen.ModifyUserInformationScreen;
+import com.mrshiehx.mschatroom.account_profile.screen.AccountProfileScreen;
 import com.mrshiehx.mschatroom.preference.HasFilesSizePreference;
 import com.mrshiehx.mschatroom.shared_variables.DataFiles;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
-import com.mrshiehx.mschatroom.utils.ConnectionUtils;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.FileUtils;
 import com.mrshiehx.mschatroom.utils.FormatTools;
@@ -45,7 +42,6 @@ import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
-import java.sql.Connection;
 import java.util.List;
 
 import javax.crypto.BadPaddingException;
@@ -111,7 +107,7 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                     LoginScreen.can_i_back = true;
                     Utils.startActivity(SettingsScreen.this, LoginScreen.class);
                 } else {
-                    Utils.startActivity(SettingsScreen.this, ModifyUserInformationScreen.class);
+                    Utils.startActivity(SettingsScreen.this, AccountProfileScreen.class);
                 }
 
                 return true;
@@ -178,7 +174,7 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                             }
                         }
                         try {
-                            MSCRApplication.getSharedPreferences().edit().remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD).apply();
+                            MSCRApplication.getSharedPreferences().edit().remove(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD).remove(String.format(Variables.SHARED_PREFERENCE_ACCOUNT_INFORMATION_NAME,Utils.valueOf(getAccountEncrypted()).toUpperCase())).apply();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

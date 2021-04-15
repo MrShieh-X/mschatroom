@@ -8,8 +8,8 @@ android {
         applicationId "com.mrshiehx.mschatroom"
         minSdkVersion 14
         targetSdkVersion 30
-        versionCode 12
-        versionName "1.2"
+        versionCode 13
+        versionName "1.2.1"
         archivesBaseName = "mscr_${versionName}".replace(' ', '_')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

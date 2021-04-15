@@ -11,8 +11,9 @@ Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>1.2 (Apr. 14, 2021) (Corresponding to server 1.2)</b><br/>
+<b>1.2.1 (Apr. 15, 2021) (Corresponding to server 1.2)</b><br/>
 Historical version: <br/>
+<b>1.2.1 (Apr. 15, 2021) (Corresponding to server 1.2)</b><br/>
 <b>1.2 (Apr. 14, 2021) (Corresponding to server 1.2)</b><br/>
 <b>1.1.1 (Apr. 7, 2021) (Corresponding to server 1.1)</b><br/>
 <b>1.1 (Apr. 5, 2021) (Corresponding to server 1.1)</b><br/>
@@ -24,7 +25,7 @@ Historical version: <br/>
 <b>alpha-4 (Dec. 20, 2020)</b><br/>
 <b>alpha-3 (Dec. 17, 2020)</b><br/>
 <b>alpha-2 (Dec. 7, 2020)</b><br/>
-<b>alpha-1 (Dec. 5, 2020) (First version)</b><br/>
+<b>alpha-1 (Dec. 5, 2020)</b><br/>
 
 ## The software configuration required for this application is:
 * Android 4.0 and above

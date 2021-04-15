@@ -723,7 +723,7 @@ public class StartActivity extends Activity {
 
 
     void offlineMode(int mode) {
-        Intent intent = new Intent(context, MainScreen.class);
+        Intent intent = new Intent(context, MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)?MainScreen.class:LoginScreen.class);
         switch (mode) {
             case OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK:
                 intent.putExtra("offlineMode", OFFLINE_MODE_CANNOT_CONNECT_TO_NETWORK);

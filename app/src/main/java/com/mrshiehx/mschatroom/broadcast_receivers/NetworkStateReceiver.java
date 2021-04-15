@@ -1,7 +1,6 @@
 package com.mrshiehx.mschatroom.broadcast_receivers;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,13 +8,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 import com.mrshiehx.mschatroom.R;
-import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.chat.screen.ChatScreen;
 import com.mrshiehx.mschatroom.main.screen.MainScreen;
-import com.mrshiehx.mschatroom.modify_user_information.screen.ModifyUserInformationScreen;
+import com.mrshiehx.mschatroom.account_profile.screen.AccountProfileScreen;
 import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
-import com.mrshiehx.mschatroom.utils.AccountUtils;
-import com.mrshiehx.mschatroom.utils.ConnectionUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
 
 public class NetworkStateReceiver extends BroadcastReceiver {
@@ -38,9 +34,9 @@ public class NetworkStateReceiver extends BroadcastReceiver {
                 if (i != 0) {
                     Utils.reload(context);
                 }
-            } else if (context instanceof ModifyUserInformationScreen) {
+            } else if (context instanceof AccountProfileScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
-                ((ModifyUserInformationScreen) context).changeEnabledOfPreferencesOfEnabled(true);
+                ((AccountProfileScreen) context).changeEnabledOfPreferencesOfEnabled(true);
                 if (i != 0) {
                     Utils.reload(context);
                 }
@@ -56,10 +52,10 @@ public class NetworkStateReceiver extends BroadcastReceiver {
             } else if (context instanceof SettingsScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_settings_screen_offline_mode_name));
                 ((SettingsScreen) context).onDisconnectNetwork();
-            } else if (context instanceof ModifyUserInformationScreen) {
+            } else if (context instanceof AccountProfileScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_modify_user_information_screen_offline_mode_name));
-                ((ModifyUserInformationScreen) context).changeEnabledOfPreferencesOfEnabled(false);
-                ((ModifyUserInformationScreen) context).onDisconnectNetwork();
+                ((AccountProfileScreen) context).changeEnabledOfPreferencesOfEnabled(false);
+                ((AccountProfileScreen) context).onDisconnectNetwork();
             } else if (context instanceof ChatScreen) {
                 //((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
                 ((ChatScreen) context).onDisconnectNetwork();

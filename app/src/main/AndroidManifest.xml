@@ -64,7 +64,7 @@
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_reset_password_name"/>
         <activity
-            android:name=".modify_user_information.screen.ModifyUserInformationScreen"
+            android:name=".account_profile.screen.AccountProfileScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_modify_user_information_screen_name">
         </activity>

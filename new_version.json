@@ -1,8 +1,8 @@
 {
-	"latest_version_code": 12,
-	"latest_version_name": "1.2",
-	"latest_version_download_url": "https://github.com/MrShieh-X/mschatroom/releases/download/1.2/mscr_1.2-release.apk",
-	"update_date": "2021-04-14",
-	"update_content_enUS": "- Support sending pictures.\n- Modified the start page.\n- Optimize and fix some problems.",
-	"update_content_zhCN": "- 支持发送图片。\n- 修改了启动页面。\n- 优化并修复了部分问题。"
+	"latest_version_code": 13,
+	"latest_version_name": "1.2.1",
+	"latest_version_download_url": "https://github.com/MrShieh-X/mschatroom/releases/download/1.2.1/mscr_1.2.1-release.apk",
+	"update_date": "2021-04-15",
+	"update_content_enUS": "- Support to reset password.\n- Change \"Modify User Information\" to \"Account Profile\".",
+	"update_content_zhCN": "- 支持重置密码。\n- 把“修改用户信息”修改成了“账户资料”。"
 }

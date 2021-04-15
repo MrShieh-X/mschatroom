@@ -23,6 +23,9 @@
         android:title="@string/preference_account_whatsup_title"
         android:summary="@string/preference_account_whatsup_summary"/>
     <Preference
+        android:key="modify_password"
+        android:title="@string/preference_modify_password_title"/>
+    <Preference
         android:key="delete_account"
         android:title="@string/preference_delete_account_title"
         android:summary="@string/preference_delete_account_summary"/>

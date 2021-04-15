@@ -23,6 +23,7 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
+import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
@@ -106,18 +107,16 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                                         try {
                                             String password = input_new_password.getText().toString();
                                             AccountUtils ud = Utils.getAccountUtils();
+                                            String oldPassword="";
+                                            try{
+                                                oldPassword=EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD,"")).split(Variables.SPLIT_SYMBOL)[1]);
+                                            }catch (Exception e){
+                                                e.printStackTrace();
+                                            }
                                             int result = 0;
                                             try {
-                                                result = ud.resetPassword(context, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY));
-                                            } catch (InvalidKeySpecException e) {
-                                                e.printStackTrace();
-                                            } catch (InvalidKeyException e) {
-                                                e.printStackTrace();
-                                            } catch (NoSuchPaddingException e) {
-                                                e.printStackTrace();
-                                            } catch (IllegalBlockSizeException e) {
-                                                e.printStackTrace();
-                                            } catch (BadPaddingException e) {
+                                                result = ud.resetPassword(context, AccountUtils.BY_EMAIL, EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY),oldPassword, EnDeCryptTextUtils.encrypt(password, Variables.TEXT_ENCRYPTION_KEY));
+                                            } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
                                             if (result == 0) {

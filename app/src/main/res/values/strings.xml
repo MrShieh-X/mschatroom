@@ -7,12 +7,12 @@
     <string name="activity_settings_screen_name">Settings</string>
     <string name="activity_reset_password_name">Reset Password</string>
     <string name="activity_chat_screen_name">Chat</string>
-    <string name="activity_modify_user_information_screen_name">Modify User Information</string>
+    <string name="activity_modify_user_information_screen_name">Account Profile</string>
     <string name="activity_login_by_ec_screen_name">Login By Email CAPTCHA</string>
     <string name="activity_about_screen_name">About</string>
     <string name="activity_picture_viewer_name">Picture Viewer</string>
     <string name="activity_developer_options_name">Developer Options</string>
-    <string name="activity_modify_user_information_screen_offline_mode_name">Modify User Information (Offline Mode)</string>
+    <string name="activity_modify_user_information_screen_offline_mode_name">Account Profile (Offline Mode)</string>
     <string name="activity_settings_screen_offline_mode_name">Settings (Offline Mode)</string>
 
     <string name="edittexthint_input_account_or_email">Account or Email Address</string>
@@ -79,15 +79,15 @@
     <string name="preference_account_avatar_title">Avatar</string>
     <string name="preference_account_avatar_summary">Click to change the avatar</string>
     <string name="preference_account_name_title">Nickname</string>
-    <string name="preference_account_name_summary">Nickname not set</string>
+    <string name="preference_account_name_summary">Nickname is not set</string>
     <string name="preference_account_gender_title">Gender</string>
-    <string name="preference_account_gender_summary">Gender not set</string>
+    <string name="preference_account_gender_summary">Gender is not set</string>
     <string name="preference_account_gender_dialogtitle">Select a gender</string>
     <string name="preference_account_whatsup_title">What\'s up</string>
-    <string name="preference_account_whatsup_summary">What\'s up not set</string>
+    <string name="preference_account_whatsup_summary">What\'s up is not set</string>
     <string name="preference_account_gender_male">Male</string>
     <string name="preference_account_gender_female">Female</string>
-    <string name="preference_delete_account_title">Delect Account</string>
+    <string name="preference_delete_account_title">Delete Account</string>
     <string name="preference_delete_account_summary">Delete all data of account</string>
     <string name="preference_delete_account_input_email">Please input password</string>
     <string name="preference_account_title">Account</string>
@@ -118,6 +118,7 @@
     <string name="preference_settings_new_messages_notify_summary">Notify when you receive new messages</string>
     <string name="preference_server_port_title">Server Port</string>
     <string name="preference_server_port_summary">Please set the server port (used for communication)</string>
+    <string name="preference_modify_password_title">Reset Account Password</string>
 
     <string name="dialog_exception_parsing_json_failed">JSON file parsing failed</string>
     <string name="dialog_exception_parsing_xml_failed">XML file parsing failed</string>
@@ -145,8 +146,8 @@
     <string name="dialog_exception_failed_download_data">Data download failed</string>
     <string name="dialog_exception_failed_get_user_information">Failed to get user information</string>
     <string name="dialog_relogin_message">Do you want to login again and replace the previous login data?</string>
-    <string name="dialog_failed_login_insettings_message">Login failed. Do you want to login again?</string>
-    <string name="dialog_failed_login_insettings_button_gotologin_text">Go to login</string>
+    <string name="dialog_failed_login_insettings_message">Failed to login, please re-login.</string>
+    <string name="dialog_failed_login_insettings_button_gotologin_text">Login</string>
     <string name="dialog_logout_message">Are you sure want to logout?</string>
     <string name="dialog_choose_photo_title">Choose Photo</string>
     <string name="dialog_choose_photo_message">Please choose a source to get photo from.</string>
@@ -155,7 +156,7 @@
     <string name="dialog_uploading_message">Uploading...</string>
     <string name="dialog_exception_failed_to_changeavatar">Failed to change avatar</string>
     <string name="dialog_no_login_message">Account is not logged in. Do you want to login now?</string>
-    <string name="dialog_no_login_button_gotologin_text">Go to login</string>
+    <string name="dialog_no_login_button_gotologin_text">Login</string>
     <string name="dialog_downloading_avatar">Downloading Avatar...</string>
     <string name="dialog_exception_failed_to_downloadavatar">Failed to download avatar</string>
     <string name="dialog_delete_account_message">Are you sure you want to delete your account? This operation cannot be recalled!</string>
@@ -208,6 +209,8 @@
     <string name="dialog_login_status_has_problem_message">The login status is abnormal, please login again.</string>
     <string name="dialog_sending_picture_message">Sending picture...</string>
     <string name="dialog_exception_failed_to_send_message">Failed to send the message</string>
+    <string name="dialog_modify_password_title">Reset Account Password</string>
+    <string name="dialog_modifying_password_message">Resetting the account password..</string>
 
     <string name="toast_captcha_incorrect">The CAPTCHA is incorrect</string>
     <string name="toast_registered_email">The email has been used, please change, after the change you must get CAPTCHA again</string>
@@ -235,7 +238,7 @@
     <string name="toast_login_retry">Please login and try again</string>
     <string name="toast_successfully_to_upload_userinformation">Upload user information successfully</string>
     <string name="toast_failed_to_upload_userinformation">Failed to upload user information</string>
-    <string name="toast_failed_to_modify_information">Failed to modify information</string>
+    <string name="toast_failed_to_modify_information">Failed to modify the account profile</string>
     <string name="toast_successfully_deleted_account">Account deleted successfully</string>
     <string name="toast_failed_to_delete_account">Failed to delete account</string>
     <string name="toast_failed_to_save_avatar">Failed to save avatar</string>
@@ -262,6 +265,8 @@
     <string name="toast_failed_check_updates">Failed to check for updates</string>
     <string name="toast_add_chat_cannot_add_self">You cannot add yourself</string>
     <string name="toast_target_file_not_found">The target file cannot be found</string>
+    <string name="toast_failed_to_modify_password">Failed to reset password</string>
+    <string name="toast_successfully_reset_password_relogin">Successfully to reset the password, please re-login</string>
 
     <string name="input_information_tip">Please input server address, MySQL database name, user, password and table name(separate with &amp;)</string>
     <string name="input_information_login">Login</string>

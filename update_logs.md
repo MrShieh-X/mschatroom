@@ -1,5 +1,9 @@
 # Update Logs
-Currently, the latest version is 1.2, which was updated on April 14, 2021.
+Currently, the latest version is 1.2.1, which was updated on April 15, 2021.
+
+## 1.2.1 (Apr. 15, 2021)
+- Support to reset password.
+- Change "Modify User Information" to "Account Profile".
 
 ## 1.2 (Apr. 14, 2021)
 - Support sending pictures.
