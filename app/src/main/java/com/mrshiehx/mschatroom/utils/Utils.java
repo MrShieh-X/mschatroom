@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Looper;
+import android.os.Message;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.PreferenceManager;
@@ -38,14 +39,22 @@ import android.widget.Toast;
 
 import androidx.annotation.StringRes;
 import androidx.annotation.StyleRes;
+import androidx.core.content.FileProvider;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.mrshiehx.mschatroom.MSCRApplication;
+import com.mrshiehx.mschatroom.MSChatRoom;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.account.information.storage.storagers.AccountInformationStorager;
+import com.mrshiehx.mschatroom.account.profile.screen.AccountProfileScreen;
+import com.mrshiehx.mschatroom.beans.AccountInformation;
 import com.mrshiehx.mschatroom.chat.Communicator;
 import com.mrshiehx.mschatroom.chat.message.MessageItem;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
+import com.mrshiehx.mschatroom.main.screen.MainScreen;
+import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
+import com.mrshiehx.mschatroom.shared_variables.DataFiles;
+import com.mrshiehx.mschatroom.start.screen.StartActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,11 +67,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -76,6 +89,7 @@ import javax.crypto.NoSuchPaddingException;
 
 //工具类
 public class Utils {
+    private boolean closed;
 
     public static String getAndroidDirCachePath(Context context) {
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) || !Environment.isExternalStorageRemovable()) {
@@ -96,65 +110,6 @@ public class Utils {
     public static String getDataCachePath(Context context) {
         return context.getCacheDir().getAbsolutePath();
     }
-
-    /*public static void deleteFile(Context context, String filePathAndName) {
-        try {
-            File f = new File(filePathAndName);
-            if (f.exists()) {
-                if (f.delete()) {
-                    Log.i("MSCR.Utils.deleteFile", "Delete file (" + filePathAndName + ") is success!");
-                } else {
-                    showDialog(context, "", "delete failed");
-                    Log.e("MSCR.Utils.deleteFile", "Delete file (" + filePathAndName + ") is failed!");
-                }
-            } else {
-                Log.e("MSCR.Utils.deleteFile", "Delete file (" + filePathAndName + ") is not exists!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Utils.exceptionDialog(context, e);
-        }
-    }*/
-
-    /*public static String getJson(Context context, String filePathAndName) {
-        StringBuilder stringBuilder = new StringBuilder();
-        try {
-            //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(assetManager.open(fileName), "utf-8"));
-            BufferedReader bufferedReader=null;
-            try {
-                bufferedReader= new BufferedReader(new FileReader(filePathAndName));
-            }catch (Exception e){
-                exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_file_not_found));
-            }
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line.trim());
-            }
-        } catch (IOException e) {
-            exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_parsing_json_failed));
-        }
-        return stringBuilder.toString();
-    }
-
-    public static String getJsonByAssets(Context context, String fileName) {
-        StringBuilder stringBuilder = new StringBuilder();
-        AssetManager assetManager = context.getAssets();
-        try {
-            BufferedReader bufferedReader=null;
-            try {
-                bufferedReader = new BufferedReader(new InputStreamReader(assetManager.open(fileName), "utf-8"));
-            }catch (Exception e){
-                exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_file_not_found));
-            }
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line.trim());
-            }
-        } catch (IOException e) {
-            exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_parsing_json_failed));
-        }
-        return stringBuilder.toString();
-    }*/
 
     public static AlertDialog showDialog(final Context context, CharSequence title, CharSequence message) {
         AlertDialog.Builder dialog =
@@ -312,24 +267,24 @@ public class Utils {
         if (isFirstRun) {
             switch (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
                 case Configuration.UI_MODE_NIGHT_YES:
-                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").apply();
-                    editor.putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark");
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_THEME, "dark").apply();
+                    editor.putString(Variables.SHARED_PREFERENCE_THEME, "dark");
                     break;
                 case Configuration.UI_MODE_NIGHT_NO:
-                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "light").apply();
-                    editor.putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "light");
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_THEME, "light").apply();
+                    editor.putString(Variables.SHARED_PREFERENCE_THEME, "light");
                     break;
             }
             //Get default language, and set it
-            editor.putString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
-            //setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
+            editor.putString(Variables.SHARED_PREFERENCE_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
+            //setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
         }
         editor.apply();
-        setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE));
+        setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE));
         makeIsFirstRunFalse(context);
-        String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
+        String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
         context.setTitle(getStringByLocale(context, titleId, languageAndCountry[0], languageAndCountry[1]));
-        MSCRApplication.getInstance().addActivity(context);
+        MSChatRoom.getInstance().addActivity(context);
     }
 
 
@@ -350,14 +305,14 @@ public class Utils {
         boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
         //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN,true);
         if (isFirstRun == false) {
-            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE));
+            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE));
         } else {
             //Get default language, and set it
-            editor.putString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
-            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
+            editor.putString(Variables.SHARED_PREFERENCE_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
+            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
         }
         makeIsFirstRunFalse(context);
-        //String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
+        //String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
         //context.setTitle(getStringByLocale(context, titleId, languageAndCountry[0], languageAndCountry[1]));
         //initializationTheme(context);
         MyApplication.getInstance().addActivity(context);
@@ -371,14 +326,14 @@ public class Utils {
         boolean isFirstRun = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN, true);
         //editor.putBoolean(Variables.SHARED_PREFERENCE_IS_FIRST_RUN,true);
         if (isFirstRun == false) {
-            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE));
+            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE));
         } else {
             //Get default language, and set it
-            editor.putString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
-            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
+            editor.putString(Variables.SHARED_PREFERENCE_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry());
+            setLanguage(context, sharedPreferences.getString(Variables.SHARED_PREFERENCE_LANGUAGE, getSystemLanguage() + "_" + getSystemCountry()));
         }
         makeIsFirstRunFalse(context);
-        //String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
+        //String[] languageAndCountry = sharedPreferences.getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
         //context.setTitle(getStringByLocale(context, titleId, languageAndCountry[0], languageAndCountry[1]));
         initializationTheme(context, android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen,android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
         MyApplication.getInstance().addActivity(context);
@@ -400,7 +355,7 @@ public class Utils {
             noNetworkDialog.setPositiveButton(context.getResources().getString(R.string.dialog_no_network_button_exit), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    MSCRApplication.getInstance().exit();
+                    MSChatRoom.getInstance().exit();
                 }
             });
             noNetworkDialog.show();
@@ -429,17 +384,17 @@ public class Utils {
         if (isFirstRun) {
             switch (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
                 case Configuration.UI_MODE_NIGHT_YES:
-                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").apply();
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_THEME, "dark").apply();
                     context.setTheme(R.style.AppThemeDark);
                     break;
                 case Configuration.UI_MODE_NIGHT_NO:
-                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "light").apply();
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_THEME, "light").apply();
                     context.setTheme(R.style.AppTheme);
                     break;
             }
 
         }
-        if (sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").equals("light")) {
+        if (sharedPreferences.getString(Variables.SHARED_PREFERENCE_THEME, "dark").equals("light")) {
             context.setTheme(R.style.AppTheme);
         } else {
             context.setTheme(R.style.AppThemeDark);
@@ -458,16 +413,16 @@ public class Utils {
         if (isFirstRun) {
             switch (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
                 case Configuration.UI_MODE_NIGHT_YES:
-                    //PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").apply();
+                    //PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_THEME, "dark").apply();
                     context.setTheme(dark);
                     break;
                 case Configuration.UI_MODE_NIGHT_NO:
-                    //PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "light").apply();
+                    //PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Variables.SHARED_PREFERENCE_THEME, "light").apply();
                     context.setTheme(light);
                     break;
             }
         }
-        if (sharedPreferences.getString(Variables.SHARED_PREFERENCE_MODIFY_THEME, "dark").equals("light")) {
+        if (sharedPreferences.getString(Variables.SHARED_PREFERENCE_THEME, "dark").equals("light")) {
             context.setTheme(light);
         } else {
             context.setTheme(dark);
@@ -570,7 +525,7 @@ public class Utils {
             //Toast.makeText(context, context.getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
             return false;
         } else {
-            if (!MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)) {
+            if (!AccountInformationStorager.isLogined()) {
                 Utils.showDialog(context,
                         context.getResources().getString(R.string.dialog_title_notice),
                         context.getResources().getString(R.string.dialog_no_login_message),
@@ -587,8 +542,9 @@ public class Utils {
                 final ProgressDialog loggingIn = new ProgressDialog(context);
                 String account = "";
                 try {
-                    account = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-                    password = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1];
+                    String s = AccountInformationStorager.getMainAccountAndPassword();
+                    account = EnDeCryptTextUtils.decrypt(s, Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                    password = EnDeCryptTextUtils.decrypt(s, Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1];
                 } catch (InvalidKeyException e) {
                     e.printStackTrace();
                 } catch (InvalidKeySpecException e) {
@@ -709,7 +665,7 @@ public class Utils {
      * RETURN_INT = 0;
      * Toast.makeText(context, context.getResources().getString(R.string.toast_please_check_your_network), Toast.LENGTH_SHORT).show();
      * } else {
-     * if (MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD) == false) {
+     * if (com.mrshiehx.mschatroom.account.information.storage.modes.AccountInformationDatabaseUtils.isLogined() == false) {
      * RETURN_INT = 0;
      * Utils.showDialog(context,
      * context.getResources().getString(R.string.dialog_title_notice),
@@ -730,8 +686,8 @@ public class Utils {
      * @Override public void run() {
      * String account = "";
      * try {
-     * account = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
-     * password = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1];
+     * account = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_LOGIN_INFORMATION, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+     * password = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_LOGIN_INFORMATION, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[1];
      * } catch (InvalidKeyException e) {
      * e.printStackTrace();
      * } catch (InvalidKeySpecException e) {
@@ -836,7 +792,7 @@ public class Utils {
     }
 
 
-    public static InputStream createNewUserInformation(String accountName, String accountGender, String accountWhatSUp) throws IOException {
+    public static byte[] createNewUserInformation(String accountName, String accountGender, String accountWhatSUp) throws IOException {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("name", accountName);
@@ -845,7 +801,7 @@ public class Utils {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return new ByteArrayInputStream(jsonObject.toString().getBytes("UTF-8"));
+        return jsonObject.toString().getBytes("UTF-8");
     }
 
     private static String parse(String content, Map<String, String> kvs) {
@@ -875,16 +831,6 @@ public class Utils {
 
     public static void showIndefiniteSnackbar(View v, String s) {
         Snackbar.make(v, s, Snackbar.LENGTH_INDEFINITE).show();
-    }
-
-    public static byte[] inputStream2ByteArray(InputStream input) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        byte[] buffer = new byte[4096];
-        int n = 0;
-        while (-1 != (n = input.read(buffer))) {
-            output.write(buffer, 0, n);
-        }
-        return output.toByteArray();
     }
 
     public static InputStream bytes2InputStream(byte[] bytes) {
@@ -1094,7 +1040,7 @@ public class Utils {
 
     public static String createNotificationChannel(String channelID, String channelNAME, int level) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationManager manager = (NotificationManager) MSCRApplication.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager manager = (NotificationManager) MSChatRoom.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
             NotificationChannel channel = new NotificationChannel(channelID, channelNAME, level);
             manager.createNotificationChannel(channel);
             return channelID;
@@ -1104,7 +1050,15 @@ public class Utils {
     }
 
     public static AccountUtils getAccountUtils() {
-        if (Variables.ACCOUNT_UTILS == null) {
+        boolean b = true;
+        if (Variables.ACCOUNT_UTILS != null) {
+            try {
+                b = Variables.ACCOUNT_UTILS.getConnection().isClosed();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (Variables.ACCOUNT_UTILS == null || Variables.ACCOUNT_UTILS.getConnection() == null || b) {
             Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
         }
         return Variables.ACCOUNT_UTILS;
@@ -1114,14 +1068,24 @@ public class Utils {
      * @return did not has problem
      */
     public static boolean checkLoginStatus(Context context) {
-        SharedPreferences sharedPreferences = MSCRApplication.getSharedPreferences();
-        if (sharedPreferences.contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)) {
-            String s = sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, "");
+        if (AccountInformationStorager.isLogined()) {
+            String s = AccountInformationStorager.getMainAccountAndPassword();
             if (!TextUtils.isEmpty(s)) {
                 try {
-                    String[] ss = EnDeCryptTextUtils.decrypt(s).split(Variables.SPLIT_SYMBOL);
-                    if (ss.length != 2) {
-                        showLoginStatusHasProblemDialog(context, ss[0]);
+                    String sss=EnDeCryptTextUtils.decrypt(s);
+
+                    if(sss.contains(Variables.SPLIT_SYMBOL)) {
+                        String[] ss = sss.split(Variables.SPLIT_SYMBOL);
+                        if (ss.length < 2) {
+                            String a="";
+                            if(ss.length>=1){
+                                a=ss[0];
+                            }
+                            showLoginStatusHasProblemDialog(context, a);
+                            return false;
+                        }
+                    }else{
+                        showLoginStatusHasProblemDialog(context);
                         return false;
                     }
                 } catch (Exception e) {
@@ -1163,28 +1127,113 @@ public class Utils {
         return dialog.show();
     }
 
+    public static void reload(Context context,boolean shouldIReconnectToCommunicator) {
+        reload(context, true, true,shouldIReconnectToCommunicator);
+    }
 
-    public static void reload(Context context) {
-        final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
+    public static void reload(Context context, boolean shouldShowDialog, boolean toast,boolean shouldIReconnectToCommunicator) {
+        ProgressDialog dialog = null;
+        if (shouldShowDialog)
+            dialog = ConnectionUtils.showConnectingDialog(context);
+        ProgressDialog finalDialog = dialog;
         new Thread(() -> {
             Looper.prepare();
-            Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-            if (Variables.COMMUNICATOR == null) {
-                Variables.COMMUNICATOR = new Communicator(context, Utils.valueOf(Variables.ACCOUNT_INFORMATION.getAccountE()), Utils.valueOf(Variables.ACCOUNT_INFORMATION.getEmailE()));
+            reloadInThread(context, shouldShowDialog, finalDialog,toast,shouldIReconnectToCommunicator);
+            Looper.loop();
+        }).start();
+    }
+
+    public static void reloadInThread(Context context, boolean shouldShowDialog, AlertDialog finalDialog,boolean toast,boolean shouldIReconnectToCommunicator) {
+        Variables.ACCOUNT_UTILS = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
+
+        if (Variables.ACCOUNT_UTILS.getConnection() != null) {
+            boolean closed = true;
+            try {
+                closed = Variables.ACCOUNT_UTILS.getConnection().isClosed();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //Toast.makeText(context, String.valueOf(closed), Toast.LENGTH_SHORT).show();
+
+                if (!closed) {
+                    if(toast)Toast.makeText(context, R.string.toast_successfully_connect_database_server, Toast.LENGTH_SHORT).show();
+                    if(MainScreen.handler!=null) {
+                        Message msg = new Message();
+                        msg.what = 100;
+                        MainScreen.handler.sendMessage(msg);
+                    }
+                    if(SettingsScreen.handler!=null) {
+                        Message msg = new Message();
+                        msg.what = 100;
+                        SettingsScreen.handler.sendMessage(msg);
+                    }
+                    if(AccountProfileScreen.handler!=null) {
+                        Message msg = new Message();
+                        msg.what = 100;
+                        AccountProfileScreen.handler.sendMessage(msg);
+                    }
+                } else {
+                    if(toast)Toast.makeText(context, R.string.toast_connect_failed, Toast.LENGTH_SHORT).show();
+                    if(MainScreen.handler!=null) {
+                        Message msg = new Message();
+                        msg.what = 101;
+                        MainScreen.handler.sendMessage(msg);
+                    }
+                    if(SettingsScreen.handler!=null) {
+                        Message msg = new Message();
+                        msg.what = 101;
+                        SettingsScreen.handler.sendMessage(msg);
+                    }
+                    if(AccountProfileScreen.handler!=null) {
+                        Message msg = new Message();
+                        msg.what = 101;
+                        AccountProfileScreen.handler.sendMessage(msg);
+                    }
+                }
+        } else {
+            if(toast)Toast.makeText(context, R.string.toast_connect_failed, Toast.LENGTH_SHORT).show();
+            if(MainScreen.handler!=null) {
+                Message msg = new Message();
+                msg.what = 101;
+                MainScreen.handler.sendMessage(msg);
+            }
+            if(SettingsScreen.handler!=null) {
+                Message msg = new Message();
+                msg.what = 101;
+                SettingsScreen.handler.sendMessage(msg);
+            }
+            if(AccountProfileScreen.handler!=null) {
+                Message msg = new Message();
+                msg.what = 101;
+                AccountProfileScreen.handler.sendMessage(msg);
+            }
+        }
+        if(shouldIReconnectToCommunicator) {
+            boolean connected=false;
+            if(Variables.SESSION!=null){
+                connected=Variables.SESSION.isConnected();
+            }
+            if (Variables.COMMUNICATOR == null && AccountInformationStorager.isLogined() && !connected) {
+                String accountEn = valueOf(getAccountInformation().getAccountE());
+                String emailEn = valueOf(getAccountInformation().getEmailE());
+                Variables.COMMUNICATOR = new Communicator(context, accountEn, emailEn);
                 try {
                     if (Variables.COMMUNICATOR.connect()) {
-                        Toast.makeText(context, R.string.loadinglog_success_connect_communication_server, Toast.LENGTH_SHORT).show();
+                        if (toast)
+                            Toast.makeText(context, R.string.loadinglog_success_connect_communication_server, Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(context, R.string.loadinglog_failed_connect_communication_server, Toast.LENGTH_SHORT).show();
+                        if (toast)
+                            Toast.makeText(context, R.string.loadinglog_failed_connect_communication_server, Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Toast.makeText(context, String.format(MSCRApplication.getContext().getString(R.string.loadinglog_failed_connect_communication_server_withcause), e + ""), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, String.format(MSChatRoom.getContext().getString(R.string.loadinglog_failed_connect_communication_server_withcause), e + ""), Toast.LENGTH_SHORT).show();
                 }
             }
-            dialog.dismiss();
-            Looper.loop();
-        }).start();
+        }
+        if (shouldShowDialog && finalDialog != null) {
+            finalDialog.dismiss();
+        }
     }
 
     public static String valueOf(CharSequence c) {
@@ -1195,5 +1244,163 @@ public class Utils {
     public static String valueOf(Object c) {
         if (c == null) return "";
         return String.valueOf(c);
+    }
+
+
+    public static String getServerAddress(String domain) {
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(domain);
+            return addresses[0].getHostAddress();
+        } catch (UnknownHostException uhe) {
+            uhe.printStackTrace();
+        }
+        return "";
+    }
+
+    public static boolean isBytesAllZero(byte[] bytes) {
+        int i = 0;
+        for (byte bytea : bytes) {
+            if (bytea == (byte) 0) i++;
+        }
+        return i == bytes.length;
+    }
+
+    public static File createLocalPictureFile(byte[]bytes) {
+        return new File(DataFiles.PICTURES_DIR, new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date()) + "."+/*".png"*/ImageFormatUtils.getExtension(bytes));
+    }
+
+    public static File createLocalPictureFileAndCreate(byte[]bytes) throws IOException {
+        File file = createLocalPictureFile(bytes);
+        createFile(file);
+        return file;
+    }
+
+    public static void createFile(File file) throws IOException {
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        } else {
+            if (file.exists()) file.delete();
+        }
+        file.createNewFile();
+    }
+
+    public static AccountInformation getAccountInformation() {
+        if (Variables.ACCOUNT_INFORMATION == null) {
+            StartActivity.makeOfflineAccountInformation();
+        }
+        return Variables.ACCOUNT_INFORMATION;
+    }
+
+    public static void openFileByOtherApplication(Context context, File file) {
+        openFileByOtherApplication(context, file, MIMETypeUtils.getMIMEType(file.getAbsolutePath()));
+    }
+
+    public static void openFileByOtherApplication(Context context, File file, String type){
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        //intent.addCategory(Intent.CATEGORY_DEFAULT);
+        Uri uriForFile;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            uriForFile = FileProvider.getUriForFile(context,
+                    "com.mrshiehx.mschatroom.FileProvider",
+                    file);
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } else {
+            uriForFile = Uri.fromFile(file);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
+        intent.setDataAndType(uriForFile, type);
+        context.startActivity(intent);
+    }
+
+    public static boolean isNumber(String value){
+        for(char a:value.toCharArray()){
+            if(a!='0'&&a!='1'&&a!='2'&&a!='3'&&a!='4'&&a!='5'&&a!='6'&&a!='7'&&a!='8'&&a!='9'){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static String replaceLongToString(String longg){
+        char[]b=new char[longg.length()];
+        char[]a=longg.toCharArray();
+        for(int i=0;i<a.length;i++){
+            char c=a[i];
+            switch (c){
+                case '0':
+                    b[i]='a';
+                    break;
+                case '1':
+                    b[i]='b';
+                    break;
+                case '2':
+                    b[i]='c';
+                    break;
+                case '3':
+                    b[i]='d';
+                    break;
+                case '4':
+                    b[i]='e';
+                    break;
+                case '5':
+                    b[i]='f';
+                    break;
+                case '6':
+                    b[i]='g';
+                    break;
+                case '7':
+                    b[i]='h';
+                    break;
+                case '8':
+                    b[i]='i';
+                    break;
+                case '9':
+                    b[i]='j';
+                    break;
+            }
+        }
+        return new String(b);
+    }
+
+    public static String replaceStringToLong(String str){
+        char[]b=new char[str.length()];
+        char[]a=str.toCharArray();
+        for(int i=0;i<a.length;i++){
+            char c=a[i];
+            switch (c){
+                case 'a':
+                    b[i]='0';
+                    break;
+                case 'b':
+                    b[i]='1';
+                    break;
+                case 'c':
+                    b[i]='2';
+                    break;
+                case 'd':
+                    b[i]='3';
+                    break;
+                case 'e':
+                    b[i]='4';
+                    break;
+                case 'f':
+                    b[i]='5';
+                    break;
+                case 'g':
+                    b[i]='6';
+                    break;
+                case 'h':
+                    b[i]='7';
+                    break;
+                case 'i':
+                    b[i]='8';
+                    break;
+                case 'j':
+                    b[i]='9';
+                    break;
+            }
+        }
+        return new String(b);
     }
 }

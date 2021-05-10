@@ -7,7 +7,18 @@ import com.mrshiehx.mschatroom.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ *  c: content
+ *  y: send type
+ *  s: time(millis)
+ *  t: type(like TYPE_TIME, TYPE_RECEIVER and TYPE_SELF)
+ *
+ *  for file:
+ *  f: file name
+ *  i: file size
+ **/
 public class MessageItem {
+    /**message type*/
     public static final int TYPE_TIME = 0;
     public static final int TYPE_RECEIVER = 1;
     public static final int TYPE_SELF = 2;
@@ -24,7 +35,7 @@ public class MessageItem {
     public static final int TYPE_FAILED_SEND_CONNECT_FAILED_SO = 12;
     String c;
     int t;
-    int y;
+    int y;//发送类型
     long s;//时间
 
     public MessageItem(String c, int t, int y) {
@@ -112,8 +123,10 @@ public class MessageItem {
     public JSONObject toJSONObject(/*long millisForSO*/) {
         JSONObject jsonObject = new JSONObject();
         try {
-            /**code for*/
+            /**code for send types*/
             if (y == MessageTypes.PICTURE.code) {
+                jsonObject.put("c", getContent());
+            } else if (y == MessageTypes.FILE.code) {
                 jsonObject.put("c", getContent());
             } else {
                 jsonObject.put("c", getContent());

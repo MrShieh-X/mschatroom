@@ -10,7 +10,7 @@ import android.net.NetworkInfo;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.chat.screen.ChatScreen;
 import com.mrshiehx.mschatroom.main.screen.MainScreen;
-import com.mrshiehx.mschatroom.account_profile.screen.AccountProfileScreen;
+import com.mrshiehx.mschatroom.account.profile.screen.AccountProfileScreen;
 import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
 import com.mrshiehx.mschatroom.utils.Utils;
 
@@ -27,18 +27,18 @@ public class NetworkStateReceiver extends BroadcastReceiver {
             if (context instanceof MainScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.app_name));
                 if (i != 0) {
-                    Utils.reload(context);
+                    Utils.reload(context,true);
                 }
             } else if (context instanceof SettingsScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_settings_screen_name));
                 if (i != 0) {
-                    Utils.reload(context);
+                    Utils.reload(context,true);
                 }
             } else if (context instanceof AccountProfileScreen) {
                 ((Activity) context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));
                 ((AccountProfileScreen) context).changeEnabledOfPreferencesOfEnabled(true);
                 if (i != 0) {
-                    Utils.reload(context);
+                    Utils.reload(context,true);
                 }
             } else if (context instanceof ChatScreen) {
                 //((Activity)context).setTitle(context.getString(R.string.activity_modify_user_information_screen_name));

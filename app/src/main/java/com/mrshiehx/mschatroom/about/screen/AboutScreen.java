@@ -1,7 +1,6 @@
 package com.mrshiehx.mschatroom.about.screen;
 
 import android.app.AlertDialog;
-import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,7 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
-import com.mrshiehx.mschatroom.MSCRApplication;
+import com.mrshiehx.mschatroom.MSChatRoom;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.utils.Utils;
@@ -34,10 +33,6 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -146,6 +141,7 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
                                         while ((line = br.readLine()) != null) {
                                             sb.append(line);
                                         }
+                                        try{is.close();br.close();}catch (Exception e){e.printStackTrace();}
                                         String content = sb.toString();
                                         JSONObject object = new JSONObject(content);
                                         int latest_version_code = object.getInt("latest_version_code");
@@ -156,7 +152,7 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
                                             String update_content_enUS = object.getString("update_content_enUS");
                                             String update_content_zhCN = object.getString("update_content_zhCN");
                                             String updateContent = update_content_enUS;
-                                            if (MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).equals("zh_CN")) {
+                                            if (MSChatRoom.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE).equals("zh_CN")) {
                                                 updateContent = update_content_zhCN;
                                             }
 
@@ -198,6 +194,11 @@ public class AboutScreen extends AppCompatActivity implements AdapterView.OnItem
                                                                         }
                                                                         file.createNewFile();
                                                                         Utils.inputStream2File(is, file);
+                                                                        try{
+                                                                            is.close();
+                                                                        }catch (Exception e){
+                                                                            e.printStackTrace();
+                                                                        }
                                                                         /**
                                                                          * 安装Apk
                                                                          */

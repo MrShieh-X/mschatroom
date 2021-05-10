@@ -1,5 +1,20 @@
 # Update Logs
-Currently, the latest version is 1.2.1, which was updated on April 15, 2021.
+Currently, the latest version is 1.3, which was updated on May 10, 2021.
+
+## 1.3 (May 10, 2021)
+- The server is provided, you can install and use it directly (download from [here](https://github.com/MrShieh-X/mschatroom/releases), not in the source code).
+- The storage method of the account and password has been modified. Please login the account again.
+- The text to be sent will be converted into Unicode code, and then sent out.
+- You will only apply for permission when you need to use the permission to access the internal storage space, so that the application does not need to apply for permission when you first use it.
+- Added the function of clearing the avatar, the function is to make the avatar empty.
+- Fixed the problem that the avatar was empty but still loaded.
+- Support viewing avatars when chatting.
+- Picture Viewer supports saving pictures.
+- When chatting, long press one of the chats to choose to delete, and the picture and file to choose to save.
+- Every thirty seconds, it will check whether AccountUtils is empty, and if it is empty, it will reconnect.
+- The option to reconnect to the server has been added to the menu of the main interface, which is not always displayed.
+- Support sending files.
+- The failed message will be displayed on the main screen.
 
 ## 1.2.1 (Apr. 15, 2021)
 - Support to reset password.

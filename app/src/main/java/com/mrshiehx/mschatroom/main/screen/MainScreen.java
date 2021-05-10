@@ -4,10 +4,13 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.ContextMenu;
@@ -28,17 +31,20 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.mrshiehx.mschatroom.MSCRApplication;
+import com.mrshiehx.mschatroom.MSChatRoom;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.about.screen.AboutScreen;
+import com.mrshiehx.mschatroom.account.information.storage.storagers.AccountInformationStorager;
 import com.mrshiehx.mschatroom.broadcast_receivers.NetworkStateReceiver;
+import com.mrshiehx.mschatroom.chat.Communicator;
 import com.mrshiehx.mschatroom.chat.message.MessageItem;
 import com.mrshiehx.mschatroom.chat.message.MessageTypes;
 import com.mrshiehx.mschatroom.chat.screen.ChatScreen;
 import com.mrshiehx.mschatroom.chat.screen.ChatScreenLauncher;
 import com.mrshiehx.mschatroom.main.chats.ChatsAdapter;
 import com.mrshiehx.mschatroom.main.chats.ChatItem;
+import com.mrshiehx.mschatroom.services.AutoReconnectService;
 import com.mrshiehx.mschatroom.settings.screen.SettingsScreen;
 import com.mrshiehx.mschatroom.shared_variables.DataFiles;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
@@ -59,19 +65,20 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-public class MainScreen extends AppCompatActivity {
+public class MainScreen extends AppCompatActivity implements Serializable {
     Context context = MainScreen.this;
     long firstTime;
     List<ChatItem> content = new ArrayList<>();
@@ -79,15 +86,25 @@ public class MainScreen extends AppCompatActivity {
     ProgressDialog finding, adding, initializing;
     ListView lv;
     FloatingActionButton fab;
-    SharedPreferences sharedPreferences;
     NetworkStateReceiver myReceiver;
-    String whereGo;
-
+    public static Handler handler;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Utils.initialization(MainScreen.this, R.string.app_name);
         super.onCreate(savedInstanceState);
-        sharedPreferences = MSCRApplication.getSharedPreferences();
+        startService(new Intent(this, AutoReconnectService.class));
+
+        handler=new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if(msg.what==100){
+                    makeTitleToOnline();
+                }else if(msg.what==101){
+                    makeTitleToOffline();
+                }
+            }
+        };
 
         myReceiver = new NetworkStateReceiver();
         IntentFilter itFilter = new IntentFilter();
@@ -121,40 +138,53 @@ public class MainScreen extends AppCompatActivity {
         initializing.setCancelable(false);
         lv.setAdapter(null);
         initializing.show();
-        //accountInformation=Variables.ACCOUNT_INFORMATION;
+        //accountInformation=Utils.getAccountInformation();
         initFromFile(lv, content);
         initializing.dismiss();
         //FloatingActionButton fab = findViewById(R.id.fab);
-        if (!Utils.networkAvailableDialog(context)) {
-            String[] languageAndCountry = PreferenceManager.getDefaultSharedPreferences(context).getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
-            setTitle(Utils.getStringByLocale(context, R.string.activity_main_screen_offline_mode_name, languageAndCountry[0], languageAndCountry[1]));
+        Intent intent=getIntent();
+        boolean doNotConnectToServer=intent.getBooleanExtra("doNotConnectToServer",false);
+        if (!Utils.networkAvailableDialog(context)||doNotConnectToServer) {
+            //try{Thread.sleep(3000);}catch (Exception e){e.printStackTrace();}
+            makeTitleToOffline();
+            //Toast.makeText(context, "136", Toast.LENGTH_SHORT).show();
         } else {
+            //Toast.makeText(context, "138", Toast.LENGTH_SHORT).show();
             //Toast.makeText(context, Utils.valueOf(Variables.ACCOUNT_UTILS==null), Toast.LENGTH_SHORT).show();
-            if (Variables.ACCOUNT_UTILS == null) {
-                final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Looper.prepare();
-                        Connection connection = ConnectionUtils.getConnection(Variables.SERVER_ADDRESS, Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD);
-                        if (connection == null) {
-                            Toast.makeText(context, getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
-                        } else {
-                            AccountUtils accountUtils = new AccountUtils(connection, Variables.DATABASE_TABLE_NAME);
-                            Variables.ACCOUNT_UTILS = accountUtils;
-                        }
-                        dialog.dismiss();
-                        Looper.loop();
+            boolean b = true;
+                if(Variables.ACCOUNT_UTILS!=null) {
+                    try {
+                        b = Variables.ACCOUNT_UTILS.getConnection().isClosed();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                }).start();
-            }
+                }
+                if (Variables.ACCOUNT_UTILS == null || Variables.ACCOUNT_UTILS.getConnection() == null || b) {
+                    final ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Looper.prepare();
+                            Connection connection = ConnectionUtils.getConnection(Variables.SERVER_ADDRESS, Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD);
+                            if (connection == null) {
+                                Toast.makeText(context, getString(R.string.toast_connect_failed), Toast.LENGTH_SHORT).show();
+                            } else {
+                                AccountUtils accountUtils = new AccountUtils(connection, Variables.DATABASE_TABLE_NAME);
+                                Variables.ACCOUNT_UTILS = accountUtils;
+                            }
+                            dialog.dismiss();
+                            Looper.loop();
+                        }
+                    }).start();
+                }
+
         }
         fab.setImageDrawable(getResources().getDrawable(R.drawable.add));
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (Utils.isNetworkConnected(context)) {
-                    String[] languageAndCountry = PreferenceManager.getDefaultSharedPreferences(context).getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
+                    String[] languageAndCountry = PreferenceManager.getDefaultSharedPreferences(context).getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
                     setTitle(Utils.getStringByLocale(context, R.string.app_name, languageAndCountry[0], languageAndCountry[1]));
 
                     //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
@@ -177,9 +207,9 @@ public class MainScreen extends AppCompatActivity {
                                         if (Utils.checkLoginInformationAndNetwork(context)) {
                                             String account = "";
                                             String email = "";
-                                            SharedPreferences sharedPreferences = MSCRApplication.getSharedPreferences();
+
                                             try {
-                                                account = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+                                                account = EnDeCryptTextUtils.decrypt(AccountInformationStorager.getMainAccountAndPassword(), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
                                                 email = EnDeCryptTextUtils.decrypt(GetAccountUtils.getEmail(Utils.getAccountUtils(), context, EnDeCryptTextUtils.encrypt(account)));
 
                                                 if (etT.equalsIgnoreCase(account.toLowerCase()) || etT.equalsIgnoreCase(email.toLowerCase())) {
@@ -407,7 +437,7 @@ public class MainScreen extends AppCompatActivity {
                     });
                     dialog.show();
                 } else {
-                    String[] languageAndCountry = PreferenceManager.getDefaultSharedPreferences(context).getString(Variables.SHARED_PREFERENCE_MODIFY_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
+                    String[] languageAndCountry = PreferenceManager.getDefaultSharedPreferences(context).getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
                     setTitle(Utils.getStringByLocale(context, R.string.activity_main_screen_offline_mode_name, languageAndCountry[0], languageAndCountry[1]));
 
                     Snackbar.make(fab, getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
@@ -415,7 +445,7 @@ public class MainScreen extends AppCompatActivity {
             }
         });
         /*try {
-            InputStream inputStream=FormatTools.getInstance().Drawable2InputStream(getResources().getDrawable(R.drawable.add));
+            InputStream inputStream=FormatTools.drawable2InputStream(getResources().getDrawable(R.drawable.add));
         byte[] bytes = new byte[0];
         bytes = new byte[inputStream.available()];
         inputStream.read(bytes);
@@ -423,14 +453,14 @@ public class MainScreen extends AppCompatActivity {
 
             /*StringBuffer out = new StringBuffer();
             byte[] b = new byte[4096];
-            for (int n; (n = FormatTools.getInstance().Drawable2InputStream(getResources().getDrawable(R.drawable.add)).read(b)) != -1; ) {
+            for (int n; (n = FormatTools.drawable2InputStream(getResources().getDrawable(R.drawable.add)).read(b)) != -1; ) {
                 out.append(new String(b, 0, n));
             }
             out.toString();*
             Log.e("fuck","its:"+str);
             AlertDialog.Builder a=new AlertDialog.Builder(context);
             a.setTitle("asfd").setMessage("fds");
-            a.setIcon(FormatTools.getInstance().InputStream2Drawable(new ByteArrayInputStream(str.getBytes("UTF-8"))));
+            a.setIcon(FormatTools.inputStream2Drawable(new ByteArrayInputStream(str.getBytes("UTF-8"))));
             //a.show();
         }catch (IOException e){
             e.printStackTrace();
@@ -484,13 +514,12 @@ public class MainScreen extends AppCompatActivity {
                 boolean canContinue = false;
                 if (Utils.isNetworkConnected(context)) {
                     if (Variables.ACCOUNT_UTILS != null) {
-                        if (MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD)) {
+                        if (AccountInformationStorager.isLogined()) {
                             /**检测是否能登录*/
                             canContinue = true;
                         }
                     }
                 }
-                whereGo = ChatScreen.class.getName();
                 new ChatScreenLauncher(context, item.getEmailOrAccount(), finalIntentString, canContinue).startChatScreen();
             }
         });
@@ -511,15 +540,21 @@ public class MainScreen extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
                         File chatFile = new File(DataFiles.CHATS_DIR, ((ChatItem) lv.getItemAtPosition((int) selectedId)).getEmailOrAccount() + ".json");
+                        File information = new File(DataFiles.INFORMATION_DIR, ((ChatItem) lv.getItemAtPosition((int) selectedId)).getEmailOrAccount() + ".json");
                         try {
                             List<File> files = new ArrayList<>();
                             JSONArray jsonArray = new JSONArray(FileUtils.getString(chatFile));
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject jsonObject = jsonArray.getJSONObject(i);
+                                /**code for send types*/
                                 if (jsonObject.optInt("y") == MessageTypes.PICTURE.code) {
                                     String var = jsonObject.optString("c", "");
                                     if (!TextUtils.isEmpty(var))
                                         files.add(new File(DataFiles.IMAGES_DIR, var));
+                                }else if (jsonObject.optInt("y") == MessageTypes.FILE.code) {
+                                    String var = jsonObject.optString("c", "");
+                                    if (!TextUtils.isEmpty(var))
+                                        files.add(new File(DataFiles.FILES_DIR, var));
                                 }
                             }
                             for (File file : files) {
@@ -532,6 +567,9 @@ public class MainScreen extends AppCompatActivity {
                         }
                         if (chatFile.exists()) {
                             chatFile.delete();
+                        }
+                        if (information.exists()) {
+                            information.delete();
                         }
                         //File chatsFile2 = new File(Utils.getDataFilesPath(context), "chats2.json");
                         if (chatsFile.exists()) {
@@ -565,7 +603,7 @@ public class MainScreen extends AppCompatActivity {
                                     chatsFile.createNewFile();
                                     FileUtils.writeToFile(newArray, chatsFile);
 
-                                    File avatar = new File(itemOnListView.getAvatarFilePAN());
+                                    File avatar = itemOnListView.getAvatarFile();
                                     if (avatar.exists()) {
                                         avatar.delete();
                                     }
@@ -608,44 +646,20 @@ public class MainScreen extends AppCompatActivity {
         } catch (BadPaddingException e) {
             e.printStackTrace();
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                finding.show();
-            }
-        });
-        //AccountUtils accountUtils = new AccountUtils(Variables.DATABASE_NAME, Variables.DATABASE_USER, Variables.DATABASE_PASSWORD, Variables.DATABASE_TABLE_NAME);
-        boolean ok = Utils.getAccountUtils().find(context, finding, by, encrypted);
+        runOnUiThread(finding::show);
+        boolean ok = Utils.getAccountUtils().find(context, by, encrypted);
         if (ok) {
             finding.dismiss();
-            InputStream avatar = Utils.getAccountUtils().getInputStream(context, "avatar", by, encrypted);
-            //String name = "";
+            byte[] avatar=null;
+            try {
+                avatar = Utils.getAccountUtils().getBytesWithException(context, "avatar", by, encrypted);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
             ChatItem item = null;
             byte[] info = Utils.getAccountUtils().getBytes(context, "information", by, encrypted);
             String readName = UserInformationUtils.read(context, info).nameContent;
-            /*if (!TextUtils.isEmpty(readName)) {
-             *//*try {
-                    accountOrName = EnDeCryptTextUtils.decrypt(accountUtils.getStringNoThread(context, "account", by, encrypted), Variables.TEXT_ENCRYPTION_KEY);
-                } catch (InvalidKeyException e) {
-                    e.printStackTrace();
-                } catch (InvalidKeySpecException e) {
-                    e.printStackTrace();
-                } catch (NoSuchPaddingException e) {
-                    e.printStackTrace();
-                } catch (IllegalBlockSizeException e) {
-                    e.printStackTrace();
-                } catch (BadPaddingException e) {
-                    e.printStackTrace();
-                }*//*
-                //name = "";
-            //} else {
-                name = readName;
-            }*/
-            /*String accountOrName=name;
-            if(TextUtils.isEmpty(name)){
-                accountOrName=encrypted;
-            }*/
-            if (avatar != null) {
+            if (avatar != null&&avatar.length!=0&&!Utils.isBytesAllZero(avatar)) {
                 File cafile = DataFiles.CHAT_AVATARS_DIR;
                 File file = new File(DataFiles.CHAT_AVATARS_DIR, encrypted);
                 if (!cafile.exists()) {
@@ -664,24 +678,12 @@ public class MainScreen extends AppCompatActivity {
                 }
 
                 if (file.exists()) {
-                    OutputStream os = null;
                     try {
-                        os = new FileOutputStream(file);
-                        int ch = 0;
-                        while ((ch = avatar.read()) != -1) {
-                            os.write(ch);
-                        }
-                        os.flush();
+                        FileUtils.bytes2File(avatar,file);
                     } catch (Exception e) {
                         e.printStackTrace();
                         Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_save_avatar));
                         Snackbar.make(lv, getString(R.string.toast_failed_to_save_avatar), Snackbar.LENGTH_SHORT).show();
-                    } finally {
-                        try {
-                            os.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
                     }
                     try {
                         item = new ChatItem(encrypted, /*Utils.getDataFilesPath(context) + File.separator +"chat_avatars"+File.separator+encrypted,*/ TextUtils.isEmpty(readName) ? readName : EnDeCryptTextUtils.encrypt(readName, Variables.TEXT_ENCRYPTION_KEY)/*, "", ""*/);
@@ -698,7 +700,6 @@ public class MainScreen extends AppCompatActivity {
                     }
                 }
             } else {
-                //avatar = FormatTools.getInstance().Drawable2InputStream(getResources().getDrawable(R.drawable.account));
                 try {
                     item = new ChatItem(encrypted, /*"", */TextUtils.isEmpty(readName) ? readName : EnDeCryptTextUtils.encrypt(readName, Variables.TEXT_ENCRYPTION_KEY)/*, "", ""*/);
                 } catch (InvalidKeySpecException e) {
@@ -738,14 +739,7 @@ public class MainScreen extends AppCompatActivity {
                     /**
                      * 插入JSON项
                      */
-                    //content.add(item);
-                    //final List<ChatItem> chatItems = new ArrayList<ChatItem>();
-                    //新建json
-                    //Log.e("fuck",Utils.valueOf(content));
-                    //chatItems.addAll(content);
-                    //chatItems.addAll(content);
                     content.add(item);
-                    //og.e("fuck2",Utils.valueOf(content));
                     JSONArray chatArray = new JSONArray();
                     for (int i = 0; i < content.size(); i++) {
 
@@ -774,27 +768,11 @@ public class MainScreen extends AppCompatActivity {
                         Snackbar.make(lv, getString(R.string.toast_failed_to_add_chat), Snackbar.LENGTH_SHORT).show();
                     }
 
-                    final ChatItem finalItem = item;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            //contentAdapter=null;
-                            /*try {
-                                contentAdapter.clear();
-                                contentAdapter.notifyDataSetChanged();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }*/
-                            //lv.setAdapter(null);
-                            //initForAdd(lv,content, finalItem);
-                        }
-                    });
                 } else {
                     //存在，提示
                     //Snackbar.make(context, getString(R.string.toast_add_chat_exists), Snackbar.LENGTH_SHORT).show();
                     Snackbar.make(lv, getString(R.string.toast_add_chat_exists), Snackbar.LENGTH_SHORT).show();
                 }
-                adding.dismiss();
             } else {
                 /**
                  * 新建JSON
@@ -830,24 +808,10 @@ public class MainScreen extends AppCompatActivity {
                     e.printStackTrace();
                     Utils.exceptionDialog(context, e, getString(R.string.toast_failed_to_add_chat));
                     Snackbar.make(lv, getString(R.string.toast_failed_to_add_chat), Snackbar.LENGTH_SHORT).show();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adding.dismiss();
-                        }
-                    });
+                    runOnUiThread(adding::dismiss);
                 }
-                /*final ChatItem finalItem1 = item;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //lv.setAdapter(null);
-                                *//*initForAdd(lv, content);*//*
-                        initForAdd(lv,content, finalItem1);
-                    }
-                });*/
-                adding.dismiss();
             }
+            adding.dismiss();
             try {
                 if (!DataFiles.CHATS_DIR.exists()) {
                     DataFiles.CHATS_DIR.mkdirs();
@@ -879,8 +843,8 @@ public class MainScreen extends AppCompatActivity {
                 }
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    String emailOrAccount = jsonObject.getString("emailOrAccount");
-                    String name = jsonObject.getString("name");
+                    String emailOrAccount = jsonObject.optString("emailOrAccount");
+                    String name = jsonObject.optString("name");
                     String latestMsg = "";
                     String latestMsgDate = "";
 
@@ -892,9 +856,11 @@ public class MainScreen extends AppCompatActivity {
                             latestMsgDate = Utils.formatTime(list.get(list.size() - 1).getTime());
                             if (list.get(list.size() - 1).getType() != MessageItem.TYPE_TIME) {
                                 MessageItem item = list.get(list.size() - 1);
-                                /**code for*/
+                                /**code for send types*/
                                 if (item.getContentType() == MessageTypes.PICTURE.code) {
                                     latestMsg = getString(R.string.message_type_picture);
+                                }else if (item.getContentType() == MessageTypes.FILE.code) {
+                                    latestMsg = getString(R.string.message_type_file);
                                 } else {
                                     latestMsg = list.get(list.size() - 1).getContent();
                                 }
@@ -944,12 +910,54 @@ public class MainScreen extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_reconnect:
+                if(Utils.isNetworkConnected(context)) {
+                    boolean closed = true;
+                    if (Variables.ACCOUNT_UTILS != null && Variables.ACCOUNT_UTILS.getConnection() != null) {
+                        try {
+                            closed = Variables.ACCOUNT_UTILS.getConnection().isClosed();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (Variables.ACCOUNT_UTILS == null || Variables.ACCOUNT_UTILS.getConnection() == null || closed) {
+                        Utils.reload(context, true,true,false);
+                    }
+                }else{
+                    Toast.makeText(context, R.string.toast_please_check_your_network, Toast.LENGTH_SHORT).show();
+                }
+                if(Variables.COMMUNICATOR == null||Variables.SESSION==null||!Variables.SESSION.isConnected()){
+                    ProgressDialog dialog = ConnectionUtils.showConnectingDialog(context);
+                    new Thread(() -> {
+                        Looper.prepare();
+                        try {
+                            String b = Utils.valueOf(Utils.getAccountInformation().getAccountE());
+                            String c = Utils.valueOf(Utils.getAccountInformation().getEmailE());
+                            Variables.COMMUNICATOR = new Communicator(this, b, c);
+                            try {
+                                if (Variables.COMMUNICATOR.connect()) {
+                                    Toast.makeText(context, R.string.loadinglog_success_connect_communication_server, Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(context, R.string.loadinglog_failed_connect_communication_server, Toast.LENGTH_SHORT).show();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Toast.makeText(context, String.format(MSChatRoom.getContext().getString(R.string.loadinglog_failed_connect_communication_server_withcause), e + ""), Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        dialog.dismiss();
+                        Looper.loop();
+                    }).start();
+                }
+                break;
             case R.id.menu_settings:
                 Utils.startActivity(context, SettingsScreen.class);
                 return true;
@@ -961,7 +969,7 @@ public class MainScreen extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        MSCRApplication.getInstance().exit();
+                        MSChatRoom.getInstance().exit();
                     }
                 });
                 return true;
@@ -980,7 +988,7 @@ public class MainScreen extends AppCompatActivity {
                 firstTime = secondTime;
                 return true;
             } else {
-                MSCRApplication.getInstance().exit();
+                MSChatRoom.getInstance().exit();
             }
             //super.onBackPressed();
         }
@@ -993,15 +1001,6 @@ public class MainScreen extends AppCompatActivity {
         unregisterReceiver(myReceiver);
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        if (whereGo != null) {
-            if (whereGo.equals(ChatScreen.class.getName())) {
-                updateLatests();
-            }
-        }
-    }
 
     void updateLatests() {
         for (int i = 0; i < content.size(); i++) {
@@ -1009,6 +1008,7 @@ public class MainScreen extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public synchronized void run() {
+                    Looper.prepare();
                     try {
                         ChatItem item = (ChatItem) lv.getItemAtPosition(finalI);
                         File chatFile = new File(DataFiles.CHATS_DIR, item.getEmailOrAccount() + ".json");
@@ -1017,14 +1017,47 @@ public class MainScreen extends AppCompatActivity {
                         String latestMsgDate = "";
                         String latestMsg = "";
 
-                        if (chatFile.exists()) {
+                        if (chatFile.exists()&&list!=null&&list.size()!=0) {
+                            MessageItem message=list.get(list.size() - 1);
                             latestMsgDate = Utils.formatTime(list.get(list.size() - 1).getTime());
-                            if (list.get(list.size() - 1).getType() != MessageItem.TYPE_TIME) {
-                                /**code for*/
-                                if (list.get(list.size() - 1).getContentType() == MessageTypes.PICTURE.code) {
+                            if (message.getType() != MessageItem.TYPE_TIME) {
+                                /**code for send types*/
+                                if (message.getContentType() == MessageTypes.PICTURE.code) {
                                     latestMsg = getString(R.string.message_type_picture);
+                                }else if (message.getContentType() == MessageTypes.FILE.code) {
+                                    latestMsg = getString(R.string.message_type_file);
                                 } else {
-                                    latestMsg = list.get(list.size() - 1).getContent();
+                                    if(message.getType()==MessageItem.TYPE_RECEIVER||message.getType()==MessageItem.TYPE_SELF) {
+                                        latestMsg = message.getContent();
+                                    }else{
+                                        int i1=message.getType();
+                                        /**code for message type*/
+                                        switch (i1){
+                                            case MessageItem.TYPE_FAILED_SEND_SO:
+                                            case MessageItem.TYPE_FAILED_SEND:
+                                                latestMsg=getString(R.string.chat_tip_failed_send_without_content);
+                                                break;
+                                            case MessageItem.TYPE_FAILED_SEND_OFFLINE_SO:
+                                            case MessageItem.TYPE_FAILED_SEND_OFFLINE:
+                                                latestMsg=getString(R.string.chat_tip_offline);
+                                                break;
+                                            case MessageItem.TYPE_FAILED_SEND_CONNECT_FAILED_SO:
+                                            case MessageItem.TYPE_FAILED_SEND_CONNECT_FAILED:
+                                                latestMsg=getString(R.string.chat_tip_failed_connect);
+                                                break;
+                                            case MessageItem.TYPE_FAILED_SEND_LOGIN_FAILED_SO:
+                                            case MessageItem.TYPE_FAILED_SEND_LOGIN_FAILED:
+                                                latestMsg=getString(R.string.chat_tip_failed_logined);
+                                                break;
+                                            case MessageItem.TYPE_FAILED_SEND_NOT_LOGGINED_SO:
+                                            case MessageItem.TYPE_FAILED_SEND_NOT_LOGGINED:
+                                                latestMsg=getString(R.string.chat_tip_not_loggined);
+                                                break;
+                                            default:
+                                                latestMsg = message.getContent();
+                                                break;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1037,27 +1070,7 @@ public class MainScreen extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }
-            }).start();
-        }
-    }
-
-    void updateLatests(String latestMsg, String latestMsgDate) {
-        for (int i = 0; i < content.size(); i++) {
-            int finalI = i;
-            new Thread(new Runnable() {
-                @Override
-                public synchronized void run() {
-                    try {
-                        content.get(finalI).setLatestMsg(latestMsg);
-                        content.get(finalI).setLatestMsgDate(latestMsgDate);
-                        runOnUiThread(() -> {
-                            contentAdapter = new ChatsAdapter(context, R.layout.item_main_screen_chat, content);
-                            lv.setAdapter(contentAdapter);
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    Looper.loop();
                 }
             }).start();
         }
@@ -1069,6 +1082,7 @@ public class MainScreen extends AppCompatActivity {
         if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         }
+        updateLatests();
         /*if (Variables.ACCOUNT_UTILS != null) {
             if (Variables.ACCOUNT_UTILS.getConnection() == null) {
                 Utils.reload(context);
@@ -1084,5 +1098,36 @@ public class MainScreen extends AppCompatActivity {
 
     public void onDisconnectNetwork() {
         Variables.COMMUNICATOR = null;
+        Variables.SESSION=null;
+    }
+
+    public void makeTitleToOffline(){
+        //Toast.makeText(context, "1089", Toast.LENGTH_SHORT).show();
+        new Thread(()->runOnUiThread(()->{
+            String[] languageAndCountry = PreferenceManager.getDefaultSharedPreferences(context).getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
+            setTitle(Utils.getStringByLocale(context, R.string.activity_main_screen_offline_mode_name, languageAndCountry[0], languageAndCountry[1]));
+        })).start();
+    }
+
+    public void makeTitleToOnline(){
+        //Toast.makeText(context, "1097", Toast.LENGTH_SHORT).show();
+        new Thread(()->runOnUiThread(()->{
+            String[] languageAndCountry = PreferenceManager.getDefaultSharedPreferences(context).getString(Variables.SHARED_PREFERENCE_LANGUAGE, Variables.DEFAULT_LANGUAGE).split("_");
+            setTitle(Utils.getStringByLocale(context, R.string.app_name, languageAndCountry[0], languageAndCountry[1]));
+        })).start();
+    }
+
+    @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        boolean closed=true;
+        if(Variables.ACCOUNT_UTILS!=null&&Variables.ACCOUNT_UTILS.getConnection()!=null){
+            try{
+                closed=Variables.ACCOUNT_UTILS.getConnection().isClosed();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        menu.getItem(0).setVisible(Variables.ACCOUNT_UTILS==null||Variables.ACCOUNT_UTILS.getConnection()==null||closed||Variables.COMMUNICATOR==null||Variables.SESSION==null);
+        return super.onMenuOpened(featureId, menu);
     }
 }

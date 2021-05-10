@@ -8,7 +8,7 @@
     <string name="activity_reset_password_name">Reset Password</string>
     <string name="activity_chat_screen_name">Chat</string>
     <string name="activity_modify_user_information_screen_name">Account Profile</string>
-    <string name="activity_login_by_ec_screen_name">Login By Email CAPTCHA</string>
+    <string name="activity_login_by_ec_screen_name">Login By Email</string>
     <string name="activity_about_screen_name">About</string>
     <string name="activity_picture_viewer_name">Picture Viewer</string>
     <string name="activity_developer_options_name">Developer Options</string>
@@ -71,24 +71,24 @@
     <string name="preference_settings_list_modify_theme_dialogtitle">Select a theme</string>
     <string name="preference_settings_list_modify_language_title">Language</string>
     <string name="preference_settings_list_modify_language_dialogtitle">Select a language</string>
-    <string name="preference_account_notlogged_title">Account is not logged in</string>
+    <string name="preference_account_notlogged_title">Did not login a account</string>
     <string name="preference_account_notlogged_summary">Click to login</string>
     <string name="preference_account_logout">Log out</string>
     <string name="preference_account_title_no_name_set">User %s</string>
-    <string name="preference_account_summary_tip_set_whatsup">Please set what\'s up</string>
+    <string name="preference_account_summary_tip_set_whatsup">Please set biography</string>
     <string name="preference_account_avatar_title">Avatar</string>
     <string name="preference_account_avatar_summary">Click to change the avatar</string>
     <string name="preference_account_name_title">Nickname</string>
-    <string name="preference_account_name_summary">Nickname is not set</string>
+    <string name="preference_account_name_summary">The nickname did not set</string>
     <string name="preference_account_gender_title">Gender</string>
-    <string name="preference_account_gender_summary">Gender is not set</string>
+    <string name="preference_account_gender_summary">The gender did not set</string>
     <string name="preference_account_gender_dialogtitle">Select a gender</string>
-    <string name="preference_account_whatsup_title">What\'s up</string>
-    <string name="preference_account_whatsup_summary">What\'s up is not set</string>
+    <string name="preference_account_whatsup_title">Biography</string>
+    <string name="preference_account_whatsup_summary">The biography did not set</string>
     <string name="preference_account_gender_male">Male</string>
     <string name="preference_account_gender_female">Female</string>
     <string name="preference_delete_account_title">Delete Account</string>
-    <string name="preference_delete_account_summary">Delete all data of account</string>
+    <string name="preference_delete_account_summary">Delete all data of the account</string>
     <string name="preference_delete_account_input_email">Please input password</string>
     <string name="preference_account_title">Account</string>
     <string name="preference_account_email_title">Email Address</string>
@@ -112,13 +112,16 @@
     <string name="preference_show_logs_in_loading_interface_title">Show Logs In Loading Screen</string>
     <string name="preference_show_logs_in_loading_interface_summary">Show the loading log in loading screen</string>
     <string name="preference_settings_category_chat_title">Chat</string>
-    <string name="preference_show_avatars_when_chatting_title">Show Avatars When Chatting</string>
+    <string name="preference_show_avatars_when_chatting_title">Show avatars when chatting</string>
     <string name="preference_show_avatars_when_chatting_summary">Show each other\'s avatars on the chat screen</string>
     <string name="preference_settings_new_messages_notify_title">Notify when receive new messages</string>
     <string name="preference_settings_new_messages_notify_summary">Notify when you receive new messages</string>
     <string name="preference_server_port_title">Server Port</string>
     <string name="preference_server_port_summary">Please set the server port (used for communication)</string>
-    <string name="preference_modify_password_title">Reset Account Password</string>
+    <string name="preference_modify_password_title">Reset the Password</string>
+    <string name="preference_settings_receive_strangers_offline_messages_title">Receive the offline messages from strangers</string>
+    <string name="preference_settings_receive_strangers_offline_messages_summary">When downloading the offline messages, whether to automatically add strangers and receive the messages from strangers (always do not receive the messages from strangers even online)</string>
+    <string name="preference_modify_password_summary">Reset the password of the account</string>
 
     <string name="dialog_exception_parsing_json_failed">JSON file parsing failed</string>
     <string name="dialog_exception_parsing_xml_failed">XML file parsing failed</string>
@@ -155,7 +158,7 @@
     <string name="dialog_choose_photo_button_select">Choose from Album</string>
     <string name="dialog_uploading_message">Uploading...</string>
     <string name="dialog_exception_failed_to_changeavatar">Failed to change avatar</string>
-    <string name="dialog_no_login_message">Account is not logged in. Do you want to login now?</string>
+    <string name="dialog_no_login_message">You did not login a account. Do you want to login now?</string>
     <string name="dialog_no_login_button_gotologin_text">Login</string>
     <string name="dialog_downloading_avatar">Downloading Avatar...</string>
     <string name="dialog_exception_failed_to_downloadavatar">Failed to download avatar</string>
@@ -176,7 +179,7 @@
     <string name="dialog_view_or_modify_avatar_operation_modify">Modify Avatar</string>
     <string name="dialog_exception_failed_to_load_image">Failed to load image</string>
     <string name="dialog_no_permissions_title">Application permissions are not available</string>
-    <string name="dialog_no_permissions_message">Please in the application settings - permissions, allow the application to use the device permissions to use the application.</string>
+    <string name="dialog_no_permissions_message">Please in the application settings - permissions, allow the application to use the device permissions to use this function.</string>
     <string name="dialog_no_permissions_button_gotosettings">Go to settings</string>
     <string name="dialog_clear_cache_message">Are you sure you want to clear the cache?</string>
     <string name="dialog_clear_application_data_message">Are you sure you want to clear application data? This action will exit the application.</string>
@@ -211,6 +214,12 @@
     <string name="dialog_exception_failed_to_send_message">Failed to send the message</string>
     <string name="dialog_modify_password_title">Reset Account Password</string>
     <string name="dialog_modifying_password_message">Resetting the account password..</string>
+    <string name="dialog_view_or_modify_avatar_operation_use_empty">Clear the avatar</string>
+    <string name="dialog_exception_failed_to_download_file">Failed to download the file</string>
+    <string name="dialog_file_details_title">File Details</string>
+    <string name="dialog_file_details_message">File Name: %s\n\nFile Size: %s</string>
+    <string name="dialog_file_details_button_open">Open with other applications</string>
+    <string name="dialog_sending_file_message">Sending file...</string>
 
     <string name="toast_captcha_incorrect">The CAPTCHA is incorrect</string>
     <string name="toast_registered_email">The email has been used, please change, after the change you must get CAPTCHA again</string>
@@ -224,7 +233,7 @@
     <string name="toast_account_or_password_incorrect">Incorrect account or password</string>
     <string name="toast_email_or_password_incorrect">Incorrect email or password</string>
     <string name="toast_failed_register">Failed to register</string>
-    <string name="toast_please_check_your_network">Please check your network and try again</string>
+    <string name="toast_please_check_your_network">Please connect to the network and try again</string>
     <string name="toast_press_again_exit_application">Press again to exit the application</string>
     <string name="toast_input_content_empty">The input content cannot be empty</string>
     <string name="toast_failed_reset_password">Failed to reset password</string>
@@ -267,6 +276,14 @@
     <string name="toast_target_file_not_found">The target file cannot be found</string>
     <string name="toast_failed_to_modify_password">Failed to reset password</string>
     <string name="toast_successfully_reset_password_relogin">Successfully to reset the password, please re-login</string>
+    <string name="toast_avatar_not_set">The avatar did not set</string>
+    <string name="toast_failed_connect_to_server">Failed to connect to the server</string>
+    <string name="toast_failed_to_save_file">Failed to save the file</string>
+    <string name="toast_successfully_save_picture">File has been saved to %s</string>
+    <string name="toast_failed_to_delete">Failed to delete</string>
+    <string name="toast_successfully_connect_database_server">Connect to the server database successfully</string>
+    <string name="toast_failed_to_download_file_from_server">Failed to download the file, it may have been deleted</string>
+    <string name="toast_please_try_after_downlaod">Please save the file to local and try again</string>
 
     <string name="input_information_tip">Please input server address, MySQL database name, user, password and table name(separate with &amp;)</string>
     <string name="input_information_login">Login</string>
@@ -279,6 +296,9 @@
     <string name="menu_main_item_delete">Delete This Chat</string>
     <string name="menu_chat_send">Send...</string>
     <string name="menu_chat_send_picture">Picture</string>
+    <string name="menu_chat_send_file">File</string>
+    <string name="menu_picture_viewer_save">Save to local</string>
+    <string name="menu_main_reconnect">Reconnect to the server</string>
 
     <string name="listviewtext_about_users_can_do_item_contact">Contact MrShiehX</string>
     <string name="listviewtext_about_users_can_do_item_visit_github">Visit the GitHub repository of this application</string>
@@ -303,7 +323,7 @@
     <string name="loadinglog_success_connect">Successfully connected to the server</string>
     <string name="loadinglog_checking_login_status">Checking login status...</string>
     <string name="loadinglog_logined">Account is logged in</string>
-    <string name="loadinglog_not_login">Account is not logged in</string>
+    <string name="loadinglog_not_login">You did not login a account</string>
     <string name="loadinglog_checking_can_login">Checking if you can login...</string>
     <string name="loadinglog_result_can_login">Account can login</string>
     <string name="loadinglog_result_cannot_login">Account can not login</string>
@@ -334,10 +354,19 @@
     <string name="chat_tip_not_loggined">Please login and resend</string>
     <string name="chat_tip_failed_logined">Failed to login the account</string>
     <string name="chat_tip_failed_connect">Failed to connect to the server</string>
+    <string name="chat_tip_failed_send_without_content">Failed to send the message</string>
 
     <string name="notification_channel_name">New messages notification</string>
 
     <string name="message_type_picture">[Picture]</string>
     <string name="message_type_picture_lower">picture</string>
     <string name="message_type_picture_upper">Picture</string>
+    <string name="message_type_file">[File]</string>
+    <string name="message_type_file_lower">file</string>
+    <string name="message_type_file_upper">File</string>
+    <string name="message_options_delete">Delete</string>
+    <string name="message_options_save_to_local">Save to local</string>
+    <string name="message_file_download">Download</string>
+    <string name="message_file_size_tip">Size: </string>
+    <string name="message_file_details">Details</string>
 </resources>

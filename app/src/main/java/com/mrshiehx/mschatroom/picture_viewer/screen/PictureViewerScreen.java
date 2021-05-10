@@ -14,6 +14,7 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -25,18 +26,21 @@ import androidx.core.content.ContextCompat;
 
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
-import com.mrshiehx.mschatroom.utils.FormatTools;
+import com.mrshiehx.mschatroom.utils.FileUtils;
+import com.mrshiehx.mschatroom.utils.ImageFormatConverter;
+import com.mrshiehx.mschatroom.utils.PermissionsGranter;
+import com.mrshiehx.mschatroom.utils.StreamUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
 import com.mrshiehx.mschatroom.widget.PictureViewerImageView;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class PictureViewerScreen extends Activity {
+    Activity activity = PictureViewerScreen.this;
     Context context = PictureViewerScreen.this;
     //Button back;
     PictureViewerImageView image;
@@ -47,13 +51,18 @@ public class PictureViewerScreen extends Activity {
     AlertDialog dialog2;
     String contentType;
     String content;
-    public static InputStream imageInputStream;
-
+    PermissionsGranter permissionsGranterForSave;
+    byte[]bytes;
+    private static final short REQUEST_GRANT_ORPR=100;
+    private static final short REQUEST_GRANT_OAR=101;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         Utils.initialization(PictureViewerScreen.this, R.string.activity_picture_viewer_name, android.R.style.Theme_DeviceDefault, android.R.style.Theme_DeviceDefault);
         super.onCreate(savedInstanceState);
         getActionBar().setDisplayHomeAsUpEnabled(true);
+        Intent intent22=getIntent();
+        byte[]bytes=intent22.getByteArrayExtra("bytes");
+        permissionsGranterForSave =new PermissionsGranter(activity, (args)->save(),null,REQUEST_GRANT_ORPR,REQUEST_GRANT_OAR);
         LinearLayout mainLayout = new LinearLayout(this);
         //Button b=new Button(this);
         image = new PictureViewerImageView(context);
@@ -69,7 +78,7 @@ public class PictureViewerScreen extends Activity {
         /**
          *  优先加载Intent的，Intent没有就加载Scheme的，Scheme没有加载通过MIME打开的
          */
-        if (imageInputStream == null) {
+        if (bytes == null||bytes.length==0||Utils.isBytesAllZero(bytes)) {
             Intent intent = getIntent();
             Uri uri = intent.getData();
             if (uri != null && !TextUtils.isEmpty(uri.getQuery())) {
@@ -80,14 +89,16 @@ public class PictureViewerScreen extends Activity {
 
 
                 if (contentType.equals("localPath")) {
-                    int WRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(getApplicationContext(), Variables.PERMISSIONS[0]);
-                    // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
-                    if (WRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED) {
-                        // 如果没有授予该权限，就去提示用户请求
-                        startRequestPermission();
-                    } else {
-                        method01(content);
-                    }
+                    if(!content.startsWith(getFilesDir().getParent())) {
+                        int WRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(getApplicationContext(), Variables.PERMISSIONS[0]);
+                        // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
+                        if (WRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED) {
+                            // 如果没有授予该权限，就去提示用户请求
+                            startRequestPermission();
+                        } else {
+                            method01(content);
+                        }
+                    }else method01(content);
                 } else if (contentType.equals("url")) {
                     method02(content);
                 } else {
@@ -99,7 +110,18 @@ public class PictureViewerScreen extends Activity {
                 String qianzhui = "file://";
                 if (uri.toString().startsWith(qianzhui)) {
                     try {
-                        image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(getContentResolver().openInputStream(uri)));
+                        InputStream is=getContentResolver().openInputStream(uri);
+                        try {
+                            this.bytes = StreamUtils.inputStream2ByteArray(is);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        image.setImageDrawable(ImageFormatConverter.inputStream2Drawable(is));
+                        try{
+                            is.close();
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                         Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_load_image));
@@ -112,7 +134,8 @@ public class PictureViewerScreen extends Activity {
             }
         } else {
             try {
-                image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(imageInputStream));
+                this.bytes=bytes;
+                image.setImageDrawable(ImageFormatConverter.bytes2Drawable(bytes));
             } catch (Exception e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_load_image));
@@ -160,6 +183,8 @@ public class PictureViewerScreen extends Activity {
                     }
                 }
             }
+        }else if(requestCode==REQUEST_GRANT_ORPR){
+            permissionsGranterForSave.onRequestPermissionsResult(permissions, grantResults);
         }
 
 
@@ -204,6 +229,8 @@ public class PictureViewerScreen extends Activity {
                     }
                 }
             }
+        }else if(resultCode==REQUEST_GRANT_OAR){
+            permissionsGranterForSave.onActivityResult();
         }
     }
 
@@ -219,9 +246,9 @@ public class PictureViewerScreen extends Activity {
         File file = new File(content);
         if (file.exists()) {
             try {
-                InputStream is = new FileInputStream(file);
-                image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(is));
-            } catch (FileNotFoundException e) {
+                bytes = FileUtils.toByteArray(file);
+                image.setImageDrawable(ImageFormatConverter.bytes2Drawable(bytes));
+            } catch (Exception e) {
                 e.printStackTrace();
                 Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_read_file));
                 Toast.makeText(context, getString(R.string.dialog_exception_failed_to_read_file), Toast.LENGTH_SHORT).show();
@@ -244,6 +271,7 @@ public class PictureViewerScreen extends Activity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    Looper.prepare();
                     try {
                         URL url = new URL(content);
                         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -258,32 +286,33 @@ public class PictureViewerScreen extends Activity {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            image.setImageDrawable(FormatTools.getInstance().InputStream2Drawable(is));
+                                            try{
+                                                bytes=StreamUtils.inputStream2ByteArray(is);
+                                                image.setImageDrawable(ImageFormatConverter.inputStream2Drawable(is));
+                                                is.close();
+                                            }catch (Exception e){
+                                                e.printStackTrace();
+                                            }
                                         }
                                     });
                                 } catch (Exception e) {
-                                    Looper.prepare();
                                     downloading.dismiss();
                                     Utils.exceptionDialog(context, e, getString(R.string.dialog_exception_failed_to_load_image));
-                                    Looper.loop();
                                 }
                             } else {
-                                Looper.prepare();
                                 downloading.dismiss();
                                 Toast.makeText(context, getString(R.string.dialog_exception_downloadfailed), Toast.LENGTH_SHORT).show();
-                                Looper.loop();
                                 //Utils.showLongSnackbar(image,getString(R.string.dialog_exception_downloadfailed));
                             }
                         }
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Looper.prepare();
                         downloading.dismiss();
                         Utils.exceptionDialog(context, e, context.getResources().getString(R.string.dialog_exception_downloadfailed));
-                        Looper.loop();
                     }
                     downloading.dismiss();
+                    Looper.loop();
                 }
             }).start();
         }
@@ -305,18 +334,43 @@ public class PictureViewerScreen extends Activity {
             case android.R.id.home:
                 finish();
                 break;
-
+            case R.id.menu_picture_viewer_add:
+                permissionsGranterForSave.start();
+                break;
             default:
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
         if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_picture_viewer,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    void save(){
+        if(bytes!=null&&bytes.length!=0&&!Utils.isBytesAllZero(bytes)) {
+            try {
+                File file=Utils.createLocalPictureFile(bytes);
+                Utils.createFile(file);
+                StreamUtils.bytes2File(/*FormatTools.drawable2Bytes(image.getDrawable())*/bytes, file);
+                Toast.makeText(activity, String.format(getString(R.string.toast_successfully_save_picture), file.getAbsolutePath()), Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(activity, R.string.toast_failed_to_save_file, Toast.LENGTH_SHORT).show();
+            }
+        }else{
+            Toast.makeText(activity, R.string.toast_picture_viewer_nothing, Toast.LENGTH_SHORT).show();
         }
     }
 }

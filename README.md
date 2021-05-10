@@ -1,6 +1,7 @@
 # MSChatRoom (MSCR)
-An Android chat application using MINA framework (communication) and MySQL database (account information storage)
-If you want to use the old version of this application, you need to [download the source code of the target version](https://github.com/MrShieh-X/mschatroom/releases), unzip it, and check its README file.
+An Android chat application using MINA framework (communication) and MySQL database (account information storage) <br/>
+If you want to use the old version of this application, you need to [download the source code of the target version](https://github.com/MrShieh-X/mschatroom/releases), unzip it, and check its README file.<br/>
+Starting from version v1.3, you can directly [download the installation package and install and use](https://github.com/MrShieh-X/mschatroom/releases), you don't need to build your own server as before. If you need, you can go to [Preparation for self compiling and running](https://github.com/MrShieh-X/mschatroom/#Preparation-for-self-compiling-and-running).
 
 [点我转到中文的README页面](https://github.com/MrShieh-X/mschatroom/blob/master/README-zh.md) <br/>
 [Click me to go to the update log of this application](https://github.com/MrShieh-X/mschatroom/blob/master/update_logs.md) <br/>
@@ -11,8 +12,9 @@ Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>1.2.1 (Apr. 15, 2021) (Corresponding to server 1.2)</b><br/>
+<b>1.3 (May 10, 2021) (Corresponding to server 1.3)</b><br/>
 Historical version: <br/>
+<b>1.3 (May 10, 2021) (Corresponding to server 1.3)</b><br/>
 <b>1.2.1 (Apr. 15, 2021) (Corresponding to server 1.2)</b><br/>
 <b>1.2 (Apr. 14, 2021) (Corresponding to server 1.2)</b><br/>
 <b>1.1.1 (Apr. 7, 2021) (Corresponding to server 1.1)</b><br/>
@@ -36,17 +38,16 @@ You can set the language in the settings.
 - Simplified Chinese (China)
 
 ## Found BUGs
-- When chatting, you cannot send too much Chinese, otherwise, the other party will not receive it.
-- If the app is not running in the background, there will be not receive new message notifications.
+- If the app is not running in the background or in the foreground, there will be no new message notification reminders.
 - If the app opens the Chat interface or the Main interface and then leaves the app (not exiting), you will not receive new messages notification.
+- Lower versions of Android may not be able to notify after receiving the message.
 - (Fixed in alpha-6) Users can add chats without login.
 - (Fixed in beta-1) When adding a chat, if the current number of chats >= 2, it will replace the last one, but it has been added successfully. Restart the application to see the newly added chat.
 - (Fixed in beta-1) The application may crash after modifying the user information for unknown reasons.
 - (Fixed in alpha-3) After you login, open the settings, the user information (avatar, name and what's up) may not be displayed. This problem will be fixed in the future.
 
 ## Precautions
-- If you want to add a chat, make sure that the target user and you are using the same encryption or decryption algorithm.
-- In order to avoid problems in the program, please do not bypass the Loading interface (LoadingScreen) and directly enter the application by other means.
+- In order to avoid problems in the program, please do not bypass the Loading interface (StartActivity) and directly enter the application by other means.
 
 ## Text encryption and decryption
 Use the encryption or decryption algorithm of the `src/java/com/mrshiehx/mschatroom/utils/EnDeCryptTextUtils.java` class
@@ -73,7 +74,7 @@ Delete all files in the `/data/data/com.mrshiehx.mschatroom/cache` directory.
 ### Clear application data
 Delete all files in the `/data/data/com.mrshiehx.mschatroom` directory.
 
-## Ready to work
+## Preparation for self compiling and running
 First of all, you need to have a server (if you don’t have one, you can use your local computer), and the MySQL database needs to be installed on this server. After you are ready, you need to create a new database in MySQL. "mscr" is the database name, you can change it.
 ```mysql
 create database mscr;
@@ -94,28 +95,29 @@ After setting up a server with MySQL, modify the variable content in the file `V
 
 | Variable name|Meaning|
 | --------|:----:|
-| DEFAULT_SERVER_ADDRESS|Default server (or local computer) address (database)|
-| DEFAULT_SERVER_ADDRESS_COMMUNICATION|Default server (or local computer) address (communication)|
-| DEFAULT_SERVER_PORT|Default server (or local computer) port (used for communication)|
-| DEFAULT_DATABASE_NAME|Default MySQL database name|
-| DEFAULT_DATABASE_USER_NAME|Default MySQL database account|
-| DEFAULT_DATABASE_USER_PASSWORD|Default MySQL database password|
-| DEFAULT_DATABASE_TABLE_NAME|Default MySQL table name|
+| SERVER_ADDRESS|Default server (or local computer) address (database)|
+| SERVER_ADDRESS_COMMUNICATION|Default server (or local computer) address (communication)|
+| SERVER_PORT|Default server (or local computer) port (used for communication)|
+| DATABASE_NAME|Default MySQL database name|
+| DATABASE_USER_NAME|Default MySQL database account|
+| DATABASE_USER_PASSWORD|Default MySQL database password|
+| DATABASE_TABLE_NAME|Default MySQL table name|
 | TEXT_ENCRYPTION_KEY|Text encryption key (not too long or too short)|
 | CAPTCHA_EMAIL_SMTP_SERVER_ADDRESS|The SMTP server address of the mailbox that sends the CAPTCHA email (see below)|
 | CAPTCHA_EMAIL_ADDRESS|The email address for sending the CAPTCHA email (see below)|
 | AUTHENTICATOR|Authorization code of the mailbox sending the verification code email (see below)|
 
-Regarding the e-mail address for sending the CAPTCHA, it is not provided here. You need to create an email address yourself, and then enable the IMAP/SMTP service and POP3/SMTP service of the mailbox, and write down the email address, authorization code and SMTP address of the email service , Input in `Variables.java`. You can also choose to modify the method content in the `SendEmailUtils.java` file in the `src/java/com/mrshiehx/mschatroom/utils` directory
+Regarding the e-mail address for sending the CAPTCHA, please create an email yourself, and then enable the IMAP/SMTP service and POP3/SMTP service of the email, and write down the email address, authorization code and SMTP address of the email service , Input in `Variables.java`. You can also choose to modify the method content in the `SendEmailUtils.java` file in the `src/java/com/mrshiehx/mschatroom/utils` directory
 
 |The number of rows|Method name|Meaning|
 |-------------| -------------|:---------------:|
-|44|setSubject|CAPTCHA email title|
-|48|setContent|CAPTCHA email content|
+|38|setSubject|CAPTCHA email title|
+|42|setContent|CAPTCHA email content|
 
 For the application to use the chat communication function normally, you need to [go to the repository of MSChatRoom Server](https://github.com/MrShieh-X/mscrserver) and read its README file carefully.
 
 #### After all these tasks are completed, you can compile the application and run it.
+
 
 ## About Author
 MrShiehX<br/>

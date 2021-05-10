@@ -20,14 +20,17 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.login.by_ec.screen.LoginByEmailAndCAPTCHA;
 import com.mrshiehx.mschatroom.utils.CountDownTimerUtils;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
+import com.mrshiehx.mschatroom.utils.KeyboardUtils;
 import com.mrshiehx.mschatroom.utils.SendEmailUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
 
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -76,21 +79,24 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
                 if (Utils.isNetworkConnected(context)) {
                     captcha = Utils.newRandomNumber(6);
                     //Get captcha
-                    try {
-                        get_captcha.setEnabled(false);
-                        SendEmailUtils sendEmail = new SendEmailUtils(input_email.getText().toString());
-                        sendEmail.sendCaptcha(captcha);
-                        Snackbar.make(get_captcha, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show();
-                        email = input_email.getText().toString();
-                        input_email.setEnabled(false);
-                        mCountDownTimerUtils.start();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_get_captcha));
-                        Snackbar.make(get_captcha, getResources().getString(R.string.toast_failed_get_captcha), Snackbar.LENGTH_SHORT).show();
-                        get_captcha.setEnabled(true);
-                    }
-
+                    new Thread(()->{
+                        Looper.prepare();
+                        try {
+                            runOnUiThread(()->get_captcha.setEnabled(false));
+                            SendEmailUtils sendEmail = new SendEmailUtils(input_email.getText().toString());
+                            sendEmail.sendCaptcha(captcha);
+                            runOnUiThread(()->Snackbar.make(get_captcha, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show());
+                            email = input_email.getText().toString();
+                            runOnUiThread(()->input_email.setEnabled(false));
+                            runOnUiThread(()->mCountDownTimerUtils.start());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            runOnUiThread(()->Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_get_captcha)));
+                            runOnUiThread(()->Snackbar.make(get_captcha, getResources().getString(R.string.toast_failed_get_captcha), Snackbar.LENGTH_SHORT).show());
+                            runOnUiThread(()->get_captcha.setEnabled(true));
+                        }
+                        Looper.loop();
+                    }).start();
                 } else {
                     Snackbar.make(get_captcha, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
                 }
@@ -153,6 +159,7 @@ public class ResetPasswordScreen1 extends AppCompatActivity {
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                KeyboardUtils.disappearKeybaroad(ResetPasswordScreen1.this);
                 if (Utils.isNetworkConnected(context)) {
                     if (TextUtils.isEmpty(input_email.getText()) || TextUtils.isEmpty(input_captcha.getText())) {
                         Snackbar.make(get_captcha, getResources().getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();

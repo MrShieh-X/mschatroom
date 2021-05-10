@@ -2,9 +2,7 @@ package com.mrshiehx.mschatroom.main.chats;
 
 import androidx.annotation.NonNull;
 
-import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.shared_variables.DataFiles;
-import com.mrshiehx.mschatroom.utils.Utils;
 
 import java.io.File;
 
@@ -29,8 +27,8 @@ public class ChatItem {
         return emailOrAccount;
     }
 
-    public String getAvatarFilePAN() {
-        return new File(DataFiles.CHAT_AVATARS_DIR, emailOrAccount).getAbsolutePath();
+    public File getAvatarFile() {
+        return new File(DataFiles.CHAT_AVATARS_DIR, emailOrAccount);
     }
 
     public String getName() {

@@ -2,7 +2,6 @@ package com.mrshiehx.mschatroom.reset_password.screen;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
 import android.text.Editable;
@@ -23,20 +22,14 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
-import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.account.information.storage.storagers.AccountInformationStorager;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
+import com.mrshiehx.mschatroom.utils.KeyboardUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
-
-import java.security.InvalidKeyException;
-import java.security.spec.InvalidKeySpecException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 //重置密码界面2（输入新密码）
 public class ResetPasswordScreen2 extends AppCompatActivity {
@@ -86,6 +79,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
         reset_password.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                KeyboardUtils.disappearKeybaroad(ResetPasswordScreen2.this);
                 if (Utils.isNetworkConnected(context)) {
                     if (TextUtils.isEmpty(input_new_password.getText()) || TextUtils.isEmpty(input_confirm_password.getText())) {
                         Snackbar.make(reset_password, getResources().getString(R.string.toast_input_content_empty), Snackbar.LENGTH_SHORT).show();
@@ -109,7 +103,8 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                                             AccountUtils ud = Utils.getAccountUtils();
                                             String oldPassword="";
                                             try{
-                                                oldPassword=EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD,"")).split(Variables.SPLIT_SYMBOL)[1]);
+                                                oldPassword=ud.getString(context,"password",AccountUtils.BY_EMAIL,EnDeCryptTextUtils.encrypt(email, Variables.TEXT_ENCRYPTION_KEY));
+                                                //oldPassword=EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(AccountInformationStorager.getMainAccountAndPassword()).split(Variables.SPLIT_SYMBOL)[1]);
                                             }catch (Exception e){
                                                 e.printStackTrace();
                                             }
@@ -119,7 +114,7 @@ public class ResetPasswordScreen2 extends AppCompatActivity {
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
-                                            if (result == 0) {
+                                            if (result <= 0) {
                                                 resetting.dismiss();
                                                 Snackbar.make(reset_password, getResources().getString(R.string.toast_failed_reset_password), Snackbar.LENGTH_SHORT).show();
                                             } else {

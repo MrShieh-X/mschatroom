@@ -18,12 +18,12 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:preserveLegacyExternalStorage="true"
         android:requestLegacyExternalStorage="true"
-        android:name=".MSCRApplication">
+        android:name=".MSChatRoom">
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
         <activity
-            android:name=".StartActivity"
+            android:name=".start.screen.StartActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
@@ -47,6 +47,7 @@
         <activity
             android:name=".register.screen.RegisterScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize"
             android:label="@string/activity_register_screen_name">
         </activity>
         <activity
@@ -57,21 +58,23 @@
         <activity
             android:name=".reset_password.screen.ResetPasswordScreen1"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
-            android:label="@string/activity_reset_password_name">
+            android:label="@string/activity_reset_password_name"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize">
         </activity>
         <activity
             android:name=".reset_password.screen.ResetPasswordScreen2"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_reset_password_name"/>
         <activity
-            android:name=".account_profile.screen.AccountProfileScreen"
+            android:name=".account.profile.screen.AccountProfileScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_modify_user_information_screen_name">
         </activity>
         <activity
-            android:name=".login_by_ec.screen.LoginByEmailAndCAPTCHA"
+            android:name=".login.by_ec.screen.LoginByEmailAndCAPTCHA"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
-            android:label="@string/activity_login_by_ec_screen_name">
+            android:label="@string/activity_login_by_ec_screen_name"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize">
         </activity>
         <activity
             android:name=".main.screen.MainScreen"
@@ -128,6 +131,8 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        <service android:name=".services.AutoReconnectService"
+            android:exported="true"
+            android:enabled="true"/>
     </application>
-
 </manifest>

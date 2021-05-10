@@ -1,62 +1,58 @@
 package com.mrshiehx.mschatroom;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.icu.util.Freezable;
 
+import com.mrshiehx.mschatroom.beans.AccountInformation;
 import com.mrshiehx.mschatroom.chat.Communicator;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
+import com.mrshiehx.mschatroom.utils.Utils;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 
 import java.net.InetSocketAddress;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
-public class Variables {
+public final class Variables {
+    private Variables(){}
+
     public static final String TAG = "MSChatRoom";
     public static final String TAG_SHORT = "MSCR";
 
-    //默认服务器地址（数据库）
-    public static String DEFAULT_SERVER_ADDRESS = "xxx.xxx.xx.xxx";
-    //默认服务器地址（通讯）
-    public static String DEFAULT_SERVER_ADDRESS_COMMUNICATION = "xxx.xxx.xx.xxx";
-    //默认服务器端口（通讯）
-    public static int DEFAULT_SERVER_PORT = 6553;
-    //默认MySQL数据库名称
-    public static String DEFAULT_DATABASE_NAME = "mschatroom";
-    //默认MySQL数据库账号
-    public static String DEFAULT_DATABASE_USER_NAME = "root";
-    //默认MySQL数据库密码
-    public static String DEFAULT_DATABASE_USER_PASSWORD = "mypassword";
-    //默认MySQL表格名称
-    public static String DEFAULT_DATABASE_TABLE_NAME = "users";
-
     //服务器地址（数据库）
-    public static String SERVER_ADDRESS = DEFAULT_SERVER_ADDRESS;
+    public static String SERVER_ADDRESS = "xxx.xxx.xx.xx";
     //服务器地址（通讯）
-    public static String SERVER_ADDRESS_COMMUNICATION = DEFAULT_SERVER_ADDRESS_COMMUNICATION;
+    public static String SERVER_ADDRESS_COMMUNICATION = "xxx.xxx.xx.xx";
     //服务器端口（通讯）
-    public static int SERVER_PORT = DEFAULT_SERVER_PORT;
+    public static int SERVER_PORT = 6553;
     //MySQL数据库名称
-    public static String DATABASE_NAME = DEFAULT_DATABASE_NAME;
+    public static String DATABASE_NAME = "mschatroom";
     //MySQL数据库账号
-    public static String DATABASE_USER = DEFAULT_DATABASE_USER_NAME;
+    public static String DATABASE_USER = "mschatroom";
     //MySQL数据库密码
-    public static String DATABASE_PASSWORD = DEFAULT_DATABASE_USER_PASSWORD;
+    public static String DATABASE_PASSWORD = "mypassword";
     //MySQL表格名称
-    public static String DATABASE_TABLE_NAME = DEFAULT_DATABASE_TABLE_NAME;
+    public static String DATABASE_TABLE_NAME = "users";
     //作者电子邮箱地址（用于出现错误反馈给作者和关于页面联系作者）
     public static final String AUTHOR_MAIL = "bntoylort@outlook.com";
     //拆分符号（不要使用字母和数字）
     public static final String SPLIT_SYMBOL = "&";
-    //文本加密密钥（不能太长，也不能太短）
+    //文本加密密钥（获取应用签名字符串）
     public static final String TEXT_ENCRYPTION_KEY = "encryptKey";
     //发送验证码邮件的邮箱的SMTP服务器地址
-    public static final String CAPTCHA_EMAIL_SMTP_SERVER_ADDRESS = "smtp.163.com";
+    public static final String CAPTCHA_EMAIL_SMTP_SERVER_ADDRESS = "smtp.xxx.com";
     //发送验证码邮件的邮箱地址
-    public static String CAPTCHA_EMAIL_ADDRESS = "xxxxxx@xxx.com";
+    public static String CAPTCHA_EMAIL_ADDRESS = "xxxxxxx@xxx.com";
     //发送验证码邮件的邮箱的授权码
-    public static String AUTHENTICATOR = "XXXXXXXXXXXXXX";
+    public static String AUTHENTICATOR = "XXXXXXXXXXXXX";
     //作者的网站
-    public static final String AUTHOR_WEBSITE_URL = "https://mrshieh-x.github.io";
+    public static final String AUTHOR_WEBSITE_URL = "https://www.mrshiehx.xyz";
     //作者的GitHub地址
     public static final String AUTHOR_GITHUB_URL = "https://www.github.com/MrShieh-X";
     //应用程序的GitHub地址
@@ -86,27 +82,21 @@ public class Variables {
     public static Communicator COMMUNICATOR;
 
     /*SharedPreferences，除了
-        SHARED_PREFERENCE_MODIFY_THEME、
-        SHARED_PREFERENCE_MODIFY_LANGUAGE、
-        SHARED_PREFERENCE_SERVER_ADDRESS、
-        SHARED_PREFERENCE_SERVER_PORT、
-        SHARED_PREFERENCE_DATABASE_NAME、
-        SHARED_PREFERENCE_DATABASE_USER_NAME、
-        SHARED_PREFERENCE_DATABASE_USER_PASSWORD、
-        SHARED_PREFERENCE_DATABASE_TABLE_NAME、
+        SHARED_PREFERENCE_THEME、
+        SHARED_PREFERENCE_LANGUAGE、
         SHARED_PREFERENCE_SHOW_AVATARS_WHEN_CHATTING、
         SHARED_PREFERENCE_NEW_MESSAGES_NOTIFY、
         SHARED_PREFERENCE_ACCOUNT_INFORMATION_NAME和
         SHARED_PREFERENCE_ACCOUNT_INFORMATION_CONTENT，
     其他的可以随便改*/
-    public static final String SHARED_PREFERENCE_MODIFY_THEME = "modify_theme";
+    public static final String SHARED_PREFERENCE_THEME = "theme";
     public static final String SHARED_PREFERENCE_IS_FIRST_RUN = "isFirstRun";
-    public static final String SHARED_PREFERENCE_MODIFY_LANGUAGE = "modify_language";
-    public static final String SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD = "loginInfomation";
-    public static final String SHARED_PREFERENCE_EMAIL_OR_ACCOUNT_AND_PASSWORD = "emailOrAccountAndPassword";
-    public static final String SHARED_PREFERENCE_IS_REMEMBER_EOA_AND_PASSWORD = "isRememberEOAAndPassword";
+    public static final String SHARED_PREFERENCE_LANGUAGE = "language";
+    public static final String SHARED_PREFERENCE_LOGIN_INFORMATION = "loginInformation";
+    public static final String SHARED_PREFERENCE_REMEMBER_CONTENT = "rememberContent";
     public static final String SHARED_PREFERENCE_SHOW_AVATARS_WHEN_CHATTING = "show_avatar_when_chatting";
     public static final String SHARED_PREFERENCE_NEW_MESSAGES_NOTIFY = "new_messages_notify";
+    public static final String SHARED_PREFERENCE_RECEIVE_STRANGERS_OFFLINE_MESSAGES = "receive_strangers_offline_messages";
     //存储用户信息
     public static final String SHARED_PREFERENCE_ACCOUNT_INFORMATION_NAME = "%s_information";
     public static final String SHARED_PREFERENCE_ACCOUNT_INFORMATION_CONTENT = "%1$s=%2$s;nickname=%3$s;gender=%4$s;whatsup=%5$s";

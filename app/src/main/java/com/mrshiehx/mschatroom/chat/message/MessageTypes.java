@@ -2,7 +2,8 @@ package com.mrshiehx.mschatroom.chat.message;
 
 public enum MessageTypes {
     TEXT(0),
-    PICTURE(1);
+    PICTURE(1),
+    FILE(2);
 
     public final int code;
 

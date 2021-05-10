@@ -1,14 +1,10 @@
 package com.mrshiehx.mschatroom.utils;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.widget.Toast;
 
-import com.mrshiehx.mschatroom.MSCRApplication;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.account.information.storage.storagers.AccountInformationStorager;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 
@@ -18,6 +14,7 @@ import javax.crypto.NoSuchPaddingException;
 
 /**
  * 获得账户信息工具类
+ *
  * Login method
  * 0 is account
  * 1 is email
@@ -29,7 +26,7 @@ public class GetAccountUtils {
      * @return result
      */
     public static boolean isLogined() {
-        return MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD);
+        return AccountInformationStorager.isLogined();
     }
 
     /**
@@ -38,24 +35,25 @@ public class GetAccountUtils {
      * @return result
      */
     public static boolean checkCanLogin(AccountUtils accountUtils, Context context) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
-        SharedPreferences sharedPreferences = MSCRApplication.getSharedPreferences();
-        String method;
-        String[] accountOrEmailAndPassword;
-        method = AccountUtils.BY_ACCOUNT;
-        accountOrEmailAndPassword = EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL);
+        if (isLogined()) {
+            String method;
+            String[] accountOrEmailAndPassword;
+            method = AccountUtils.BY_ACCOUNT;
+            accountOrEmailAndPassword = EnDeCryptTextUtils.decrypt(AccountInformationStorager.getMainAccountAndPassword(), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL);
 
-        //Toast.makeText(context, EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[0],Variables.TEXT_ENCRYPTION_KEY), Toast.LENGTH_SHORT).show();
-        //Toast.makeText(context, EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[1],Variables.TEXT_ENCRYPTION_KEY), Toast.LENGTH_SHORT).show();
-        //Toast.makeText(context, checkCanLogin(context,method,EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[0],Variables.TEXT_ENCRYPTION_KEY),EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[1],Variables.TEXT_ENCRYPTION_KEY))+"", Toast.LENGTH_SHORT).show();
-        return checkCanLogin(accountUtils, context, method, EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[0], Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[1], Variables.TEXT_ENCRYPTION_KEY));
+            //Toast.makeText(context, EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[0],Variables.TEXT_ENCRYPTION_KEY), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[1],Variables.TEXT_ENCRYPTION_KEY), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, checkCanLogin(context,method,EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[0],Variables.TEXT_ENCRYPTION_KEY),EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[1],Variables.TEXT_ENCRYPTION_KEY))+"", Toast.LENGTH_SHORT).show();
+            return checkCanLogin(accountUtils, context, method, EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[0], Variables.TEXT_ENCRYPTION_KEY), EnDeCryptTextUtils.encrypt(accountOrEmailAndPassword[1], Variables.TEXT_ENCRYPTION_KEY));
+        }
+        return false;
     }
 
     public static String getEmailOrAccount() throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
-        SharedPreferences sharedPreferences = MSCRApplication.getSharedPreferences();
-        if (!MSCRApplication.getSharedPreferences().contains(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD))
+        if (!AccountInformationStorager.isLogined())
             return "";
 
-        return EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, ""), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
+        return EnDeCryptTextUtils.decrypt(AccountInformationStorager.getMainAccountAndPassword(), Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0];
 
     }
 
@@ -76,7 +74,7 @@ public class GetAccountUtils {
      */
     /*public static String getEmail(Context context) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
         SharedPreferences sharedPreferences=MSCRApplication.getSharedPreferences();
-        String[] accountAndPassword=EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL);
+        String[] accountAndPassword=EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_LOGIN_INFORMATION,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL);
         return getEmail(context,accountAndPassword[0]);
     }*/
 
@@ -130,8 +128,8 @@ public class GetAccountUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        String account = "";
-        String email = "";
+        String account;
+        String email;
         if (Utils.isEmail(eoa)) {
             email = eoaEncrypted;
             account = GetAccountUtils.getAccount(accountUtils, context, email);
@@ -145,7 +143,7 @@ public class GetAccountUtils {
     public static String getPasswordDecrypted(){
         String password="";
         try {
-            password = EnDeCryptTextUtils.decrypt(MSCRApplication.getSharedPreferences().getString(Variables.SHARED_PREFERENCE_ACCOUNT_AND_PASSWORD, "")).split(Variables.SPLIT_SYMBOL)[1];
+            password = EnDeCryptTextUtils.decrypt(AccountInformationStorager.getMainAccountAndPassword()).split(Variables.SPLIT_SYMBOL)[1];
         }catch (Exception e){
             e.printStackTrace();
         }

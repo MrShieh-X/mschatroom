@@ -2,7 +2,6 @@ package com.mrshiehx.mschatroom.main.chats;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,9 +10,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
@@ -22,14 +18,13 @@ import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.Variables;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
 import com.mrshiehx.mschatroom.utils.FileUtils;
-import com.mrshiehx.mschatroom.utils.FormatTools;
+import com.mrshiehx.mschatroom.utils.ImageFormatConverter;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 public class ChatsAdapter extends ArrayAdapter {
-
     public ChatsAdapter(Context context, int resource, List<ChatItem> objects) {
         super(context, resource, objects);
     }
@@ -46,12 +41,11 @@ public class ChatsAdapter extends ArrayAdapter {
         TextView date = view.findViewById(R.id.date);
 
 
-        File avatarFile = new File(chatItem.getAvatarFilePAN());
+        File avatarFile = chatItem.getAvatarFile();
 
         if (avatarFile.exists()) {
             try {
-                //InputStream avatarIS = new FileInputStream(avatarFile);
-                avatar.setImageDrawable(FormatTools.getInstance().Bytes2Drawable(FileUtils.toByteArray(avatarFile)));
+                avatar.setImageDrawable(ImageFormatConverter.bytes2Drawable(FileUtils.toByteArray(avatarFile)));
             } catch (Exception e) {
                 e.printStackTrace();
             }

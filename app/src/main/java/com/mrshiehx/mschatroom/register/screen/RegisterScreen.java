@@ -23,13 +23,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.mrshiehx.mschatroom.MSCRApplication;
+import com.mrshiehx.mschatroom.MSChatRoom;
 import com.mrshiehx.mschatroom.Variables;
+import com.mrshiehx.mschatroom.login.by_ec.screen.LoginByEmailAndCAPTCHA;
 import com.mrshiehx.mschatroom.login.screen.LoginScreen;
 import com.mrshiehx.mschatroom.R;
 import com.mrshiehx.mschatroom.reset_password.screen.ResetPasswordScreen1;
 import com.mrshiehx.mschatroom.utils.CountDownTimerUtils;
 import com.mrshiehx.mschatroom.utils.EnDeCryptTextUtils;
+import com.mrshiehx.mschatroom.utils.KeyboardUtils;
 import com.mrshiehx.mschatroom.utils.SendEmailUtils;
 import com.mrshiehx.mschatroom.utils.AccountUtils;
 import com.mrshiehx.mschatroom.utils.Utils;
@@ -52,7 +54,7 @@ public class RegisterScreen extends AppCompatActivity {
     public TextView password_different, input_content_empty;
     public CheckBox show_password;
     Context context = RegisterScreen.this;
-    String captcha;
+    String captcha="thecaptcha";
     int captchaLength = 6;
     String email;
     ProgressDialog registering;
@@ -65,6 +67,7 @@ public class RegisterScreen extends AppCompatActivity {
     private View.OnClickListener registerOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
+            KeyboardUtils.disappearKeybaroad(RegisterScreen.this);
             if (TextUtils.isEmpty(Utils.valueOf(reg_input_account.getText())) || TextUtils.isEmpty(reg_input_email.getText().toString()) || TextUtils.isEmpty(reg_input_password.getText().toString()) || TextUtils.isEmpty(reg_input_confirm_password.getText().toString()) || TextUtils.isEmpty(reg_input_captcha.getText().toString())) {
                 input_content_empty.setVisibility(View.VISIBLE);
             } else {
@@ -135,7 +138,7 @@ public class RegisterScreen extends AppCompatActivity {
                                                                 Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_register));
                                                             }
                                                             registering.dismiss();
-                                                            if (result == 0) {
+                                                            if (result <= 0) {
                                                                 Snackbar.make(register, getResources().getString(R.string.toast_failed_register), Snackbar.LENGTH_SHORT).show();
                                                             } else {
                                                                 Snackbar.make(register, getResources().getString(R.string.toast_successfully_registered), Snackbar.LENGTH_SHORT).show();
@@ -216,14 +219,14 @@ public class RegisterScreen extends AppCompatActivity {
         reinput_email = findViewById(R.id.reinput_email);
 
 
-        if (!Utils.networkAvailableDialog(context)) {
+        /*if (!Utils.networkAvailableDialog(context)) {
             button_get_captcha.setEnabled(false);
-            register.setEnabled(false);
+            //register.setEnabled(false);
         } else {
             if (TextUtils.isEmpty(Utils.valueOf(reg_input_email.getText()))) {
                 button_get_captcha.setEnabled(false);
             }
-        }
+        }*/
 
 
         reinput_email.setEnabled(false);
@@ -238,26 +241,30 @@ public class RegisterScreen extends AppCompatActivity {
                 if (Utils.isNetworkConnected(context)) {
                     captcha = Utils.newRandomNumber(captchaLength);
                     //Get captcha
-                    try {
-                        //gettingCaptcha=true;
-                        button_get_captcha.setEnabled(false);
-                        SendEmailUtils sendEmail = new SendEmailUtils(Utils.valueOf(reg_input_email.getText()).toLowerCase());
-                        sendEmail.sendCaptcha(captcha);
-                        Snackbar.make(register, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show();
-                        email = reg_input_email.getText().toString().toLowerCase();
-                        reg_input_email.setEnabled(false);
-                        reinput_email.setEnabled(true);
-                        //timer.schedule(captchaTimeDynamic, 0, 1000);
-                        //CaptchaTimeDynamic ctd=new CaptchaTimeDynamic("CaptchaTimeDynamic");
-                        //ctd.start();
+                    new Thread(()->{
+                        Looper.prepare();
+                        try {
+                            //gettingCaptcha=true;
+                            runOnUiThread(()->button_get_captcha.setEnabled(false));
+                            SendEmailUtils sendEmail = new SendEmailUtils(Utils.valueOf(reg_input_email.getText()).toLowerCase());
+                            sendEmail.sendCaptcha(captcha);
+                            runOnUiThread(()->Snackbar.make(register, getResources().getString(R.string.toast_successfully_got_captcha), Snackbar.LENGTH_SHORT).show());
+                            email = reg_input_email.getText().toString().toLowerCase();
+                            runOnUiThread(()->reg_input_email.setEnabled(false));
+                            runOnUiThread(()->reinput_email.setEnabled(true));
+                            //timer.schedule(captchaTimeDynamic, 0, 1000);
+                            //CaptchaTimeDynamic ctd=new CaptchaTimeDynamic("CaptchaTimeDynamic");
+                            //ctd.start();
 
-                        mCountDownTimerUtils.start();
-                    } catch (Exception e) {
-                        Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_get_captcha));
-                        e.printStackTrace();
-                        Snackbar.make(register, getResources().getString(R.string.toast_failed_get_captcha), Snackbar.LENGTH_SHORT).show();
-                        button_get_captcha.setEnabled(true);
-                    }
+                            runOnUiThread(()->mCountDownTimerUtils.start());
+                        } catch (Exception e) {
+                            runOnUiThread(()->Utils.exceptionDialog(context, e, getResources().getString(R.string.toast_failed_get_captcha)));
+                            e.printStackTrace();
+                            runOnUiThread(()->Snackbar.make(register, getResources().getString(R.string.toast_failed_get_captcha), Snackbar.LENGTH_SHORT).show());
+                            runOnUiThread(()->button_get_captcha.setEnabled(true));
+                        }
+                        Looper.loop();
+                    }).start();
 
                 } else {
                     Snackbar.make(register, getResources().getString(R.string.toast_please_check_your_network), Snackbar.LENGTH_SHORT).show();
@@ -321,11 +328,7 @@ public class RegisterScreen extends AppCompatActivity {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (Utils.isEmail(Utils.valueOf(reg_input_email.getText())) && charSequence.length() > 0 == true) {
-                    if (Utils.isNetworkConnected(context)) {
                         button_get_captcha.setEnabled(!mCountDownTimerUtils.isRunning());
-                    } else {
-                        button_get_captcha.setEnabled(false);
-                    }
                 } else {
                     button_get_captcha.setEnabled(false);
                 }
@@ -334,11 +337,7 @@ public class RegisterScreen extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (Utils.isEmail(Utils.valueOf(reg_input_email.getText())) && charSequence.length() > 0) {
-                    if (Utils.isNetworkConnected(context)) {
                         button_get_captcha.setEnabled(!mCountDownTimerUtils.isRunning());
-                    } else {
-                        button_get_captcha.setEnabled(false);
-                    }
                 } else {
                     button_get_captcha.setEnabled(false);
                 }
@@ -347,15 +346,7 @@ public class RegisterScreen extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable editable) {
                 if (Utils.isEmail(Utils.valueOf(reg_input_email.getText())) && editable.length() > 0 == true) {
-                    if (Utils.isNetworkConnected(context)) {
-                        if (mCountDownTimerUtils.isRunning() == true) {
-                            button_get_captcha.setEnabled(false);
-                        } else {
-                            button_get_captcha.setEnabled(true);
-                        }
-                    } else {
-                        button_get_captcha.setEnabled(false);
-                    }
+                    button_get_captcha.setEnabled(!mCountDownTimerUtils.isRunning());
                 } else {
                     reg_input_email.setError(getResources().getString(R.string.aceterror_invalid_email));
                     button_get_captcha.setEnabled(false);
@@ -467,7 +458,7 @@ public class RegisterScreen extends AppCompatActivity {
                         firstTime = secondTime;
                         return true;
                     } else {
-                        MSCRApplication.getInstance().exit();
+                        MSChatRoom.getInstance().exit();
                     }
                 } else {
                     finish();

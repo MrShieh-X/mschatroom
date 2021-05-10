@@ -34,26 +34,6 @@ public class ConnectionUtils {
         return null;
     }
 
-    public Connection getConnection(String file) {
-        File f = new File(file);
-        if (!f.exists()) {
-            return null;
-        } else {
-            Properties pro = new Properties();
-            try {
-                Class.forName("com.mysql.jdbc.Driver");
-                pro.load(new FileInputStream(f));
-                String url = pro.getProperty("url");
-                String name = pro.getProperty("name");
-                String password = pro.getProperty("password");
-                return DriverManager.getConnection(url, name, password);
-            } catch (Exception e) {
-                Log.e(Variables.TAG, "failed to connection server");
-                return null;
-            }
-        }
-    }
-
     public static ProgressDialog showConnectingDialog(Context context) {
         ProgressDialog dialog = new ProgressDialog(context);
         //dialog.setTitle(context.getString(R.string.dialog_title_wait));

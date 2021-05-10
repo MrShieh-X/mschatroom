@@ -10,14 +10,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:background="#4F4F4F"
         android:orientation="horizontal"
-        android:padding="5dp"
-        android:background="#4F4F4F">
+        android:padding="5dp">
+
         <TextView
             android:id="@+id/tip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"/>
+            android:gravity="center" />
     </LinearLayout>
 
     <LinearLayout
@@ -31,63 +32,130 @@
             android:id="@+id/left_avatar"
             android:layout_width="45dp"
             android:layout_height="45dp"
-            android:layout_gravity="left"
-            android:src="@drawable/account"/>
+            android:src="@drawable/account" />
 
         <LinearLayout
-            android:id="@+id/left_layout_inside"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:background="@drawable/message_receiver_dark">
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/left_msg"
+            <LinearLayout
+                android:id="@+id/left_layout_inside"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="left"
+                android:background="@drawable/message_receiver_dark">
+
+                <TextView
+                    android:id="@+id/left_msg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="10dp"
+                    android:textColor="#ffffff"
+                    android:textIsSelectable="true" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/left_layout_inside_spec"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="10dp"
-                android:textIsSelectable="true"
-                android:textColor="#fff"
-                android:text="asdfasfasdfasdfasfasdfasdfasfasdf"/>
+                android:background="@drawable/message_receiver_dark"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/left_msg_picture"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="10dp" />
+                <!--FILE-->
+                <LinearLayout
+                    android:id="@+id/left_msg_file"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="10dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/left_file_type_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/message_type_file"
+                            android:textColor="#ffffff"/>
+
+                        <TextView
+                            android:id="@+id/left_file_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#ffffff" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/left_file_size_tip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/message_file_size_tip"
+                                android:textColor="#ffffff"/>
+
+                            <TextView
+                                android:id="@+id/left_file_size"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0.00MB"
+                                android:textColor="#ffffff" />
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/left_file_download"
+                            style="?android:attr/buttonStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="@string/message_file_download" />
+
+                        <Button
+                            android:id="@+id/left_file_details"
+                            style="?android:attr/buttonStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="@string/message_file_details" />
+                    </LinearLayout>
+
+
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
-
-
-
-    <LinearLayout
-        android:id="@+id/left_layout_picture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/left_avatar_picture"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:layout_gravity="left"
-            android:src="@drawable/account"/>
-
-        <LinearLayout
-            android:id="@+id/left_layout_inside_picture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:background="@drawable/message_receiver_dark">
-
-            <ImageView
-                android:id="@+id/left_msg_picture"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="10dp"/>
-        </LinearLayout>
-
-    </LinearLayout>
-
-
 
     <LinearLayout
         android:id="@+id/right_layout"
@@ -97,82 +165,137 @@
         android:orientation="horizontal">
 
         <LinearLayout
-            android:id="@+id/right_layout_inside"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/message_self">
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/right_msg"
+            <LinearLayout
+                android:id="@+id/right_layout_inside"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="10dp"
-                android:textColor="#FFFFFF"
-                android:textIsSelectable="true" />
+                android:layout_weight="1"
+                android:background="@drawable/message_self">
 
+                <TextView
+                    android:id="@+id/right_msg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="10dp"
+                    android:textColor="#FFFFFF"
+                    android:textIsSelectable="true" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/right_layout_inside_spec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/message_self"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/right_msg_picture"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="10dp" />
+                <!--FILE-->
+
+                <LinearLayout
+                    android:id="@+id/right_msg_file"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="10dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/right_file_type_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/message_type_file"
+                            android:textColor="#ffffff"/>
+
+                        <TextView
+                            android:id="@+id/right_file_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#ffffff"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/right_file_size_tip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/message_file_size_tip"
+                                android:textColor="#ffffff" />
+
+                            <TextView
+                                android:id="@+id/right_file_size"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0.00MB"
+                                android:textColor="#ffffff"/>
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/right_file_download"
+                            style="?android:attr/buttonStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="@string/message_file_download" />
+
+                        <Button
+                            android:id="@+id/right_file_details"
+                            style="?android:attr/buttonStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="@string/message_file_details" />
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+            </LinearLayout>
         </LinearLayout>
 
+
         <LinearLayout
+            android:id="@+id/right_avatar_layout"
             android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:id="@+id/right_avatar_layout">
+            android:layout_height="45dp">
 
             <ImageView
                 android:id="@+id/right_avatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/account" />
-        </LinearLayout>
-    </LinearLayout>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <LinearLayout
-        android:id="@+id/right_layout_picture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:id="@+id/right_layout_inside_picture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/message_self">
-
-            <ImageView
-                android:id="@+id/right_msg_picture"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="10dp"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:id="@+id/right_avatar_layout_picture">
-
-            <ImageView
-                android:id="@+id/right_avatar_picture"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:src="@drawable/account" />

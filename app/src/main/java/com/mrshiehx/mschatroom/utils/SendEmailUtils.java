@@ -1,7 +1,5 @@
 package com.mrshiehx.mschatroom.utils;
 
-import android.os.StrictMode;
-
 import com.mrshiehx.mschatroom.Variables;
 
 import java.util.Properties;
@@ -16,27 +14,23 @@ import javax.mail.internet.MimeMessage;
 
 //发送邮件（验证码）工具类
 public class SendEmailUtils {
-    private String PROTOCOL = "smtp";
-    private String PORT = "25";
-    private String IS_AUTH = "true";
-    private String IS_ENABLED_DEBUG_MOD = "true";
-    private String to;
+    private final String to;
     private final Properties props;
 
     public SendEmailUtils(String toEmail) {
         to = toEmail;
         props = new Properties();
-        props.setProperty("mail.transport.protocol", PROTOCOL);
+        props.setProperty("mail.transport.protocol", "smtp");
         props.setProperty("mail.smtp.host", Variables.CAPTCHA_EMAIL_SMTP_SERVER_ADDRESS);
-        props.setProperty("mail.smtp.port", PORT);
-        props.setProperty("mail.smtp.auth", IS_AUTH);
-        props.setProperty("mail.debug", IS_ENABLED_DEBUG_MOD);
+        props.setProperty("mail.smtp.port", "25");
+        props.setProperty("mail.smtp.auth", "true");
+        props.setProperty("mail.debug", "true");
     }
 
     public void sendCaptcha(String captcha) throws Exception {
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+        //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        //StrictMode.setThreadPolicy(policy);
         Session session = Session.getInstance(props, new MyAuthenticator());
 
         MimeMessage message = new MimeMessage(session);
@@ -51,19 +45,8 @@ public class SendEmailUtils {
     }
 
     static class MyAuthenticator extends Authenticator {
-        public MyAuthenticator() {
-            super();
-        }
-
-        /*public MyAuthenticator(String username, String password) {
-            super();
-            Variables.CAPTCHA_EMAIL_ADDRESS.split("@")[0] = username;
-            Variables.AUTHENTICATOR = password;
-        }*/
-
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
-
             return new PasswordAuthentication(Variables.CAPTCHA_EMAIL_ADDRESS.split("@")[0], Variables.AUTHENTICATOR);
         }
     }

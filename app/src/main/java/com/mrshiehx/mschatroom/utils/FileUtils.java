@@ -18,27 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileUtils {
-    public static boolean createFile(String filePath, String fileName) {
-        String strFilePath = filePath + fileName;
-        File file = new File(filePath);
-        if (!file.exists()) {
-            /**  注意这里是 mkdirs()方法  可以创建多个文件夹 */
-            file.mkdirs();
-        }
-        File subfile = new File(strFilePath);
-        if (!subfile.exists()) {
-            try {
-                boolean b = subfile.createNewFile();
-                return b;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            return true;
-        }
-        return false;
-    }
-
     /**
      * 遍历文件夹下的文件
      *
@@ -126,7 +105,14 @@ public class FileUtils {
      * @return 返回文件内容
      */
     public static String getString(File target) throws IOException {
-        return getString(new FileInputStream(target));
+        FileInputStream s=new FileInputStream(target);
+        String b=getString(s);
+        try{
+            s.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return b;
     }
 
     public static String getString(InputStream inputStream) throws IOException {
@@ -171,72 +157,27 @@ public class FileUtils {
         return result;
     }
 
-    /**
-     * 重命名文件
-     *
-     * @param oldPath 原来的文件地址
-     * @param newPath 新的文件地址
-     */
-    public static void renameFile(String oldPath, String newPath) {
-        File oleFile = new File(oldPath);
-        File newFile = new File(newPath);
-        //执行重命名
-        oleFile.renameTo(newFile);
-    }
-    /**
-     * 复制文件
-     * @param fromFile 要复制的文件目录
-     * @param toFile   要粘贴的文件目录
-     * @return 是否复制成功
-     */
-    /**
-     * public static boolean copy(String fromFile, String toFile) {
-     * //要复制的文件目录
-     * File[] currentFiles;
-     * File root = new File(fromFile);
-     * //如同判断SD卡是否存在或者文件是否存在
-     * //如果不存在则 return出去
-     * if (!root.exists()) {
-     * return false;
-     * }
-     * //如果存在则获取当前目录下的全部文件 填充数组
-     * currentFiles = root.listFiles();
-     * //目标目录
-     * File targetDir = new File(toFile);
-     * //创建目录
-     * if (!targetDir.exists()) {
-     * targetDir.mkdirs();
-     * }
-     * //遍历要复制该目录下的全部文件
-     * for (int i = 0; i < currentFiles.length; i++) {
-     * if (currentFiles[i].isDirectory()) {//如果当前项为子目录 进行递归
-     * copy(currentFiles[i].getPath() + "/", toFile + currentFiles[i].getName() + "/");
-     * } else {//如果当前项为文件则进行文件拷贝
-     * CopySdcardFile(currentFiles[i].getPath(), toFile + currentFiles[i].getName());
-     * }
-     * }
-     * return true;
-     * }
-     */
-    //文件拷贝
-//要复制的目录下的所有非子目录(文件夹)文件拷贝
-    public static boolean copySdcardFile(String fromFile, String toFile) {
-        try {
-            InputStream fosfrom = new FileInputStream(fromFile);
-            OutputStream fosto = new FileOutputStream(toFile);
-            byte bt[] = new byte[1024];
-            int c;
-            while ((c = fosfrom.read(bt)) > 0) {
-                fosto.write(bt, 0, c);
-            }
-            fosfrom.close();
-            fosto.close();
-            return true;
-        } catch (Exception ex) {
-            return false;
+    public static byte[] getFileBytes(File file) throws IOException {
+        long fileSize = file.length();
+        if (fileSize > Integer.MAX_VALUE) {
+            throw new IOException("File is too big");
         }
+        FileInputStream fi = new FileInputStream(file);
+        byte[] buffer = new byte[(int) fileSize];
+        int offset = 0;
+        int numRead = 0;
+        while (offset < buffer.length
+                && (numRead = fi.read(buffer, offset, buffer.length - offset)) >= 0) {
+            offset += numRead;
+        }
+        // 确保所有数据均被读取
+        if (offset != buffer.length) {
+            throw new IOException("Could not completely read file "
+                    + file.getName());
+        }
+        fi.close();
+        return buffer;
     }
-
 
     public static long getFolderSize(File file) throws Exception {
         long size = 0;
@@ -267,9 +208,12 @@ public class FileUtils {
      */
     public static String getFormatSize(double size) {
         double kiloByte = size / 1024;
-        if (kiloByte < 1) {
-//            return size + "Byte";
+
+        if (size==0) {
             return "0.00MB";
+        }
+        if (kiloByte < 1) {
+            return (int)size + "B";
         }
 
         double megaByte = kiloByte / 1024;
@@ -298,96 +242,12 @@ public class FileUtils {
     }
 
     public static void bytes2File(byte[] bytes, File file) throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        fileOutputStream.write(bytes, 0, bytes.length);
-        fileOutputStream.flush();
-        fileOutputStream.close();
-    }
-
-    public static String hexReadFile(String file) throws IOException {
-        InputStream is = new FileInputStream(new File(file));
-
-        int bytesCounter = 0;
-        int value = 0;
-        StringBuilder sbHex = new StringBuilder();
-        StringBuilder sbText = new StringBuilder();
-        StringBuilder sbResult = new StringBuilder();
-
-        while ((value = is.read()) != -1) {
-            //convert to hex value with "X" formatter
-            sbHex.append(String.format("%02X", value));
-
-            //If the chracater is not convertable, just print a dot symbol "."
-            if (!Character.isISOControl(value)) {
-                sbText.append((char) value);
-            } else {
-                sbText.append("");
-            }
-
-            //if 16 bytes are read, reset the counter,
-            //clear the StringBuilder for formatting purpose only.
-            if (bytesCounter == 15) {
-                sbResult.append(sbHex);//.append("      ").append(sbText).append("\n");
-                sbHex.setLength(0);
-                sbText.setLength(0);
-                bytesCounter = 0;
-            } else {
-                bytesCounter++;
-            }
-        }
-        //if still got content
-        if (bytesCounter != 0) {
-            //add spaces more formatting purpose only
-            for (; bytesCounter < 16; bytesCounter++) {
-                //1 character 3 spaces
-                sbHex.append("");
-            }
-            sbResult.append(sbHex);//.append("      ").append(sbText).append("\n");
-        }
-        is.close();
-        return sbResult.toString();// + "\n\n";
-    }
-
-    public static void hexWrite(String bytes, File file) throws IOException {
-        hexWrite(hexString2Bytes(bytes), file);
-    }
-
-    public static void hexWrite(byte[] bytes, File file) throws IOException {
-        FileOutputStream fop = new FileOutputStream(file);
-        if (!file.exists()) {
-            file.createNewFile();
-        }
-        fop.write(bytes);
-        fop.flush();
-        fop.close();
-        fop.close();
-    }
-
-    public static byte[] hexString2Bytes(String hex) {
-
-        if ((hex == null) || (hex.equals(""))) {
-            return null;
-        } else if (hex.length() % 2 != 0) {
-            return null;
-        } else {
-            hex = hex.toUpperCase();
-            int len = hex.length() / 2;
-            byte[] b = new byte[len];
-            char[] hc = hex.toCharArray();
-            for (int i = 0; i < len; i++) {
-                int p = 2 * i;
-                b[i] = (byte) (charToByte(hc[p]) << 4 | charToByte(hc[p + 1]));
-            }
-            return b;
-        }
-
-    }
-
-    private static byte charToByte(char c) {
-        return (byte) "0123456789ABCDEF".indexOf(c);
+        StreamUtils.bytes2File(bytes,file);
     }
 
     public static void copy(File source, File to) throws IOException {
+        if(!to.getParentFile().exists())to.getParentFile().mkdirs();
+        if(!to.exists())to.createNewFile();
         InputStream input = new FileInputStream(source);
         OutputStream output = new FileOutputStream(to);
         byte[] buf = new byte[1024];
@@ -397,13 +257,5 @@ public class FileUtils {
         }
         input.close();
         output.close();
-    }
-
-    public static String bytesToString(byte[] bytes) {
-        StringBuilder builder = new StringBuilder();
-        for (byte aByte : bytes) {
-            builder.append(String.format("%02X", aByte));
-        }
-        return builder.toString().toUpperCase();
     }
 }
