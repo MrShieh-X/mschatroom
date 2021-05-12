@@ -324,6 +324,7 @@ public class RegisterScreen extends AppCompatActivity {
         Utils.setEditTextInhibitInputSpeChat(reg_input_confirm_password);
         Utils.inputFilterSpace(reg_input_captcha);
         Utils.setEditTextInhibitInputSpeChat(reg_input_captcha);*/
+        button_get_captcha.setEnabled(false);
         reg_input_email.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {

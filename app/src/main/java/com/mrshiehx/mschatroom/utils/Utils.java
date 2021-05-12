@@ -208,15 +208,15 @@ public class Utils {
     }
 
     public static String getSystemVersion() {
-        return android.os.Build.VERSION.RELEASE;
+        return Build.VERSION.RELEASE;
     }
 
     public static String getDeviceModel() {
-        return android.os.Build.MODEL;
+        return Build.MODEL;
     }
 
     public static String getDeviceBrand() {
-        return android.os.Build.BRAND;
+        return Build.BRAND;
     }
 
     public static String getVersionName(Context context) {
@@ -1039,7 +1039,7 @@ public class Utils {
     }
 
     public static String createNotificationChannel(String channelID, String channelNAME, int level) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = (NotificationManager) MSChatRoom.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
             NotificationChannel channel = new NotificationChannel(channelID, channelNAME, level);
             manager.createNotificationChannel(channel);

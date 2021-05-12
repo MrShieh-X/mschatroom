@@ -235,7 +235,7 @@ public class MainScreen extends AppCompatActivity implements Serializable {
                                                 String accountE = aae[0];
                                                 String emailE = aae[1];
 
-                                                File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
+                                                File chatsFile = DataFiles.CHATS_FILE;
 
                                                 if (chatsFile.exists()) {
                                                     try {
@@ -338,7 +338,7 @@ public class MainScreen extends AppCompatActivity implements Serializable {
                                                 String accountE = aae[0];
                                                 String emailE = aae[1];
 
-                                                File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
+                                                File chatsFile = DataFiles.CHATS_FILE;
 
                                                 if (chatsFile.exists()) {
                                                     try {
@@ -538,7 +538,7 @@ public class MainScreen extends AppCompatActivity implements Serializable {
                 new AlertDialog.Builder(context).setTitle(getString(R.string.dialog_title_notice)).setMessage(getString(R.string.dialog_delete_chat_message)).setNegativeButton(getString(android.R.string.cancel), null).setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
+                        File chatsFile = DataFiles.CHATS_FILE;
                         File chatFile = new File(DataFiles.CHATS_DIR, ((ChatItem) lv.getItemAtPosition((int) selectedId)).getEmailOrAccount() + ".json");
                         File information = new File(DataFiles.INFORMATION_DIR, ((ChatItem) lv.getItemAtPosition((int) selectedId)).getEmailOrAccount() + ".json");
                         try {
@@ -718,7 +718,7 @@ public class MainScreen extends AppCompatActivity implements Serializable {
             /**
              * 添加聊天到JSON
              */
-            File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
+            File chatsFile = DataFiles.CHATS_FILE;
             if (chatsFile.exists()) {
                 String chatsFileContent = FileUtils.getString(chatsFile);
                 /**
@@ -830,12 +830,12 @@ public class MainScreen extends AppCompatActivity implements Serializable {
 
 
     void initFromFile(final ListView lv, List<ChatItem> content) {
-        File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
+        File chatsFile = DataFiles.CHATS_FILE;
         if (chatsFile.exists()) {
             try {
                 JSONArray jsonArray;
                 try {
-                    jsonArray = new JSONArray(FileUtils.getString(com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE));
+                    jsonArray = new JSONArray(FileUtils.getString(DataFiles.CHATS_FILE));
                 } catch (Exception e) {
                     e.printStackTrace();
                     jsonArray = new JSONArray();
@@ -892,7 +892,7 @@ public class MainScreen extends AppCompatActivity implements Serializable {
     }
 
     void initForAdd(final ListView lv, List<ChatItem> content, ChatItem chatItem) {
-        File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
+        File chatsFile = DataFiles.CHATS_FILE;
         //Toast.makeText(context, ""+chatsFile.exists(), Toast.LENGTH_SHORT).show();
         if (chatsFile.exists()) {
             contentAdapter.add(chatItem);

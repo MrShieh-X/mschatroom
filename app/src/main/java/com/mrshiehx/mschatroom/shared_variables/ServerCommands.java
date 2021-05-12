@@ -7,7 +7,6 @@ public class ServerCommands {
         return downloadFile(String.valueOf(millis));
     }
     public static Command downloadFile(String millis){
-        System.out.println("fuckfuckfuck:"+millis);
         return new Command("downloadFile",millis);
     }
 }

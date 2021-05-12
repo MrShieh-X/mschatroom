@@ -283,13 +283,17 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                 holder.leftMsgFile.setVisibility(View.GONE);
                 holder.leftLayoutInside.setVisibility(View.GONE);
                 File file = new File(DataFiles.IMAGES_DIR, msg.getContent());
-                try {
-                    holder.leftMsgPicture.setImageDrawable(ImageFormatConverter.bytes2Drawable(FileUtils.toByteArray(file)));
-                    //holder.rightMsgPicture.setImageBitmap(FormatTools.bytes2Bitmap(FileUtils.toByteArray(new File(Utils.getDataFilesPath(context), "images" + File.separator + msg.getContent()))));
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if(file.exists()) {
+                    try {
+                        holder.leftMsgPicture.setImageDrawable(ImageFormatConverter.bytes2Drawable(FileUtils.toByteArray(file)));
+                        //holder.rightMsgPicture.setImageBitmap(FormatTools.bytes2Bitmap(FileUtils.toByteArray(new File(Utils.getDataFilesPath(context), "images" + File.separator + msg.getContent()))));
+                        holder.leftMsgPicture.setOnClickListener((v) -> viewPicture(context, file.getAbsolutePath()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    holder.leftMsgPicture.setBackgroundResource(R.drawable.white);
                 }
-                holder.leftMsgPicture.setOnClickListener((v) -> viewPicture(context, file.getAbsolutePath()));
                 holder.leftMsgPicture.setOnLongClickListener((var0) -> {
                     more(msg, msg.getContentType());
                     return true;
@@ -364,12 +368,16 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                 holder.rightMsgFile.setVisibility(View.GONE);
                 holder.rightLayoutInside.setVisibility(View.GONE);
                 File file = new File(DataFiles.IMAGES_DIR, msg.getContent());
-                try {
-                    holder.rightMsgPicture.setImageDrawable(ImageFormatConverter.bytes2Drawable(FileUtils.toByteArray(file)));
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if(file.exists()) {
+                    try {
+                        holder.rightMsgPicture.setImageDrawable(ImageFormatConverter.bytes2Drawable(FileUtils.toByteArray(file)));
+                        holder.rightMsgPicture.setOnClickListener((v) -> viewPicture(context, file.getAbsolutePath()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    holder.rightMsgPicture.setBackgroundResource(R.drawable.white);
                 }
-                holder.rightMsgPicture.setOnClickListener((v) -> viewPicture(context, file.getAbsolutePath()));
                 holder.rightMsgPicture.setOnLongClickListener((var0) -> {
                     more(msg, msg.getContentType());
                     return true;

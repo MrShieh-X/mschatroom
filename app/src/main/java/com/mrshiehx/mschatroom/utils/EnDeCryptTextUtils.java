@@ -52,7 +52,7 @@ public class EnDeCryptTextUtils {
         cipher.init(Cipher.ENCRYPT_MODE, deskey);
         byte[] cipherText = cipher.doFinal(txt.getBytes());
         for (int n = 0; n < cipherText.length; n++) {
-            String stmp = (java.lang.Integer.toHexString(cipherText[n] & 0XFF));
+            String stmp = (Integer.toHexString(cipherText[n] & 0XFF));
 
             if (stmp.length() == 1) {
                 sb.append("0" + stmp);

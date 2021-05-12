@@ -1,5 +1,9 @@
 # Update Logs
-Currently, the latest version is 1.3, which was updated on May 10, 2021.
+Currently, the latest version is 1.3.1, which was updated on May 12, 2021.
+
+## 1.3.1 (May 12, 2021)
+- Fixed the problem that files could not be sent.
+- After the received or sent picture is deleted, it will be displayed in white.
 
 ## 1.3 (May 10, 2021)
 - The server is provided, you can install and use it directly (download from [here](https://github.com/MrShieh-X/mschatroom/releases), not in the source code).

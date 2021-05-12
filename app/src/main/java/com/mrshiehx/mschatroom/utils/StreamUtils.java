@@ -58,12 +58,12 @@ public class StreamUtils {
     }
 
     public static void hexWrite(byte[] bytes, File file) throws IOException {
-        if (!file.exists()) {
-            file.createNewFile();
-        }
-
         if(!file.getParentFile().exists()){
             file.getParentFile().mkdirs();
+        }
+
+        if (!file.exists()) {
+            file.createNewFile();
         }
         FileOutputStream fop = new FileOutputStream(file);
         fop.write(bytes);
@@ -95,14 +95,14 @@ public class StreamUtils {
     }
 
     public static void bytes2File(byte[] bytes, File file) throws IOException {
+        if(!file.getParentFile().exists()){
+            file.getParentFile().mkdirs();
+        }
         if (!file.exists()) {
             file.createNewFile();
         }
 
-        if(!file.getParentFile().exists()){
-            file.getParentFile().mkdirs();
-        }
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        FileOutputStream fileOutputStream = new FileOutputStream(file,false);
         fileOutputStream.write(bytes, 0, bytes.length);
         fileOutputStream.flush();
         fileOutputStream.close();

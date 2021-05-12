@@ -682,7 +682,7 @@ public class StartActivity extends Activity {
     }
 
     void loadChats(AccountUtils au) {
-        File chatsFile = com.mrshiehx.mschatroom.shared_variables.DataFiles.CHATS_FILE;
+        File chatsFile = DataFiles.CHATS_FILE;
         if (chatsFile.exists()) {
             newLog(getString(R.string.loadinglog_start_load_chats));
             Gson gson = new Gson();

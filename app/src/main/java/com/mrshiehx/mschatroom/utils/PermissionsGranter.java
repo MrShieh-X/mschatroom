@@ -87,7 +87,7 @@ public class PermissionsGranter {
     }
 
     public void onActivityResult(){
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             int i = ContextCompat.checkSelfPermission(activity, Variables.PERMISSIONS[0]);
             if (i != PackageManager.PERMISSION_GRANTED) {
                 showDialogTipUserGoToAppSettting();

@@ -78,7 +78,7 @@ public class ChatScreen extends AppCompatActivity {
     NetworkStateReceiver myReceiver;
     File chatFile;
     List<MessageItem> messageItemList = new ArrayList<>();
-    boolean canLogin;
+    Boolean canLogin=null;
     File tempPng;
     private Uri imageUri;
     ProgressDialog sendingPicture,sendingFile;
@@ -677,6 +677,17 @@ public class ChatScreen extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if(canLogin==null){
+            new Thread(() -> {
+                Looper.prepare();
+                try {
+                    canLogin = GetAccountUtils.checkCanLogin(Utils.getAccountUtils(), context);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Looper.loop();
+            }).start();
+        }
         if (Variables.COMMUNICATOR != null) {
             Variables.COMMUNICATOR.setContext(context);
         } else {
@@ -747,6 +758,7 @@ public class ChatScreen extends AppCompatActivity {
     }
 
     void init() {
+        messageItemList=new ArrayList<MessageItem>();
         if (chatFile.exists()) {
             try {
                 String content = FileUtils.getString(chatFile);
@@ -891,8 +903,10 @@ public class ChatScreen extends AppCompatActivity {
             showFileDetailsDialog((FileMessageItem)var0);
         });
 
-        recycler_view.setAdapter(adapter);
-        recycler_view.scrollToPosition(messageItemList.size() - 1);
+        runOnUiThread(()->{
+            recycler_view.setAdapter(adapter);
+            recycler_view.scrollToPosition(messageItemList.size() - 1);
+        });
     }
 
     void freshAndKeepLocation(){
@@ -1045,7 +1059,6 @@ public class ChatScreen extends AppCompatActivity {
             }
         };
         Variables.COMMUNICATOR.sendCommand(ServerCommands.downloadFile(millis), (content) -> {
-            //System.out.println("fuck1020"+content);
             if (!TextUtils.isEmpty(content)) {
                 File file=new File(DataFiles.FILES_DIR,millis);
                 try {

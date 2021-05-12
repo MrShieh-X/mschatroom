@@ -352,10 +352,8 @@ public class Communicator {
                         List<OnServerReturned>onServerReturnedList=new ArrayList<>(commands.values());
                         int indexOf=ids.indexOf(id);
                         if(indexOf!=-1){
-                            //System.out.println("fuckfuckfuck1:"+String.valueOf());
                             onServerReturnedList.get(indexOf).execute(content);
                             commands.remove(id);
-                            //System.out.println("fuckfuckfuck2:"+String.valueOf(commands.size()));
                         }
                     }
                 }

@@ -12,8 +12,9 @@ Anyone can take advices of this application to us.
 
 ## Version
 The latest version: <br/>
-<b>1.3 (May 10, 2021) (Corresponding to server 1.3)</b><br/>
+<b>1.3.1 (May 12, 2021) (Corresponding to server 1.3)</b><br/>
 Historical version: <br/>
+<b>1.3.1 (May 12, 2021) (Corresponding to server 1.3)</b><br/>
 <b>1.3 (May 10, 2021) (Corresponding to server 1.3)</b><br/>
 <b>1.2.1 (Apr. 15, 2021) (Corresponding to server 1.2)</b><br/>
 <b>1.2 (Apr. 14, 2021) (Corresponding to server 1.2)</b><br/>

@@ -209,7 +209,7 @@ public class PictureViewerScreen extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         //权限管理
         if (requestCode == 123) {
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 // 检查该权限是否已经获取
                 int i = ContextCompat.checkSelfPermission(this, permissions[0]);
                 // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
