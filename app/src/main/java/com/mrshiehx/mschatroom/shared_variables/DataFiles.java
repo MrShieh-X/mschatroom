@@ -13,7 +13,7 @@ public class DataFiles {
     public static final File IMAGES_DIR = new File(Utils.getDataFilesPath(MSChatRoom.getContext()), "images");
     public static final File CHATS_DIR = new File(Utils.getDataFilesPath(MSChatRoom.getContext()), "chats");
     public static final File CHAT_AVATARS_DIR = new File(Utils.getDataFilesPath(MSChatRoom.getContext()), "chat_avatars");
-    public static final File INFORMATION_DIR = new File(Utils.getDataFilesPath(MSChatRoom.getContext()), "information");
+    public static final File INFORMATION_DIR = new File(Utils.getDataFilesPath(MSChatRoom.getContext()), "informations");
     public static final File CHATS_FILE = new File(Utils.getDataFilesPath(MSChatRoom.getContext()), "chats.json");
     public static final File INTERNAL_DATA_DIR = new File(Environment.getExternalStorageDirectory(), "MSChatRoom");
     public static final File PICTURES_DIR = new File(INTERNAL_DATA_DIR, "Pictures");

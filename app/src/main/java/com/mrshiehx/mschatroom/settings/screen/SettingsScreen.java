@@ -173,10 +173,7 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                                 }
                             }
                         }
-                        File file;
-                        //if (sharedPreferences.getInt(Variables.SHARED_PREFERENCE_LOGIN_METHOD, 0) != 1) {
-                        //account
-                        file = new File(Utils.getDataFilesPath(context), "avatar_" + getAccountEncrypted())/*EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_LOGIN_INFORMATION,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0],Variables.TEXT_ENCRYPTION_KEY))*/;
+                        File file = new File(Utils.getDataFilesPath(context), "avatar_" + getAccountEncrypted())/*EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_LOGIN_INFORMATION,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0],Variables.TEXT_ENCRYPTION_KEY))*/;
                         /*} else {
                             //email
                             file = new File(Utils.getDataFilesPath(context), "avatar_" + getEmailEncrypted()*//*EnDeCryptTextUtils.encrypt(EnDeCryptTextUtils.decrypt(sharedPreferences.getString(Variables.SHARED_PREFERENCE_EMAIL_AND_PASSWORD,""),Variables.TEXT_ENCRYPTION_KEY).split(Variables.SPLIT_SYMBOL)[0],Variables.TEXT_ENCRYPTION_KEY)*//*);
@@ -191,13 +188,10 @@ public class SettingsScreen extends AppCompatPreferenceActivity implements Share
                                 e.printStackTrace();
                             }
                         }
-                        try {
-                            AccountInformationStorager.deleteAccount();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        Utils.startActivity(context, StartActivity.class);
+
+                        AccountInformationStorager.deleteAccount();
                         finish();
+                        Utils.startActivity(context, StartActivity.class);
                     }
                 });
                 dialog.show();

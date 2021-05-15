@@ -943,10 +943,10 @@ public class Utils {
     public static JSONArray jsonArrayRemove(JSONArray jsonArray, int index) {
         JSONArray mJsonArray = new JSONArray();
         if (index < 0)
-            return mJsonArray;
+            return jsonArray;
 
         if (index > jsonArray.length())
-            return mJsonArray;
+            return jsonArray;
 
         for (int i = 0; i < index; i++) {
             try {

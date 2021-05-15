@@ -109,7 +109,7 @@
     <string name="dialog_exception_failed_to_downloadavatar">下载头像失败</string>
     <string name="dialog_no_login_message">未登录账户。您想现在登录吗？</string>
     <string name="toast_no_user_information">无用户信息</string>
-    <string name="toast_account_insufficient_length_or_too_long">请输入一个四到二十位的密码</string>
+    <string name="toast_account_insufficient_length_or_too_long">请输入一个四到二十位的账号</string>
     <string name="toast_failed_to_changeavatar">更换头像失败</string>
     <string name="toast_successfully_changed_avatar">更换头像成功</string>
     <string name="toast_login_retry">请登录后重试</string>

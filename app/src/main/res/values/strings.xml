@@ -239,7 +239,7 @@
     <string name="toast_failed_reset_password">Failed to reset password</string>
     <string name="toast_account_not_exist">Account does not exist</string>
     <string name="toast_successfully_reset_password">Password reset successfully</string>
-    <string name="toast_account_insufficient_length_or_too_long">Please enter an 4-20 digit account</string>
+    <string name="toast_account_insufficient_length_or_too_long">Please enter a 4-20 digit account</string>
     <string name="toast_no_user_information">No user information</string>
     <string name="toast_failed_to_changeavatar">Failed to change avatar</string>
     <string name="toast_successfully_changed_avatar">Avatar changed successfully</string>

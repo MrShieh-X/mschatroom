@@ -139,7 +139,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                 File file2 = new File(DataFiles.INFORMATION_DIR, emailOrAccountOfChattingWithManEncrypted+".json");
                 if (file2.exists()) {
                     try {
-                        UserInformation list = UserInformationUtils.read(context, FileUtils.getFileBytes(file2));
+                        UserInformation list = UserInformationUtils.read(context, FileUtils.toByteArray(file2));
                         nickname = list.nameContent;
                         gender = list.genderContent;
                         whatsup = list.whatsupContent;
@@ -501,15 +501,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
             alertDialog.setNeutralButton(R.string.dialog_view_or_modify_avatar_operation_view, (var0, var1) -> context.startActivity(new Intent(context, PictureViewerScreen.class).putExtra("bytes", ImageFormatConverter.drawable2Bytes(avatar))));
         }
         alertDialog.setTitle(name);
-        alertDialog.setMessage(String.format(context.getString(R.string.dialog_user_information_message), eoa, gender.equals("male") ? context.getString(R.string.preference_account_gender_male) : ((gender.equals("female") ? context.getString(R.string.preference_account_gender_female) : context.getString(R.string.preference_account_gender_summary))), !TextUtils.isEmpty(whatsup) ? whatsup : context.getString(R.string.preference_account_whatsup_summary)));
+        alertDialog.setMessage(String.format(context.getString(R.string.dialog_user_information_message), eoa, Utils.valueOf(gender).equals("male") ? context.getString(R.string.preference_account_gender_male) : ((Utils.valueOf(gender).equals("female") ? context.getString(R.string.preference_account_gender_female) : context.getString(R.string.preference_account_gender_summary))), !TextUtils.isEmpty(whatsup) ? whatsup : context.getString(R.string.preference_account_whatsup_summary)));
         alertDialog.show();
     }
 
     void viewPicture(Context context, String path) {
         Intent intent = new Intent();
         intent.setData(Uri.parse("mscr://picture_viewer/view?localPath=" + path));
-        context.startActivity(intent);
-    }
+        context.startActivity(intent);    }
 
     /*void more(MessageItem messageItem){
         final CharSequence[] items = {context.getString(R.string.message_options_delete)};

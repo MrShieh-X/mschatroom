@@ -37,30 +37,25 @@
         <activity
             android:name=".chat.screen.ChatScreen"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:label="@string/activity_chat_screen_name">
-        </activity>
+            android:label="@string/activity_chat_screen_name"/>
         <activity
             android:name=".login.screen.LoginScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
-            android:label="@string/activity_login_screen_name">
-        </activity>
+            android:label="@string/activity_login_screen_name"/>
         <activity
             android:name=".register.screen.RegisterScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:windowSoftInputMode="stateAlwaysHidden|adjustResize"
-            android:label="@string/activity_register_screen_name">
-        </activity>
+            android:label="@string/activity_register_screen_name"/>
         <activity
             android:name=".settings.screen.SettingsScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
-            android:label="@string/activity_settings_screen_name">
-        </activity>
+            android:label="@string/activity_settings_screen_name"/>
         <activity
             android:name=".reset_password.screen.ResetPasswordScreen1"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_reset_password_name"
-            android:windowSoftInputMode="stateAlwaysHidden|adjustResize">
-        </activity>
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize"/>
         <activity
             android:name=".reset_password.screen.ResetPasswordScreen2"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
@@ -68,24 +63,20 @@
         <activity
             android:name=".account.profile.screen.AccountProfileScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
-            android:label="@string/activity_modify_user_information_screen_name">
-        </activity>
+            android:label="@string/activity_modify_user_information_screen_name"/>
         <activity
             android:name=".login.by_ec.screen.LoginByEmailAndCAPTCHA"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
             android:label="@string/activity_login_by_ec_screen_name"
-            android:windowSoftInputMode="stateAlwaysHidden|adjustResize">
-        </activity>
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize"/>
         <activity
             android:name=".main.screen.MainScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
-            android:label="@string/app_name">
-        </activity>
+            android:label="@string/app_name"/>
         <activity
             android:name=".about.screen.AboutScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
-            android:label="@string/activity_about_screen_name">
-        </activity>
+            android:label="@string/activity_about_screen_name"/>
         <activity
             android:name=".picture_viewer.screen.PictureViewerScreen"
             android:configChanges="keyboardHidden|orientation|screenSize|locale|layoutDirection"
