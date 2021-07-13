@@ -1,3 +1,4 @@
+# Announcement: Due to insufficient funds of the author and unable to provide corresponding services for this program, the author has decided (short-term) not to provide services for this program. The author will stop sending verification codes and registration services on July 13, 2021, and stop the service of the program on July 18, 2021. You will no longer be able to register, log in, chat, etc.
 # MSChatRoom (MSCR)
 An Android chat application using MINA framework (communication) and MySQL database (account information storage) <br/>
 If you want to use the old version of this application, you need to [download the source code of the target version](https://github.com/MrShieh-X/mschatroom/releases), unzip it, and check its README file.<br/>
